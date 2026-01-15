@@ -7,30 +7,13 @@ import base64
 from io import BytesIO
 from PIL import Image
 
-# --- 1. KONFIGURASI HALAMAN (STANDAR) ---
-st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="🇺🇦")
+# --- 1. KONFIGURASI HALAMAN ---
+st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- 2. CSS DEKORATIF (AKSEN UKRAINA) ---
-# Kita tidak mengubah warna teks/input, hanya menambah garis hiasan.
-# Dijamin AMAN di mode gelap maupun terang.
+# --- 2. CSS & DEKORASI ---
+# Tampilan Standar Bersih (Native) dengan Footer Simpel
 st.markdown("""
     <style>
-    /* Garis Atas Biru & Garis Bawah Kuning di Halaman Utama */
-    [data-testid="stAppViewContainer"] {
-        border-top: 10px solid #0057B7; /* Biru Ukraina */
-        border-bottom: 10px solid #FFDD00; /* Kuning Ukraina */
-    }
-    
-    /* Tombol Utama - Gradasi Ukraina Halus */
-    .stButton button {
-        background: linear-gradient(to right, #0057B7, #0057B7); 
-        color: white !important;
-        border: none;
-    }
-    .stButton button:hover {
-        background: #004494 !important;
-    }
-
     /* Footer Style */
     .custom-footer {
         text-align: center;
@@ -39,13 +22,6 @@ st.markdown("""
         margin-top: 40px;
         padding-top: 20px;
         border-top: 1px solid #eee;
-    }
-    .ukraine-tag {
-        font-weight: bold;
-        color: #0057B7;
-    }
-    .ukraine-tag span {
-        color: #e6c200; /* Kuning agak gelap agar terbaca di putih */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -66,7 +42,16 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 4. DATA LIST OPD ---
+# --- 4. FUNGSI DIALOG (POP-UP) ---
+# Ini akan memunculkan kotak di tengah layar setelah submit
+@st.dialog("✅ Data Berhasil Disimpan")
+def show_success_dialog(nama_admin):
+    st.write(f"Terimakasih **{nama_admin}** sudah mengisi.")
+    st.info("👉 **Segera konfirmasi ke PIC Bagian Organisasi.**")
+    if st.button("Tutup"):
+        st.rerun()
+
+# --- 5. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -94,15 +79,10 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-# --- 5. TAMPILAN APLIKASI ---
+# --- 6. TAMPILAN APLIKASI ---
 
-# Judul dengan Bendera
-col_title1, col_title2 = st.columns([1, 15])
-with col_title1:
-    st.write("## 🇺🇦") # Bendera Kecil di kiri
-with col_title2:
-    st.title("Form Surat Perintah Tugas")
-
+# Judul (Standar Tanpa Bendera)
+st.title("Form Surat Perintah Tugas")
 st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
 st.write("---")
 
@@ -163,6 +143,7 @@ with st.form("spt_form", clear_on_submit=False):
     st.header("IV. Tanda Tangan")
     st.caption("Silakan tanda tangan pada area di bawah ini:")
     
+    # Canvas
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
@@ -175,11 +156,11 @@ with st.form("spt_form", clear_on_submit=False):
     )
 
     st.write("")
-    # Tombol submit
     submit_button = st.form_submit_button(label="Kirim Data SPT", type="primary")
 
-# --- 6. PROSES VALIDASI & KIRIM ---
+# --- 7. PROSES VALIDASI & KIRIM ---
 if submit_button:
+    # A. Validasi
     if not opd_final:
         st.error("Nama OPD belum dipilih.")
         st.stop()
@@ -199,6 +180,7 @@ if submit_button:
         st.error("Tanda tangan belum diisi.")
         st.stop()
 
+    # B. Kirim
     try:
         with st.spinner('Sedang mengirim data...'):
             img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
@@ -222,20 +204,24 @@ if submit_button:
                     valueInputOption="USER_ENTERED", 
                     body={'values': row_data}
                 ).execute()
-            
-                st.success(f"Berhasil! Data SPT {nama} telah tersimpan.")
+                
+                # URUTAN SUKSES:
+                # 1. Balon Keluar
                 st.balloons()
+                
+                # 2. Munculkan Dialog Box
+                show_success_dialog(nama)
+                
             else:
                 st.error("Gagal terhubung ke Database.")
 
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
 
-# --- Footer dengan Dukungan Ukraine ---
+# --- Footer ---
 st.markdown("---")
 st.markdown("""
 <div class="custom-footer">
-    © 2026 Tim Anjab Bagor Muaro Jambi<br>
-    <span class="ukraine-tag">#StandWith<span>Ukraine</span> 🇺🇦</span>
+    Made in Love ❤️ oleh Tim Anjab Bagor Muaro Jambi
 </div>
 """, unsafe_allow_html=True)
