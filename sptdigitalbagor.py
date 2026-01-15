@@ -7,74 +7,10 @@ import base64
 from io import BytesIO
 from PIL import Image
 
-# --- 1. KONFIGURASI HALAMAN ---
+# --- 1. KONFIGURASI HALAMAN (STANDAR) ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- 2. CSS "ANTI-ERROR" (STANDAR BERSIH) ---
-st.markdown("""
-    <style>
-    /* A. PAKSA BACKGROUND HALAMAN JADI PUTIH BERSIH */
-    [data-testid="stAppViewContainer"] {
-        background-color: #ffffff !important;
-    }
-    
-    /* B. WARNA TEKS UTAMA: HITAM */
-    h1, h2, h3, h4, p, div, label, span {
-        color: #000000 !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    }
-    
-    /* C. PERBAIKAN UTAMA: MENU DROPDOWN (YANG TADI HITAM) */
-    /* Ini memaksa latar belakang daftar pilihan menjadi PUTIH */
-    ul[data-baseweb="menu"] {
-        background-color: #ffffff !important;
-        border: 1px solid #cccccc !important;
-    }
-    /* Ini memaksa teks di dalam pilihan menjadi HITAM */
-    li[data-baseweb="option"] {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-    }
-    /* Ini memberi warna abu-abu muda saat mouse diarahkan ke pilihan (Hover) */
-    li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] {
-        background-color: #f0f0f0 !important;
-        color: #000000 !important;
-    }
-    
-    /* D. KOTAK INPUT (TEXT BOX) */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border: 1px solid #999999 !important; /* Garis tepi abu-abu tegas */
-        border-radius: 4px !important;
-    }
-    
-    /* E. TOMBOL KIRIM */
-    .stButton button {
-        background-color: #000000 !important; /* Tombol Hitam */
-        color: #ffffff !important; /* Teks Putih */
-        border-radius: 5px;
-        font-weight: bold;
-        width: 100%;
-        border: none;
-    }
-    .stButton button:hover {
-        background-color: #333333 !important; /* Sedikit terang saat hover */
-    }
-
-    /* F. FOOTER */
-    .custom-footer {
-        text-align: center;
-        color: #666666 !important;
-        font-size: 0.85rem;
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid #eeeeee;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- 3. KONEKSI GOOGLE SHEETS ---
+# --- 2. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
 def get_sheets_service():
     try:
@@ -90,7 +26,7 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 4. DATA LIST OPD ---
+# --- 3. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -118,109 +54,107 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-# --- 5. TAMPILAN APLIKASI ---
+# --- 4. TAMPILAN APLIKASI (STANDAR) ---
 
-st.title("FORM SURAT TUGAS")
-st.caption("Pendataan Admin OPD - Pemerintah Kab. Muaro Jambi")
+st.title("Form Surat Perintah Tugas")
+st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
 st.write("---")
 
-# Dummy Selector (Label Hidden agar rapi)
-st.caption("Jenis Layanan (Otomatis):")
+# Dummy Selector (Tampilan Saja)
 st.selectbox(
-    "Label Hidden", 
-    ["SURAT PERINTAH TUGAS (SPT) - ADMIN OPD"], 
-    disabled=True,
-    label_visibility="collapsed"
+    "Jenis Layanan", 
+    ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], 
+    disabled=True
 )
 
 st.write("") 
 
 # --- BAGIAN I: IDENTITAS OPD ---
-st.subheader("I. UNIT KERJA")
+st.header("I. Unit Kerja")
 
-# Selectbox OPD
+# Selectbox OPD (Di luar form agar interaktif)
 opsi_opd_terpilih = st.selectbox(
-    "1. Pilih Unit Kerja / OPD", 
+    "Pilih Unit Kerja / OPD", 
     [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"],
 )
 
-# Input Manual
+# Logic Manual Input
 opd_manual = ""
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
-    opd_manual = st.text_input("   ➥ Tuliskan Nama OPD Anda:")
+    opd_manual = st.text_input("Tuliskan Nama Unit Kerja / OPD Anda:")
 
-# Final Variable
+# Variable Final OPD
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_final = opd_manual
 else:
     opd_final = opsi_opd_terpilih
 
-# --- FORM UTAMA ---
+# --- BAGIAN FORM UTAMA ---
 with st.form("spt_form", clear_on_submit=False):
     
-    st.write("---")
-    st.subheader("II. DATA ADMIN (PENERIMA TUGAS)")
+    st.write("")
+    st.header("II. Data Admin (Penerima Tugas)")
     
     col1, col2 = st.columns(2)
     with col1:
-        nama = st.text_input("2. Nama Lengkap (Beserta Gelar)")
-        pangkat = st.text_input("4. Pangkat / Golongan")
-        no_hp = st.text_input("6. No. Handphone (WA)")
+        nama = st.text_input("Nama Lengkap (Beserta Gelar)")
+        pangkat = st.text_input("Pangkat / Golongan")
+        no_hp = st.text_input("No. Handphone (WA)")
     with col2:
-        nip = st.text_input("3. NIP (18 Digit Angka)", max_chars=18)
-        jabatan = st.text_input("5. Jabatan")
-        email = st.text_input("7. Alamat E-mail")
+        nip = st.text_input("NIP Admin (18 Digit)", max_chars=18)
+        jabatan = st.text_input("Jabatan")
+        email = st.text_input("Alamat E-mail")
 
     st.write("---")
-    st.subheader("III. DATA ATASAN LANGSUNG")
+    st.header("III. Data Atasan Langsung")
     
     col3, col4 = st.columns(2)
     with col3:
-        nama_atasan = st.text_input("1. Nama Atasan (Beserta Gelar)")
-        pangkat_atasan = st.text_input("3. Pangkat / Golongan Atasan")
+        nama_atasan = st.text_input("Nama Atasan (Beserta Gelar)")
+        pangkat_atasan = st.text_input("Pangkat / Golongan Atasan")
     with col4:
-        nip_atasan = st.text_input("2. NIP Atasan (18 Digit Angka)", max_chars=18)
-        jabatan_atasan = st.text_input("4. Jabatan Atasan")
+        nip_atasan = st.text_input("NIP Atasan (18 Digit)", max_chars=18)
+        jabatan_atasan = st.text_input("Jabatan Atasan")
 
     st.write("---")
-    st.subheader("IV. TANDA TANGAN")
-    st.caption("Silakan tanda tangan pada kotak di bawah ini:")
+    st.header("IV. Tanda Tangan")
+    st.caption("Silakan tanda tangan pada area di bawah ini:")
     
-    # Canvas
+    # Canvas (Background putih agar kontras dengan tinta hitam)
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
         stroke_color="#000000",
-        background_color="#ffffff", # Latar Canvas Putih
+        background_color="#ffffff", # Tetap putih agar tanda tangan terlihat
         height=180,
-        width=300, # Lebar pas untuk HP
+        width=300, 
         drawing_mode="freedraw",
         key="canvas_admin",
     )
 
     st.write("")
-    submit_button = st.form_submit_button(label="KIRIM DATA", type="primary")
+    submit_button = st.form_submit_button(label="Kirim Data SPT", type="primary")
 
-# --- 6. PROSES VALIDASI & KIRIM ---
+# --- 5. PROSES VALIDASI & KIRIM ---
 if submit_button:
     # A. Validasi
     if not opd_final:
-        st.error("❌ Nama OPD belum dipilih.")
+        st.error("Nama OPD belum dipilih.")
         st.stop()
 
     if not all([nama, nip, pangkat, jabatan, no_hp, email, nama_atasan, nip_atasan, pangkat_atasan, jabatan_atasan]):
-        st.error("❌ Mohon lengkapi semua kolom isian.")
+        st.error("Mohon lengkapi semua kolom isian.")
         st.stop()
 
     if not (nip.isdigit() and len(nip) == 18):
-        st.error("❌ NIP Admin harus 18 digit angka.")
+        st.error("NIP Admin harus 18 digit angka.")
         st.stop()
     if not (nip_atasan.isdigit() and len(nip_atasan) == 18):
-        st.error("❌ NIP Atasan harus 18 digit angka.")
+        st.error("NIP Atasan harus 18 digit angka.")
         st.stop()
 
     if canvas_result.image_data is None or len(canvas_result.json_data["objects"]) == 0:
-        st.error("❌ Tanda tangan belum diisi.")
+        st.error("Tanda tangan belum diisi.")
         st.stop()
 
     # B. Kirim
@@ -248,17 +182,14 @@ if submit_button:
                     body={'values': row_data}
                 ).execute()
             
-                st.success(f"✅ SUKSES! Terima kasih Sdr/i {nama}.")
+                st.success(f"Berhasil! Data SPT {nama} telah tersimpan.")
                 st.balloons()
             else:
-                st.error("Gagal terhubung ke Database Google Sheets.")
+                st.error("Gagal terhubung ke Database.")
 
     except Exception as e:
-        st.error(f"Terjadi kesalahan sistem: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
 
-# --- 7. FOOTER ---
-st.markdown("""
-<div class="custom-footer">
-    Made in Love ❤️ oleh Tim Anjab Bagor Muaro Jambi
-</div>
-""", unsafe_allow_html=True)
+# --- Footer Sederhana ---
+st.markdown("---")
+st.caption("© 2026 Tim Anjab Bagor Muaro Jambi")
