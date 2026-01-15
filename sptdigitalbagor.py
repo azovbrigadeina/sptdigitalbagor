@@ -7,155 +7,97 @@ import base64
 from io import BytesIO
 from PIL import Image
 
-# --- KONFIGURASI HALAMAN ---
+# --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- CUSTOM CSS (PERBAIKAN KONTRAS WARNA) ---
+# --- 2. CSS "ANTI-PECAH" (Desktop & Mobile Friendly) ---
 st.markdown("""
     <style>
-    /* Global Styles */
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #1e293b;
-    }
-
-    /* 1. Main Background */
+    /* A. BACKGROUND UTAMA (Nuansa Ukraina) */
     [data-testid="stAppViewContainer"] {
-        background-color: #f1f5f9;
-        background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0, transparent 50%), 
-                          radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.1) 0, transparent 50%);
+        background: linear-gradient(to bottom, #0057B7 0%, #0057B7 50%, #FFDD00 50%, #FFDD00 100%);
         background-attachment: fixed;
     }
-    
-    /* 2. Main Content Container (Glass-like Card) */
+
+    /* B. KONTAINER PUTIH (Tempat Isi Form) */
     .block-container {
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 3rem 3rem !important;
-        border-radius: 24px;
-        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.05), 
-                    0 0 0 1px rgba(0, 0, 0, 0.02);
-        margin-top: 2rem;
-        max-width: 850px;
-    }
-    
-    /* 3. Typography & Headings */
-    h1 {
-        background: linear-gradient(120deg, #0f172a, #334155);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 2.5rem;
-    }
-    
-    h2, h3 {
-        color: #334155;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-    }
-    
-    p, label, .stMarkdown {
-        color: #475569;
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-    
-    /* 4. Input Fields Styling */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
         background-color: #ffffff;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        color: #1e293b;
-        padding: 0.6rem 0.8rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .stTextInput input:focus, .stSelectbox div[data-baseweb="select"]:focus-within {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-        transform: translateY(-1px);
-    }
-    
-    /* Input Labels */
-    .stTextInput label, .stSelectbox label {
-        color: #334155 !important;
-        font-weight: 600;
-        font-size: 0.875rem;
-        margin-bottom: 0.4rem;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
+        border-radius: 15px;
+        padding: 2rem 2rem !important; /* Padding standar */
+        margin-top: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 700px;
     }
 
-    /* 5. Modern Buttons */
+    /* C. RESPONSIVE MOBILE: Agar di HP tidak terlalu lebar paddingnya */
+    @media (max-width: 576px) {
+        .block-container {
+            padding: 1rem 1rem !important;
+            margin-top: 1rem;
+        }
+    }
+
+    /* D. PAKSA SEMUA TEKS JADI HITAM (Mengatasi Isu Dark Mode) */
+    h1, h2, h3, h4, p, span, div, label {
+        color: #212529 !important;
+    }
+    
+    /* E. PERBAIKAN KOLOM INPUT (Agar teks yang diketik kelihatan) */
+    .stTextInput input, .stSelectbox div, .stNumberInput input {
+        color: #000000 !important;
+        background-color: #f8f9fa !important;
+        border-color: #ced4da !important;
+    }
+    
+    /* F. LABEL DI ATAS INPUT (Judul Kolom) */
+    .stTextInput label, .stSelectbox label {
+        color: #333333 !important;
+        font-weight: 600 !important;
+    }
+
+    /* G. TOMBOL UTAMA */
     .stButton button {
-        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-        color: white;
-        border: none;
-        padding: 0.75rem 0;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1rem;
-        letter-spacing: 0.01em;
-        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 
-                    0 2px 4px -1px rgba(79, 70, 229, 0.1);
-        transition: all 0.2s;
+        background-color: #0057B7 !important;
+        color: white !important;
+        border-radius: 8px;
+        font-weight: bold;
         width: 100%;
+        border: none;
     }
-    
     .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
-        background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+        background-color: #004494 !important;
     }
-    
-    .stButton button:active {
-        transform: translateY(0);
-    }
-    
-    /* 6. Footer (Elegant) */
+
+    /* H. FOOTER */
     .custom-footer {
         text-align: center;
-        margin-top: 5rem;
-        padding-top: 2rem;
-        border-top: 1px dashed #e2e8f0;
-        color: #94a3b8;
-        font-size: 0.875rem;
-        font-weight: 500;
-        letter-spacing: 0.01em;
+        color: #555555 !important;
+        font-weight: bold;
+        font-size: 0.85rem;
+        margin-top: 30px;
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
     }
-    
-    /* Remove default Streamlit chrome */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;} /* Hides the top colored bar for cleaner look */
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- KREDENSIAL GOOGLE SHEETS ---
+# --- 3. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
 def get_sheets_service():
     try:
-        # Check if secrets exist before trying to load
-        if "gcp_service_account" not in st.secrets:
-            st.error("Kredensial GCP tidak ditemukan di st.secrets")
+        if "gcp_service_account" in st.secrets:
+            creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+            return build('sheets', 'v4', credentials=creds)
+        else:
             return None
-            
-        creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-        return build('sheets', 'v4', credentials=creds)
     except Exception as e:
-        st.error(f"Gagal memuat kredensial: {e}")
+        st.error(f"Error Koneksi: {e}")
         return None
 
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- DAFTAR OPD ---
+# --- 4. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -183,20 +125,20 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-# --- JUDUL & DUMMY SELECTOR ---
+# --- 5. LOGIKA APLIKASI ---
+
 st.title("📝 Form Administrasi Surat")
 
-# Dummy Dropdown
+# Dummy Selector (Hanya Tampilan)
 st.selectbox(
-    "Jenis Layanan / Surat (Default System)", 
+    "Jenis Layanan / Surat", 
     ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], 
-    disabled=True,
-    help="Jenis surat terkunci oleh sistem untuk saat ini."
+    disabled=True
 )
 
 st.write("---")
 
-# --- BAGIAN 1: PEMILIHAN OPD ---
+# Bagian I: Pilih OPD (Di Luar Form agar Interaktif)
 st.subheader("I. Identitas Unit Kerja")
 
 opsi_opd_terpilih = st.selectbox(
@@ -206,14 +148,15 @@ opsi_opd_terpilih = st.selectbox(
 
 opd_manual = ""
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
-    opd_manual = st.text_input("   ➥ Tuliskan Nama Unit Kerja / OPD Anda:", placeholder="Contoh: Puskesmas Jambi Kecil")
+    opd_manual = st.text_input("   ➥ Ketik Nama Unit Kerja / OPD Anda:")
 
+# Tentukan Nilai Akhir OPD
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_final = opd_manual
 else:
     opd_final = opsi_opd_terpilih
 
-# --- BAGIAN 2: FORMULIR DATA DIRI ---
+# Bagian Form Utama
 with st.form("spt_form", clear_on_submit=False):
     
     st.write("---")
@@ -221,11 +164,11 @@ with st.form("spt_form", clear_on_submit=False):
     
     col1, col2 = st.columns(2)
     with col1:
-        nama = st.text_input("2. Nama Lengkap (Beserta Gelar)")
+        nama = st.text_input("2. Nama Lengkap (Gelar)")
         pangkat = st.text_input("4. Pangkat / Golongan")
         no_hp = st.text_input("6. No. Handphone (WA)")
     with col2:
-        nip = st.text_input("3. NIP Admin (18 Digit Angka)", max_chars=18)
+        nip = st.text_input("3. NIP Admin (18 Digit)", max_chars=18)
         jabatan = st.text_input("5. Jabatan")
         email = st.text_input("7. Alamat E-mail")
 
@@ -234,23 +177,24 @@ with st.form("spt_form", clear_on_submit=False):
     
     col3, col4 = st.columns(2)
     with col3:
-        nama_atasan = st.text_input("1. Nama Atasan (Beserta Gelar)")
+        nama_atasan = st.text_input("1. Nama Atasan (Gelar)")
         pangkat_atasan = st.text_input("3. Pangkat / Golongan Atasan")
     with col4:
-        nip_atasan = st.text_input("2. NIP Atasan (18 Digit Angka)", max_chars=18)
+        nip_atasan = st.text_input("2. NIP Atasan (18 Digit)", max_chars=18)
         jabatan_atasan = st.text_input("4. Jabatan Atasan")
 
     st.write("---")
     st.subheader("IV. Tanda Tangan")
-    st.caption("Silakan tanda tangan pada kotak di bawah ini:")
+    st.caption("Silakan tanda tangan pada area kotak di bawah ini:")
     
+    # Canvas Tanda Tangan
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
         stroke_color="#000000",
-        background_color="#f8f9fa",
+        background_color="#ffffff", # Latar putih solid untuk canvas
         height=180,
-        width=400,
+        width=300, # Ukuran aman untuk HP
         drawing_mode="freedraw",
         key="canvas_admin",
     )
@@ -258,31 +202,35 @@ with st.form("spt_form", clear_on_submit=False):
     st.write("")
     submit_button = st.form_submit_button(label="Kirim Data", type="primary")
 
-# --- PROSES VALIDASI & PENGIRIMAN ---
+# --- 6. PROSES VALIDASI & KIRIM ---
 if submit_button:
+    # A. Validasi OPD
     if not opd_final:
-        st.error("❌ Nama OPD belum dipilih atau diisi!")
+        st.error("❌ Nama OPD belum dipilih/diisi.")
         st.stop()
 
-    input_wajib = [nama, nip, pangkat, jabatan, no_hp, email, nama_atasan, nip_atasan, pangkat_atasan, jabatan_atasan]
-    if not all(input_wajib):
-        st.error("❌ Mohon lengkapi semua kolom isian data!")
+    # B. Validasi Field Kosong
+    if not all([nama, nip, pangkat, jabatan, no_hp, email, nama_atasan, nip_atasan, pangkat_atasan, jabatan_atasan]):
+        st.error("❌ Mohon lengkapi semua kolom isian.")
         st.stop()
 
+    # C. Validasi Angka NIP
     if not (nip.isdigit() and len(nip) == 18):
-        st.error("❌ NIP Admin tidak valid! Harus 18 digit angka.")
+        st.error("❌ NIP Admin harus 18 digit angka.")
         st.stop()
-        
     if not (nip_atasan.isdigit() and len(nip_atasan) == 18):
-        st.error("❌ NIP Atasan tidak valid! Harus 18 digit angka.")
+        st.error("❌ NIP Atasan harus 18 digit angka.")
         st.stop()
 
+    # D. Validasi Tanda Tangan
     if canvas_result.image_data is None or len(canvas_result.json_data["objects"]) == 0:
-        st.error("❌ Tanda tangan belum diisi!")
+        st.error("❌ Tanda tangan wajib diisi.")
         st.stop()
 
+    # E. Proses Kirim
     try:
         with st.spinner('Sedang mengirim data...'):
+            # Convert Gambar
             img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
             img.thumbnail((300, 150))
             buffered = BytesIO()
@@ -290,8 +238,10 @@ if submit_button:
             img_base64 = base64.b64encode(buffered.getvalue()).decode()
             data_ttd = f"data:image/png;base64,{img_base64}"
 
+            # Timestamp
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
+            # Susun Data (' di depan NIP agar jadi text di Excel)
             row_data = [[
                 now, opd_final, "'" + nip, nama, pangkat, jabatan, no_hp, email, 
                 "'" + nip_atasan, nama_atasan, pangkat_atasan, jabatan_atasan, data_ttd
@@ -305,16 +255,15 @@ if submit_button:
                     body={'values': row_data}
                 ).execute()
             
-                st.success(f"✅ Data Terkirim! Terima kasih {nama}.")
+                st.success(f"✅ Data Berhasil Terkirim! Terima kasih {nama}.")
                 st.balloons()
             else:
-                st.error("Gagal koneksi ke server. Service Sheets tidak tersedia.")
+                st.error("Gagal terhubung ke Database (Cek Secrets).")
 
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Terjadi kesalahan sistem: {e}")
 
-# --- FOOTER BARU (MADE IN LOVE) ---
-st.markdown("---")
+# --- 7. FOOTER ---
 st.markdown("""
 <div class="custom-footer">
     Made in Love ❤️ oleh Tim Anjab Bagor Muaro Jambi
