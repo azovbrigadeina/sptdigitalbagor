@@ -13,53 +13,127 @@ st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon
 # --- CUSTOM CSS (PERBAIKAN KONTRAS WARNA) ---
 st.markdown("""
     <style>
-    /* 1. Background Utama: Gradasi Bendera Ukraina */
+    /* Global Styles */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #1e293b;
+    }
+
+    /* 1. Main Background */
     [data-testid="stAppViewContainer"] {
-        background: linear-gradient(to bottom, #0057B7, #FFDD00);
+        background-color: #f1f5f9;
+        background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0, transparent 50%), 
+                          radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.1) 0, transparent 50%);
+        background-attachment: fixed;
     }
     
-    /* 2. Kontainer Putih di Tengah */
+    /* 2. Main Content Container (Glass-like Card) */
     .block-container {
-        background-color: rgba(255, 255, 255, 0.95); /* Putih hampir solid */
-        border-radius: 15px;
-        padding: 3rem !important;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 3rem 3rem !important;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.05), 
+                    0 0 0 1px rgba(0, 0, 0, 0.02);
         margin-top: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        max-width: 850px;
     }
     
-    /* 3. MEMAKSA SEMUA TEKS JADI HITAM (Override Dark Mode) */
-    h1, h2, h3, h4, h5, h6, p, span, div {
-        color: #000000 !important;
+    /* 3. Typography & Headings */
+    h1 {
+        background: linear-gradient(120deg, #0f172a, #334155);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 2.5rem;
     }
     
-    /* 4. Memaksa Label Input (Judul kolom) jadi Hitam */
+    h2, h3 {
+        color: #334155;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    
+    p, label, .stMarkdown {
+        color: #475569;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    /* 4. Input Fields Styling */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        color: #1e293b;
+        padding: 0.6rem 0.8rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stTextInput input:focus, .stSelectbox div[data-baseweb="select"]:focus-within {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    /* Input Labels */
     .stTextInput label, .stSelectbox label {
-        color: #000000 !important;
-        font-weight: bold;
+        color: #334155 !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    /* 5. Modern Buttons */
+    .stButton button {
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 0;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 
+                    0 2px 4px -1px rgba(79, 70, 229, 0.1);
+        transition: all 0.2s;
+        width: 100%;
     }
     
-    /* 5. Memaksa Kotak Input berwarna Putih & Tulisan di dalamnya Hitam */
-    .stTextInput input {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border: 1px solid #cccccc !important;
+    .stButton button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
     }
     
-    /* 6. Memaksa Dropdown Menu terlihat jelas */
-    div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #cccccc !important;
+    .stButton button:active {
+        transform: translateY(0);
     }
     
-    /* 7. Footer Style */
+    /* 6. Footer (Elegant) */
     .custom-footer {
         text-align: center;
-        color: #333333 !important;
-        font-weight: bold;
-        margin-top: 30px;
-        font-family: sans-serif;
+        margin-top: 5rem;
+        padding-top: 2rem;
+        border-top: 1px dashed #e2e8f0;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        font-weight: 500;
+        letter-spacing: 0.01em;
     }
+    
+    /* Remove default Streamlit chrome */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;} /* Hides the top colored bar for cleaner look */
     </style>
     """, unsafe_allow_html=True)
 
@@ -67,6 +141,11 @@ st.markdown("""
 @st.cache_resource
 def get_sheets_service():
     try:
+        # Check if secrets exist before trying to load
+        if "gcp_service_account" not in st.secrets:
+            st.error("Kredensial GCP tidak ditemukan di st.secrets")
+            return None
+            
         creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
         return build('sheets', 'v4', credentials=creds)
     except Exception as e:
@@ -229,7 +308,7 @@ if submit_button:
                 st.success(f"✅ Data Terkirim! Terima kasih {nama}.")
                 st.balloons()
             else:
-                st.error("Gagal koneksi ke server.")
+                st.error("Gagal koneksi ke server. Service Sheets tidak tersedia.")
 
     except Exception as e:
         st.error(f"Error: {e}")
