@@ -128,7 +128,7 @@ def show_success_dialog(nama_admin, pdf_data):
     
     # TOMBOL DOWNLOAD PDF
     st.download_button(
-        label="📄 Download SPT (PDF)",
+        label="📄 Download SPT (PDF) "Hanya Eksperimental" - Data Sudah Masuk ke Bagor",
         data=pdf_data,
         file_name=f"SPT_{nama_admin.replace(' ', '_')}.pdf",
         mime="application/pdf"
