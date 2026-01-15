@@ -16,11 +16,23 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 FOLDER_DRIVE_ID = "1zfMcewEJEcAiWZfmqF6rDAPSFUIGIlB3"
 
 def upload_to_drive(img_bytes, filename):
-    file_metadata = {'name': filename, 'parents': [FOLDER_DRIVE_ID]}
+    # Metadata file
+    file_metadata = {
+        'name': filename, 
+        'parents': [FOLDER_DRIVE_ID]
+    }
+    
     media = MediaIoBaseUpload(img_bytes, mimetype='image/png')
-    file = drive_service.files().create(body=file_metadata, media_body=media, fields='webViewLink').execute()
+    
+    # Tambahkan supportsAllDrives=True untuk menghindari masalah kuota service account
+    file = drive_service.files().create(
+        body=file_metadata, 
+        media_body=media, 
+        fields='id, webViewLink',
+        supportsAllDrives=True  # Baris krusial
+    ).execute()
+    
     return file.get('webViewLink')
-
 st.title("Form Surat Perintah Tugas")
 st.info("Pendataan Admin OPD SIMONA E-ANJAB-ABK 2026")
 
