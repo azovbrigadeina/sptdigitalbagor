@@ -7,13 +7,18 @@ import base64
 from io import BytesIO
 from PIL import Image
 
+# --- LIBRARY BARU UNTUK PDF ---
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.utils import ImageReader
+
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- 2. CSS & DEKORASI ---
+# --- 2. CSS ---
 st.markdown("""
     <style>
-    /* Footer Style */
     .custom-footer {
         text-align: center;
         color: #666;
@@ -41,15 +46,99 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 4. FUNGSI DIALOG (POP-UP) ---
+# --- 4. FUNGSI GENERATE PDF (SEDERHANA) ---
+def create_pdf(data, signature_img):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    
+    # -- KOP SURAT (SIMPEL) --
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 2 * cm, "PEMERINTAH KABUPATEN MUARO JAMBI")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(width / 2, height - 2.6 * cm, f"OPD: {data['opd'].upper()}")
+    c.line(2*cm, height - 3*cm, width - 2*cm, height - 3*cm) # Garis bawah kop
+
+    # -- JUDUL SURAT --
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(width / 2, height - 4.5 * cm, "SURAT PERINTAH TUGAS")
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(width / 2, height - 5 * cm, "Nomor: 800 / ... / 2026") # Dummy Nomor
+
+    # -- ISI SURAT --
+    y_start = height - 7 * cm
+    c.setFont("Helvetica", 11)
+    
+    text_opening = "Yang bertanda tangan di bawah ini:"
+    c.drawString(2.5 * cm, y_start, text_opening)
+    
+    # Data Atasan
+    c.drawString(3 * cm, y_start - 1*cm, f"Nama   : {data['nama_atasan']}")
+    c.drawString(3 * cm, y_start - 1.6*cm, f"NIP    : {data['nip_atasan']}")
+    c.drawString(3 * cm, y_start - 2.2*cm, f"Jabatan: {data['jabatan_atasan']}")
+
+    # Kalimat Perintah
+    c.drawString(2.5 * cm, y_start - 3.5*cm, "MEMERINTAHKAN / MENUGASKAN KEPADA:")
+
+    # Data Admin (Yang Bertugas)
+    c.drawString(3 * cm, y_start - 4.5*cm, f"Nama   : {data['nama']}")
+    c.drawString(3 * cm, y_start - 5.1*cm, f"NIP    : {data['nip']}")
+    c.drawString(3 * cm, y_start - 5.7*cm, f"Pangkat: {data['pangkat']}")
+    c.drawString(3 * cm, y_start - 6.3*cm, f"Jabatan: {data['jabatan']}")
+    c.drawString(3 * cm, y_start - 6.9*cm, f"Status : {data['status_asn']}")
+
+    # Keperluan
+    c.drawString(2.5 * cm, y_start - 8.5*cm, "Untuk:")
+    c.drawString(3 * cm, y_start - 9.1*cm, "1. Bertugas sebagai ADMIN OPD pada Aplikasi SIMONA / E-ANJAB.")
+    c.drawString(3 * cm, y_start - 9.7*cm, "2. Melaksanakan perintah ini dengan seksama dan tanggung jawab.")
+
+    # -- TANDA TANGAN --
+    # Posisi di kanan bawah
+    y_sign = y_start - 14*cm
+    c.drawString(11 * cm, y_sign, "Ditetapkan di: Sengeti")
+    c.drawString(11 * cm, y_sign - 0.6*cm, f"Pada Tanggal : {datetime.datetime.now().strftime('%d-%m-%Y')}")
+    
+    c.drawString(11 * cm, y_sign - 2*cm, "Yang Memberi Perintah,")
+    
+    # Memproses Gambar Tanda Tangan agar masuk ke PDF
+    if signature_img:
+        # Resize gambar ttd agar pas
+        signature_img.thumbnail((150, 80))
+        img_reader = ImageReader(signature_img)
+        c.drawImage(img_reader, 11 * cm, y_sign - 5*cm, width=4*cm, height=2*cm, mask='auto')
+
+    c.drawString(11 * cm, y_sign - 6*cm, f"({data['nama']})") # Nama Admin Tanda Tangan
+    c.setFont("Helvetica", 9)
+    c.drawString(11 * cm, y_sign - 6.5*cm, "Dokumen ini ditandatangani secara elektronik")
+
+    # -- SIMPAN --
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# --- 5. FUNGSI DIALOG ---
 @st.dialog("✅ Data Berhasil Disimpan")
-def show_success_dialog(nama_admin):
-    st.write(f"Terimakasih **{nama_admin}** sudah mengisi.")
-    st.info("👉 **Segera konfirmasi ke PIC Bagian Organisasi.**")
-    if st.button("Tutup"):
+def show_success_dialog(nama_admin, pdf_data):
+    st.write(f"Terimakasih **{nama_admin}**.")
+    st.success("Data telah terkirim ke Server Bagian Organisasi.")
+    
+    st.write("---")
+    st.write("👇 **Silakan Unduh Bukti SPT Anda:**")
+    
+    # TOMBOL DOWNLOAD PDF
+    st.download_button(
+        label="📄 Download SPT (PDF)",
+        data=pdf_data,
+        file_name=f"SPT_{nama_admin.replace(' ', '_')}.pdf",
+        mime="application/pdf"
+    )
+    
+    st.write("")
+    if st.button("Tutup & Input Baru"):
         st.rerun()
 
-# --- 5. DATA LIST OPD ---
+# --- 6. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -77,29 +166,18 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-# --- 6. TAMPILAN APLIKASI ---
+# --- 7. TAMPILAN APLIKASI ---
 
-# Judul
 st.title("Form Surat Perintah Tugas")
 st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
 st.write("---")
 
-# Dummy Selector
-st.selectbox(
-    "Jenis Layanan", 
-    ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], 
-    disabled=True
-)
-
+st.selectbox("Jenis Layanan", ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], disabled=True)
 st.write("") 
 
 # --- BAGIAN I: IDENTITAS OPD ---
 st.header("I. Unit Kerja")
-
-opsi_opd_terpilih = st.selectbox(
-    "Pilih Unit Kerja / OPD", 
-    [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"],
-)
+opsi_opd_terpilih = st.selectbox("Pilih Unit Kerja / OPD", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
 
 opd_manual = ""
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
@@ -116,9 +194,8 @@ with st.form("spt_form", clear_on_submit=False):
     st.write("")
     st.header("II. Data Admin (Penerima Tugas)")
     
-    # --- PENAMBAHAN RADIO BUTTON STATUS ASN ---
     status_asn = st.radio("Status ASN:", ["PNS", "PPPK"], horizontal=True)
-    st.write("") # Jarak dikit
+    st.write("")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -145,7 +222,6 @@ with st.form("spt_form", clear_on_submit=False):
     st.header("IV. Tanda Tangan")
     st.caption("Silakan tanda tangan pada area di bawah ini:")
     
-    # Canvas
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
@@ -160,32 +236,35 @@ with st.form("spt_form", clear_on_submit=False):
     st.write("")
     submit_button = st.form_submit_button(label="Kirim Data SPT", type="primary")
 
-# --- 7. PROSES VALIDASI & KIRIM ---
+# --- 8. PROSES VALIDASI & KIRIM ---
 if submit_button:
     # A. Validasi
     if not opd_final:
         st.error("Nama OPD belum dipilih.")
         st.stop()
-
     if not all([nama, nip, pangkat, jabatan, no_hp, email, nama_atasan, nip_atasan, pangkat_atasan, jabatan_atasan]):
         st.error("Mohon lengkapi semua kolom isian.")
         st.stop()
-
     if not (nip.isdigit() and len(nip) == 18):
         st.error("NIP Admin harus 18 digit angka.")
         st.stop()
     if not (nip_atasan.isdigit() and len(nip_atasan) == 18):
         st.error("NIP Atasan harus 18 digit angka.")
         st.stop()
-
     if canvas_result.image_data is None or len(canvas_result.json_data["objects"]) == 0:
         st.error("Tanda tangan belum diisi.")
         st.stop()
 
     # B. Kirim
     try:
-        with st.spinner('Sedang mengirim data...'):
+        with st.spinner('Sedang mengirim & membuat PDF...'):
+            # 1. Proses Gambar Tanda Tangan
             img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+            
+            # Klon gambar untuk PDF (resolusi asli lebih baik)
+            img_for_pdf = img.copy()
+
+            # Proses untuk Excel (Resize kecil)
             img.thumbnail((300, 150))
             buffered = BytesIO()
             img.save(buffered, format="PNG")
@@ -194,24 +273,26 @@ if submit_button:
 
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # --- PENYESUAIAN URUTAN DATA ---
-            # Urutan di Excel nanti:
-            # 1. Waktu | 2. OPD | 3. STATUS ASN | 4. NIP | 5. Nama ... dst
+            # 2. Susun Data Dictionary untuk PDF
+            data_spt = {
+                'opd': opd_final,
+                'status_asn': status_asn,
+                'nama': nama,
+                'nip': nip,
+                'pangkat': pangkat,
+                'jabatan': jabatan,
+                'nama_atasan': nama_atasan,
+                'nip_atasan': nip_atasan,
+                'jabatan_atasan': jabatan_atasan
+            }
+
+            # 3. Generate PDF
+            pdf_file = create_pdf(data_spt, img_for_pdf)
+
+            # 4. Kirim ke Google Sheets
             row_data = [[
-                now, 
-                opd_final, 
-                status_asn, # <-- Data baru masuk di sini
-                "'" + nip, 
-                nama, 
-                pangkat, 
-                jabatan, 
-                no_hp, 
-                email, 
-                "'" + nip_atasan, 
-                nama_atasan, 
-                pangkat_atasan, 
-                jabatan_atasan, 
-                data_ttd
+                now, opd_final, status_asn, "'" + nip, nama, pangkat, jabatan, no_hp, email, 
+                "'" + nip_atasan, nama_atasan, pangkat_atasan, jabatan_atasan, data_ttd
             ]]
             
             if sheets_service:
@@ -222,9 +303,10 @@ if submit_button:
                     body={'values': row_data}
                 ).execute()
                 
-                # URUTAN SUKSES:
                 st.balloons()
-                show_success_dialog(nama)
+                
+                # 5. Tampilkan Dialog dengan Tombol Download
+                show_success_dialog(nama, pdf_file)
                 
             else:
                 st.error("Gagal terhubung ke Database.")
