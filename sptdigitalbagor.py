@@ -16,7 +16,7 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 FOLDER_DRIVE_ID = "1zfMcewEJEcAiWZfmqF6rDAPSFUIGIlB3"
 
 def upload_to_drive(img_bytes, filename):
-    # Metadata file
+    # 1. Metadata file tetap diarahkan ke folder Anda
     file_metadata = {
         'name': filename, 
         'parents': [FOLDER_DRIVE_ID]
@@ -24,16 +24,44 @@ def upload_to_drive(img_bytes, filename):
     
     media = MediaIoBaseUpload(img_bytes, mimetype='image/png')
     
-    # Tambahkan supportsAllDrives=True untuk menghindari masalah kuota service account
+    # 2. Upload file
     file = drive_service.files().create(
         body=file_metadata, 
         media_body=media, 
         fields='id, webViewLink',
-        supportsAllDrives=True  # Baris krusial
+        supportsAllDrives=True
     ).execute()
     
+    file_id = file.get('id')
+
+    # 3. SOLUSI PENTING: Berikan izin ke email pribadi Anda agar file "diakui" oleh folder induk
+    # Ganti 'EMAIL_PRIBADI_ANDA@gmail.com' dengan email asli Anda
+    user_permission = {
+        'type': 'user',
+        'role': 'owner', # Mencoba menjadikan Anda pemilik
+        'emailAddress': 'EMAIL_PRIBADI_ANDA@gmail.com' 
+    }
+    
+    try:
+        # Pindahkan kepemilikan ke Anda agar kuota Service Account tidak terpakai
+        drive_service.permissions().create(
+            fileId=file_id,
+            body=user_permission,
+            transferOwnership=True,
+            supportsAllDrives=True
+        ).execute()
+    except Exception as e:
+        # Jika gagal transfer owner (karena beda domain), minimal jadikan akun Anda editor
+        user_permission['role'] = 'writer'
+        drive_service.permissions().create(
+            fileId=file_id,
+            body=user_permission,
+            supportsAllDrives=True
+        ).execute()
+
     return file.get('webViewLink')
-st.title("Form Surat Perintah Tugas")
+    
+    st.title("Form Surat Perintah Tugas")
 st.info("Pendataan Admin OPD SIMONA E-ANJAB-ABK 2026")
 
 with st.form("spt_form"):
