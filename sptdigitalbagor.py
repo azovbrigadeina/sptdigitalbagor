@@ -10,28 +10,52 @@ from PIL import Image
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- CUSTOM CSS (NUANSA UKRAINA) ---
-# Gradasi Biru ke Kuning pada background, dan kotak putih transparan untuk konten agar tulisan terbaca
+# --- CUSTOM CSS (PERBAIKAN KONTRAS WARNA) ---
 st.markdown("""
     <style>
-    /* Background Utama: Gradasi Bendera Ukraina */
+    /* 1. Background Utama: Gradasi Bendera Ukraina */
     [data-testid="stAppViewContainer"] {
         background: linear-gradient(to bottom, #0057B7, #FFDD00);
     }
     
-    /* Kontainer Utama: Diberi latar putih transparan agar teks terbaca jelas */
+    /* 2. Kontainer Putih di Tengah */
     .block-container {
-        background-color: rgba(255, 255, 255, 0.95);
+        background-color: rgba(255, 255, 255, 0.95); /* Putih hampir solid */
         border-radius: 15px;
         padding: 3rem !important;
         margin-top: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     
-    /* Mengatur warna footer custom */
+    /* 3. MEMAKSA SEMUA TEKS JADI HITAM (Override Dark Mode) */
+    h1, h2, h3, h4, h5, h6, p, span, div {
+        color: #000000 !important;
+    }
+    
+    /* 4. Memaksa Label Input (Judul kolom) jadi Hitam */
+    .stTextInput label, .stSelectbox label {
+        color: #000000 !important;
+        font-weight: bold;
+    }
+    
+    /* 5. Memaksa Kotak Input berwarna Putih & Tulisan di dalamnya Hitam */
+    .stTextInput input {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cccccc !important;
+    }
+    
+    /* 6. Memaksa Dropdown Menu terlihat jelas */
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
+    }
+    
+    /* 7. Footer Style */
     .custom-footer {
         text-align: center;
-        color: #333;
+        color: #333333 !important;
         font-weight: bold;
         margin-top: 30px;
         font-family: sans-serif;
@@ -52,7 +76,7 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- DAFTAR OPD (Tanpa Puskesmas) ---
+# --- DAFTAR OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -83,7 +107,7 @@ list_opd = [
 # --- JUDUL & DUMMY SELECTOR ---
 st.title("📝 Form Administrasi Surat")
 
-# Dummy Dropdown (Skenario Masa Depan)
+# Dummy Dropdown
 st.selectbox(
     "Jenis Layanan / Surat (Default System)", 
     ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], 
@@ -93,21 +117,18 @@ st.selectbox(
 
 st.write("---")
 
-# --- BAGIAN 1: PEMILIHAN OPD (Interaktif) ---
+# --- BAGIAN 1: PEMILIHAN OPD ---
 st.subheader("I. Identitas Unit Kerja")
 
-# Dropdown Pilihan
 opsi_opd_terpilih = st.selectbox(
     "1. Pilih Unit Kerja / OPD", 
     [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"]
 )
 
-# Logic Input Manual
 opd_manual = ""
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_manual = st.text_input("   ➥ Tuliskan Nama Unit Kerja / OPD Anda:", placeholder="Contoh: Puskesmas Jambi Kecil")
 
-# Menentukan variabel final OPD
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_final = opd_manual
 else:
@@ -144,7 +165,6 @@ with st.form("spt_form", clear_on_submit=False):
     st.subheader("IV. Tanda Tangan")
     st.caption("Silakan tanda tangan pada kotak di bawah ini:")
     
-    # Canvas Tanda Tangan
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
@@ -161,18 +181,15 @@ with st.form("spt_form", clear_on_submit=False):
 
 # --- PROSES VALIDASI & PENGIRIMAN ---
 if submit_button:
-    # 1. Validasi OPD
     if not opd_final:
         st.error("❌ Nama OPD belum dipilih atau diisi!")
         st.stop()
 
-    # 2. Validasi Kelengkapan Data
     input_wajib = [nama, nip, pangkat, jabatan, no_hp, email, nama_atasan, nip_atasan, pangkat_atasan, jabatan_atasan]
     if not all(input_wajib):
         st.error("❌ Mohon lengkapi semua kolom isian data!")
         st.stop()
 
-    # 3. Validasi Format NIP
     if not (nip.isdigit() and len(nip) == 18):
         st.error("❌ NIP Admin tidak valid! Harus 18 digit angka.")
         st.stop()
@@ -181,12 +198,10 @@ if submit_button:
         st.error("❌ NIP Atasan tidak valid! Harus 18 digit angka.")
         st.stop()
 
-    # 4. Validasi Tanda Tangan
     if canvas_result.image_data is None or len(canvas_result.json_data["objects"]) == 0:
         st.error("❌ Tanda tangan belum diisi!")
         st.stop()
 
-    # 5. Proses Kirim
     try:
         with st.spinner('Sedang mengirim data...'):
             img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
@@ -198,7 +213,6 @@ if submit_button:
 
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # Kolom dummy SPT juga bisa dimasukkan ke data jika perlu, tapi di sini kita simpan data intinya saja
             row_data = [[
                 now, opd_final, "'" + nip, nama, pangkat, jabatan, no_hp, email, 
                 "'" + nip_atasan, nama_atasan, pangkat_atasan, jabatan_atasan, data_ttd
