@@ -128,7 +128,8 @@ def show_success_dialog(nama_admin, pdf_data):
     
     # TOMBOL DOWNLOAD PDF
     st.download_button(
-        label="📄 Download SPT (PDF) "Hanya Eksperimental" - Data Sudah Masuk ke Bagor",
+        # Perhatikan: Saya pakai tanda petik satu (') di awal dan akhir kalimat
+        label='📄 Download SPT (PDF) "Hanya Eksperimental" - Data Sudah Masuk ke Bagor', 
         data=pdf_data,
         file_name=f"SPT_{nama_admin.replace(' ', '_')}.pdf",
         mime="application/pdf"
@@ -137,7 +138,7 @@ def show_success_dialog(nama_admin, pdf_data):
     st.write("")
     if st.button("Tutup & Input Baru"):
         st.rerun()
-
+        
 # --- 6. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
