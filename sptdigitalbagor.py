@@ -11,7 +11,6 @@ from PIL import Image
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
 # --- 2. CSS & DEKORASI ---
-# Tampilan Standar Bersih (Native) dengan Footer Simpel
 st.markdown("""
     <style>
     /* Footer Style */
@@ -43,7 +42,6 @@ sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
 # --- 4. FUNGSI DIALOG (POP-UP) ---
-# Ini akan memunculkan kotak di tengah layar setelah submit
 @st.dialog("✅ Data Berhasil Disimpan")
 def show_success_dialog(nama_admin):
     st.write(f"Terimakasih **{nama_admin}** sudah mengisi.")
@@ -81,7 +79,7 @@ list_opd = [
 
 # --- 6. TAMPILAN APLIKASI ---
 
-# Judul (Standar Tanpa Bendera)
+# Judul
 st.title("Form Surat Perintah Tugas")
 st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
 st.write("---")
@@ -117,6 +115,10 @@ with st.form("spt_form", clear_on_submit=False):
     
     st.write("")
     st.header("II. Data Admin (Penerima Tugas)")
+    
+    # --- PENAMBAHAN RADIO BUTTON STATUS ASN ---
+    status_asn = st.radio("Status ASN:", ["PNS", "PPPK"], horizontal=True)
+    st.write("") # Jarak dikit
     
     col1, col2 = st.columns(2)
     with col1:
@@ -192,9 +194,24 @@ if submit_button:
 
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
+            # --- PENYESUAIAN URUTAN DATA ---
+            # Urutan di Excel nanti:
+            # 1. Waktu | 2. OPD | 3. STATUS ASN | 4. NIP | 5. Nama ... dst
             row_data = [[
-                now, opd_final, "'" + nip, nama, pangkat, jabatan, no_hp, email, 
-                "'" + nip_atasan, nama_atasan, pangkat_atasan, jabatan_atasan, data_ttd
+                now, 
+                opd_final, 
+                status_asn, # <-- Data baru masuk di sini
+                "'" + nip, 
+                nama, 
+                pangkat, 
+                jabatan, 
+                no_hp, 
+                email, 
+                "'" + nip_atasan, 
+                nama_atasan, 
+                pangkat_atasan, 
+                jabatan_atasan, 
+                data_ttd
             ]]
             
             if sheets_service:
@@ -206,10 +223,7 @@ if submit_button:
                 ).execute()
                 
                 # URUTAN SUKSES:
-                # 1. Balon Keluar
                 st.balloons()
-                
-                # 2. Munculkan Dialog Box
                 show_success_dialog(nama)
                 
             else:
