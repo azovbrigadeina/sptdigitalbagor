@@ -8,9 +8,49 @@ from io import BytesIO
 from PIL import Image
 
 # --- 1. KONFIGURASI HALAMAN (STANDAR) ---
-st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
+st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="🇺🇦")
 
-# --- 2. KONEKSI GOOGLE SHEETS ---
+# --- 2. CSS DEKORATIF (AKSEN UKRAINA) ---
+# Kita tidak mengubah warna teks/input, hanya menambah garis hiasan.
+# Dijamin AMAN di mode gelap maupun terang.
+st.markdown("""
+    <style>
+    /* Garis Atas Biru & Garis Bawah Kuning di Halaman Utama */
+    [data-testid="stAppViewContainer"] {
+        border-top: 10px solid #0057B7; /* Biru Ukraina */
+        border-bottom: 10px solid #FFDD00; /* Kuning Ukraina */
+    }
+    
+    /* Tombol Utama - Gradasi Ukraina Halus */
+    .stButton button {
+        background: linear-gradient(to right, #0057B7, #0057B7); 
+        color: white !important;
+        border: none;
+    }
+    .stButton button:hover {
+        background: #004494 !important;
+    }
+
+    /* Footer Style */
+    .custom-footer {
+        text-align: center;
+        color: #666;
+        font-size: 0.8rem;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    .ukraine-tag {
+        font-weight: bold;
+        color: #0057B7;
+    }
+    .ukraine-tag span {
+        color: #e6c200; /* Kuning agak gelap agar terbaca di putih */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- 3. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
 def get_sheets_service():
     try:
@@ -26,7 +66,7 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 3. DATA LIST OPD ---
+# --- 4. DATA LIST OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -54,13 +94,19 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-# --- 4. TAMPILAN APLIKASI (STANDAR) ---
+# --- 5. TAMPILAN APLIKASI ---
 
-st.title("Form Surat Perintah Tugas")
+# Judul dengan Bendera
+col_title1, col_title2 = st.columns([1, 15])
+with col_title1:
+    st.write("## 🇺🇦") # Bendera Kecil di kiri
+with col_title2:
+    st.title("Form Surat Perintah Tugas")
+
 st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
 st.write("---")
 
-# Dummy Selector (Tampilan Saja)
+# Dummy Selector
 st.selectbox(
     "Jenis Layanan", 
     ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], 
@@ -72,18 +118,15 @@ st.write("")
 # --- BAGIAN I: IDENTITAS OPD ---
 st.header("I. Unit Kerja")
 
-# Selectbox OPD (Di luar form agar interaktif)
 opsi_opd_terpilih = st.selectbox(
     "Pilih Unit Kerja / OPD", 
     [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"],
 )
 
-# Logic Manual Input
 opd_manual = ""
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_manual = st.text_input("Tuliskan Nama Unit Kerja / OPD Anda:")
 
-# Variable Final OPD
 if opsi_opd_terpilih == "Lainnya (Isi Manual)":
     opd_final = opd_manual
 else:
@@ -120,12 +163,11 @@ with st.form("spt_form", clear_on_submit=False):
     st.header("IV. Tanda Tangan")
     st.caption("Silakan tanda tangan pada area di bawah ini:")
     
-    # Canvas (Background putih agar kontras dengan tinta hitam)
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
         stroke_width=2,
         stroke_color="#000000",
-        background_color="#ffffff", # Tetap putih agar tanda tangan terlihat
+        background_color="#ffffff",
         height=180,
         width=300, 
         drawing_mode="freedraw",
@@ -133,11 +175,11 @@ with st.form("spt_form", clear_on_submit=False):
     )
 
     st.write("")
+    # Tombol submit
     submit_button = st.form_submit_button(label="Kirim Data SPT", type="primary")
 
-# --- 5. PROSES VALIDASI & KIRIM ---
+# --- 6. PROSES VALIDASI & KIRIM ---
 if submit_button:
-    # A. Validasi
     if not opd_final:
         st.error("Nama OPD belum dipilih.")
         st.stop()
@@ -157,7 +199,6 @@ if submit_button:
         st.error("Tanda tangan belum diisi.")
         st.stop()
 
-    # B. Kirim
     try:
         with st.spinner('Sedang mengirim data...'):
             img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
@@ -190,6 +231,11 @@ if submit_button:
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
 
-# --- Footer Sederhana ---
+# --- Footer dengan Dukungan Ukraine ---
 st.markdown("---")
-st.caption("© 2026 Tim Anjab Bagor Muaro Jambi")
+st.markdown("""
+<div class="custom-footer">
+    © 2026 Tim Anjab Bagor Muaro Jambi<br>
+    <span class="ukraine-tag">#StandWith<span>Ukraine</span> 🇺🇦</span>
+</div>
+""", unsafe_allow_html=True)
