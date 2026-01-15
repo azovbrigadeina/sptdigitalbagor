@@ -1,14 +1,23 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
+import pandas as pd
 import datetime
+import os
 
-# Judul Aplikasi
+# Konfigurasi Halaman
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered")
-st.title("📝 Form SPT Admin OPD")
-st.subheader("Pemerintah Kabupaten Muaro Jambi")
 
-# 1. Pilihan OPD (Data yang Anda berikan)
+# --- HEADER & DESKRIPSI ---
+st.title("Form Surat Perintah Tugas")
+st.markdown(f"""
+**Formulir ini digunakan untuk mendata petugas yang ditunjuk sebagai Admin Organisasi Perangkat Daerah dalam rangka penginputan Informasi Jabatan ke aplikasi SIMONA E-ANJAB-ABK.** Pendataan ini merupakan tindak lanjut dari Surat Sekretaris Daerah Kabupaten Muaro Jambi Nomor **000.8/040/Org** Tanggal **16 Januari 2026**.
+
+Tujuan utama dari penugasan ini adalah pemenuhan bukti dukung (*evidence*) dalam rangka pemberian persetujuan **Tambahan Penghasilan Pegawai (TPP)** di lingkungan Pemerintah Kabupaten Muaro Jambi.
+""")
+st.write("---")
+
+# --- DATA PILIHAN OPD ---
 list_opd = [
     "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum",
     "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam",
@@ -36,51 +45,70 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Bahar", "RSUD Sungai Gelam"
 ]
 
-with st.form("spt_form"):
-    # Input Data
-    opd_pilihan = st.selectbox("1. Pilih OPD", ["-- Pilih OPD --"] + list_opd)
-    nama = st.text_input("2. Nama Lengkap & Gelar")
-    nip = st.text_input("3. NIP")
-    pangkat = st.text_input("4. Pangkat / Golongan")
-    jabatan = st.text_input("5. Jabatan")
-    no_hp = st.text_input("6. Nomor HP (WhatsApp)")
-    email = st.text_input("7. Alamat E-mail")
+# --- FORM INPUT ---
+with st.form("spt_form", clear_on_submit=True):
+    opd_pilihan = st.selectbox("Pilih Organisasi Perangkat Daerah (OPD)", ["-- Pilih OPD --"] + list_opd)
+    nama = st.text_input("Nama Lengkap & Gelar")
+    nip = st.text_input("NIP (18 Digit)")
+    pangkat = st.text_input("Pangkat / Golongan")
+    jabatan = st.text_input("Jabatan")
+    no_hp = st.text_input("Nomor HP (WhatsApp)")
+    email = st.text_input("Alamat E-mail")
 
-    st.write("---")
-    st.write("### ✍️ Tanda Tangan Digital")
-    st.info("Silakan coret tanda tangan Anda pada kotak di bawah ini.")
+    st.write("### Tanda Tangan Digital")
+    st.caption("Gunakan jari (di HP) atau mouse (di laptop) untuk tanda tangan pada kotak di bawah:")
     
-    # Komponen Tanda Tangan
+    # Komponen Canvas untuk TTD
     canvas_result = st_canvas(
         fill_color="rgba(255, 255, 255, 1)",
-        stroke_width=3,
+        stroke_width=2,
         stroke_color="#000000",
         background_color="#ffffff",
-        height=200,
-        width=400,
+        height=150,
+        width=500,
         drawing_mode="freedraw",
         key="canvas",
     )
 
-    submit_button = st.form_submit_button(label="Kirim Data & Tanda Tangan")
+    submitted = st.form_submit_button("Kirim Data SPT")
 
-if submit_button:
+# --- PROSES SIMPAN ---
+if submitted:
     if opd_pilihan == "-- Pilih OPD --" or not nama or not nip:
-        st.error("Mohon lengkapi Data Utama (OPD, Nama, dan NIP) sebelum mengirim.")
-    elif canvas_result.image_data is None:
-        st.error("Tanda tangan belum diisi!")
+        st.warning("⚠️ Mohon lengkapi OPD, Nama, dan NIP.")
     else:
-        # Proses Simpan (Contoh: Simpan Lokal)
-        st.success(f"Berhasil! Data {nama} dari {opd_pilihan} telah diterima.")
+        # Menyiapkan data untuk disimpan
+        data_baru = {
+            "Waktu": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "OPD": opd_pilihan,
+            "Nama": nama,
+            "NIP": nip,
+            "Pangkat": pangkat,
+            "Jabatan": jabatan,
+            "No HP": no_hp,
+            "Email": email
+        }
         
-        # Konversi tanda tangan ke gambar
-        img_data = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"TTD_{nama}_{timestamp}.png"
-        
-        # Opsi: Tampilkan hasil di aplikasi
-        st.write("Pratinjau Tanda Tangan:")
-        st.image(img_data)
-        
-        # Catatan: Untuk menyimpan ke Cloud atau Database, Anda bisa menambahkan
-        # integrasi API Google Drive atau SQLAlchemy di sini.
+        # Simpan ke CSV (database lokal sederhana)
+        df = pd.DataFrame([data_baru])
+        if not os.path.isfile('data_spt_2026.csv'):
+            df.to_csv('data_spt_2026.csv', index=False)
+        else:
+            df.to_csv('data_spt_2026.csv', mode='a', index=False, header=False)
+            
+        # Simpan Gambar TTD
+        if canvas_result.image_data is not None:
+            img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+            img_ttd.save(f"TTD_{nip}_{datetime.datetime.now().strftime('%H%M%S')}.png")
+
+        st.success(f"✅ Berhasil! Data Admin OPD untuk {nama} telah tersimpan.")
+        st.balloons()
+
+# --- BAGIAN ADMIN (HANYA UNTUK LIHAT DATA) ---
+with st.expander("Lihat Data Terkirim (Khusus Admin)"):
+    if os.path.isfile('data_spt_2026.csv'):
+        view_df = pd.read_csv('data_spt_2026.csv')
+        st.dataframe(view_df)
+        st.download_button("Download Excel (CSV)", view_df.to_csv(index=False), "data_spt_2026.csv", "text/csv")
+    else:
+        st.info("Belum ada data yang masuk.")
