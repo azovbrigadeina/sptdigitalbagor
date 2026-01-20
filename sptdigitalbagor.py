@@ -121,7 +121,7 @@ def create_pdf(data, signature_img):
 @st.dialog("✅ Data Berhasil Disimpan")
 def show_success_dialog(nama_admin, pdf_data):
     st.write(f"Terimakasih **{nama_admin}**.")
-    st.success("Data telah terkirim ke Server Bagian Organisasi.")
+    st.success("Data telah terkirim ke DB Bagian Organisasi.")
     
     st.write("---")
     st.write("👇 **Silakan Unduh Bukti SPT Anda:**")
@@ -129,7 +129,7 @@ def show_success_dialog(nama_admin, pdf_data):
     # TOMBOL DOWNLOAD PDF
     st.download_button(
         # Perhatikan: Saya pakai tanda petik satu (') di awal dan akhir kalimat
-        label='📄 Download SPT (PDF) "Hanya Eksperimental" - Data Sudah Masuk ke Bagor', 
+        label='📄 Download SPT (PDF) "Hanya Eksperimental"', 
         data=pdf_data,
         file_name=f"SPT_{nama_admin.replace(' ', '_')}.pdf",
         mime="application/pdf"
@@ -170,7 +170,7 @@ list_opd = [
 # --- 7. TAMPILAN APLIKASI ---
 
 st.title("Form Surat Perintah Tugas")
-st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
+st.markdown("Pendataan Admin OPD")
 st.write("---")
 
 st.selectbox("Jenis Layanan", ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], disabled=True)
@@ -220,7 +220,7 @@ with st.form("spt_form", clear_on_submit=False):
         jabatan_atasan = st.text_input("Jabatan Atasan")
 
     st.write("---")
-    st.header("IV. Tanda Tangan")
+    st.header("IV. Tanda Tangan Atasan")
     st.caption("Silakan tanda tangan pada area di bawah ini:")
     
     canvas_result = st_canvas(
