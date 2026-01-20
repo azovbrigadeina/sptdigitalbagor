@@ -220,7 +220,7 @@ with st.form("spt_form", clear_on_submit=False):
         jabatan_atasan = st.text_input("Jabatan Atasan")
 
     st.write("---")
-    st.header("IV. Tanda Tangan")
+    st.header("IV. Tanda Tangan Atasan")
     st.caption("Silakan tanda tangan pada area di bawah ini:")
     
     canvas_result = st_canvas(
