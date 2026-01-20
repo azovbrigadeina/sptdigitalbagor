@@ -20,15 +20,21 @@ from reportlab.lib.utils import ImageReader
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
 
-# --- 2. KONEKSI GOOGLE SHEETS ---
-@st.cache_resource
+# --- KONEKSI GOOGLE SHEETS (VERSI AMAN) ---
 def get_sheets_service():
     try:
+        # Cek apakah secrets tersedia
         if "gcp_service_account" in st.secrets:
-            creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-            return build('sheets', 'v4', credentials=creds)
-        return None
+            info = st.secrets["gcp_service_account"]
+            creds = service_account.Credentials.from_service_account_info(info)
+            # Batasi scope agar lebih aman
+            scoped_creds = creds.with_scopes(['https://www.googleapis.com/auth/spreadsheets'])
+            return build('sheets', 'v4', credentials=scoped_creds)
+        else:
+            st.error("Secrets 'gcp_service_account' tidak ditemukan!")
+            return None
     except Exception as e:
+        st.error(f"Gagal memuat Kredensial: {e}")
         return None
 
 sheets_service = get_sheets_service()
