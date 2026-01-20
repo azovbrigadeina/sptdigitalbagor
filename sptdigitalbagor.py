@@ -54,7 +54,7 @@ def create_pdf(data, signature_img):
     
     # -- KOP SURAT (SIMPEL) --
     c.setFont("Helvetica-Bold", 14)
-    c.drawCentredString(width / 2, height - 2 * cm, "(c) BAGOR")
+    c.drawCentredString(width / 2, height - 2 * cm, "Pemerintah Kabupaten Muaro Jambi")
     c.setFont("Helvetica-Bold", 12)
     c.drawCentredString(width / 2, height - 2.6 * cm, f"OPD: {data['opd'].upper()}")
     c.line(2*cm, height - 3*cm, width - 2*cm, height - 3*cm) # Garis bawah kop
@@ -170,7 +170,7 @@ list_opd = [
 # --- 7. TAMPILAN APLIKASI ---
 
 st.title("Form Surat Perintah Tugas")
-st.markdown("Pendataan Admin OPD - Pemerintah Kabupaten Muaro Jambi")
+st.markdown("Pendataan Admin OPD - (c) Bagor 2026")
 st.write("---")
 
 st.selectbox("Jenis Layanan", ["Surat Perintah Tugas (SPT) - Penunjukan Admin"], disabled=True)
