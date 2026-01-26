@@ -46,6 +46,7 @@ def create_docx_from_template(data, signature_img):
 
         context = {
             'Unit_Kerja': data['unit_kerja'],
+            'status_pegawai': data['status'], # Bisa digunakan di Word jika ada tag {{status_pegawai}}
             'nama_admin': data['nama'],
             'pangkat_admin': data['pangkat'],
             'NIP_admin': data['nip'],
@@ -81,7 +82,7 @@ st.title("📝 Form SPT Admin OPD")
 st.header("I. Perihal Surat Tugas")
 perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
 
-# II. UNIT KERJA (Daftar OPD Diperbanyak)
+# II. UNIT KERJA
 st.header("II. Unit Kerja")
 list_opd = [
     "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat", 
@@ -106,15 +107,17 @@ unit_kerja_final = st.text_input("Tulis Nama OPD (Jika pilih Lainnya):") if opsi
 with st.form("spt_form"):
     # III. DATA ADMIN
     st.header("III. Data Admin")
+    status_pegawai = st.radio("Status Kepegawaian:", ["PNS", "PPPK"], horizontal=True)
+    
     col1, col2 = st.columns(2)
     with col1:
         nama_admin = st.text_input("Nama Lengkap Admin")
-        nip_admin = st.text_input("NIP Admin", max_chars=18, help="Masukkan 18 digit angka NIP")
+        nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, help="Masukkan 18 digit angka")
         no_hp = st.text_input("Nomor WhatsApp")
     with col2:
-        pangkat_admin = st.text_input("Pangkat / Golongan Admin")
-        jabatan_admin = st.text_input("Jabatan Admin")
-        email = st.text_input("Alamat Email Admin")
+        pangkat_admin = st.text_input("Pangkat / Golongan")
+        jabatan_admin = st.text_input("Jabatan")
+        email = st.text_input("Alamat Email")
 
     st.write("---")
     
@@ -141,13 +144,12 @@ with st.form("spt_form"):
 
 # --- 5. LOGIKA SUBMIT & VALIDASI ---
 if submit_button:
-    # Validasi NIP (Angka & 18 Digit)
     is_nip_valid = nip_admin.isdigit() and len(nip_admin) == 18
     
     if not unit_kerja_final or not nama_admin or not nama_atasan_input:
         st.warning("⚠️ Mohon lengkapi data Unit Kerja, Nama Admin, dan Nama Atasan.")
     elif not is_nip_valid:
-        st.error("❌ NIP Admin harus berupa angka dan berjumlah tepat 18 digit!")
+        st.error(f"❌ NIP/NI PPPK harus berupa angka dan berjumlah tepat 18 digit! (Input Anda: {len(nip_admin)} digit)")
     else:
         try:
             with st.spinner('Menghasilkan dokumen...'):
@@ -155,6 +157,7 @@ if submit_button:
                 
                 data_spt = {
                     'unit_kerja': unit_kerja_final,
+                    'status': status_pegawai,
                     'nama': nama_admin,
                     'nip': nip_admin,
                     'pangkat': pangkat_admin,
@@ -172,7 +175,7 @@ if submit_button:
                 if docx_file:
                     if sheets_service:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, perihal_spt, unit_kerja_final, nama_admin, f"'{nip_admin}", email, nama_atasan_input]]
+                        row = [[now, perihal_spt, unit_kerja_final, status_pegawai, nama_admin, f"'{nip_admin}", email, nama_atasan_input]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
                             valueInputOption="USER_ENTERED", body={'values': row}
