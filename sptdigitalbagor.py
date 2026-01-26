@@ -1,7 +1,5 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 import datetime
 from io import BytesIO
 from PIL import Image
@@ -9,49 +7,37 @@ from docxtpl import DocxTemplate, InlineImage
 from reportlab.lib.units import mm
 import os
 
-# --- 1. KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
-
-# --- 2. KONEKSI GOOGLE SHEETS ---
-@st.cache_resource
-def get_sheets_service():
-    try:
-        if "gcp_service_account" in st.secrets:
-            cred_info = st.secrets["gcp_service_account"]
-            creds = service_account.Credentials.from_service_account_info(cred_info)
-            return build('sheets', 'v4', credentials=creds)
-        return None
-    except Exception as e:
-        return None
-
-sheets_service = get_sheets_service()
-SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
-
-# --- 3. FUNGSI GENERATE DOCX ---
+# --- 1. FUNGSI GENERATE (DIPERKUAT) ---
 def create_docx_from_template(data, signature_img):
     template_name = "template spt simona.docx" 
+    
     if not os.path.exists(template_name):
-        st.error("File template tidak ditemukan!")
+        st.error(f"File '{template_name}' tidak ditemukan!")
         return None
 
     try:
         doc = DocxTemplate(template_name)
         
+        # PROSES Tanda Tangan
         img_obj = ""
-        if signature_img:
-            # --- TRICK: KONVERSI KE JPG AGAR TERDETEKSI SEBAGAI OBJEK ---
-            # 1. Konversi ke RGB (Menghilangkan transparansi)
-            # 2. Tambahkan latar belakang putih agar Word mengenalinya sebagai gambar fisik
+        if signature_img is not None:
+            # Pastikan folder temp ada
+            if not os.path.exists("temp"):
+                os.makedirs("temp")
+            
+            # Konversi ke RGB (Latar putih pekat)
             signature_img = signature_img.convert("RGBA")
             white_bg = Image.new("RGBA", signature_img.size, (255, 255, 255, 255))
-            final_img = Image.alpha_composite(white_bg, signature_img).convert("RGB")
+            combined_img = Image.alpha_composite(white_bg, signature_img).convert("RGB")
             
-            temp_path = "temp_signature.jpg" # Gunakan format JPG
-            final_img.save(temp_path, "JPEG", quality=95)
+            # SIMPAN FISIK (Gunakan nama unik agar tidak bentrok)
+            path_ttd = os.path.join("temp", f"sig_{datetime.datetime.now().strftime('%H%M%S')}.png")
+            combined_img.save(path_ttd)
             
-            # Masukkan ke Word dengan ukuran lebar 5cm (agar mudah diklik/dilihat)
-            img_obj = InlineImage(doc, temp_path, width=50 * mm)
+            # Masukkan sebagai InlineImage
+            img_obj = InlineImage(doc, path_ttd, width=45 * mm)
 
+        # Mapping data (Sesuaikan persis dengan template word Anda)
         context = {
             'Unit_Kerja': data['unit_kerja'],
             'nama_admin': data['nama'],
@@ -69,130 +55,60 @@ def create_docx_from_template(data, signature_img):
         }
 
         doc.render(context)
+        
         target_stream = BytesIO()
         doc.save(target_stream)
         target_stream.seek(0)
         
-        if os.path.exists("temp_signature.jpg"):
-            os.remove("temp_signature.jpg")
-            
         return target_stream
     except Exception as e:
-        st.error(f"Gagal memproses gambar ke Word: {e}")
+        st.error(f"Gagal memproses TTD: {e}")
         return None
 
-# --- 4. TAMPILAN FORM ---
+# --- 2. TAMPILAN UI ---
 st.title("📝 Form SPT Admin OPD")
 
-# I. PERIHAL
-st.header("I. Perihal Surat Tugas")
-perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
-
-# II. UNIT KERJA
-st.header("II. Unit Kerja")
-list_opd = [
-    "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat", 
-    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", 
-    "Dinas Pekerjaan Umum dan Penataan Ruang", "Dinas Perumahan dan Kawasan Permukiman",
-    "Satuan Polisi Pamong Praja", "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak",
-    "Dinas Lingkungan Hidup", "Dinas Kependudukan dan Pencatatan Sipil",
-    "Dinas Pemberdayaan Masyarakat dan Desa", "Dinas Perhubungan",
-    "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan",
-    "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", "Dinas Pemuda dan Olahraga",
-    "Dinas Perpustakaan dan Kearsipan", "Dinas Perikanan", "Dinas Tanaman Pangan dan Hortikultura",
-    "Dinas Perkebunan dan Peternakan", "Badan Perencanaan Pembangunan Daerah",
-    "Badan Pengelola Keuangan dan Aset Daerah", "Badan Kepegawaian Daerah",
-    "Badan Penelitian dan Pengembangan Daerah", "Badan Penanggulangan Bencana Daerah",
-    "Badan Kesatuan Bangsa dan Politik", "RSUD Ahmad Ripin",
-    "Bagian Organisasi", "Bagian Umum", "Bagian Tata Pemerintahan", 
-    "Bagian Hukum", "Bagian Kesejahteraan Rakyat", "Bagian PBJ"
-]
-opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
-unit_kerja_final = st.text_input("Tulis Nama OPD (Jika pilih Lainnya):") if opsi_opd == "Lainnya (Isi Manual)" else opsi_opd
-
 with st.form("spt_form"):
-    # III. DATA ADMIN
-    st.header("III. Data Admin")
-    status_pegawai = st.radio("Status Kepegawaian:", ["PNS", "PPPK"], horizontal=True)
+    st.header("I. Data")
+    opd = st.text_input("Nama OPD")
+    nama = st.text_input("Nama Admin")
+    nip = st.text_input("NIP Admin (18 Digit)", max_chars=18)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        nama_admin = st.text_input("Nama Lengkap Admin")
-        nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, help="Masukkan 18 digit angka")
-        no_hp = st.text_input("Nomor WhatsApp")
-    with col2:
-        pangkat_admin = st.text_input("Pangkat / Golongan")
-        jabatan_admin = st.text_input("Jabatan")
-        email = st.text_input("Alamat Email")
-
-    st.write("---")
+    st.header("II. Atasan")
+    j_atasan = st.text_input("Jabatan Atasan")
+    n_atasan = st.text_input("Nama Atasan")
     
-    # IV. DATA ATASAN
-    st.header("IV. Data Atasan")
-    jabatan_atasan_input = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
-    col3, col4 = st.columns(2)
-    with col3:
-        nama_atasan_input = st.text_input("Nama Lengkap Atasan")
-        pangkat_atasan_input = st.text_input("Pangkat / Golongan Atasan")
-    with col4:
-        nip_atasan_input = st.text_input("NIP Atasan", max_chars=18)
-
-    st.write("---")
-    
-    # V. TANDA TANGAN
-    st.header("V. Tanda Tangan Atasan")
+    st.header("III. Tanda Tangan")
+    st.write("Silakan tanda tangan di bawah:")
     canvas_result = st_canvas(
-        stroke_width=2, stroke_color="#000000", background_color="#ffffff", 
-        height=150, width=300, drawing_mode="freedraw", key="canvas_ttd"
+        stroke_width=3,
+        stroke_color="#000000",
+        background_color="#ffffff",
+        height=150,
+        width=300,
+        drawing_mode="freedraw",
+        key="canvas_signature"
     )
 
-    submit_button = st.form_submit_button("Generate & Kirim Data SPT", type="primary")
+    submit = st.form_submit_button("Generate SPT")
 
-# --- 5. LOGIKA SUBMIT & VALIDASI ---
-if submit_button:
-    is_nip_valid = nip_admin.isdigit() and len(nip_admin) == 18
-    
-    if not unit_kerja_final or not nama_admin or not nama_atasan_input:
-        st.warning("⚠️ Mohon lengkapi data Unit Kerja, Nama Admin, dan Nama Atasan.")
-    elif not is_nip_valid:
-        st.error(f"❌ NIP/NI PPPK harus berupa angka dan berjumlah tepat 18 digit! (Input Anda: {len(nip_admin)} digit)")
-    else:
-        try:
-            with st.spinner('Menghasilkan dokumen...'):
-                img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
-                
-                data_spt = {
-                    'unit_kerja': unit_kerja_final,
-                    'status': status_pegawai,
-                    'nama': nama_admin,
-                    'nip': nip_admin,
-                    'pangkat': pangkat_admin,
-                    'jabatan': jabatan_admin,
-                    'no_hp': no_hp,
-                    'email': email,
-                    'j_atasan': jabatan_atasan_input,
-                    'n_atasan': nama_atasan_input,
-                    'nip_atasan': nip_atasan_input,
-                    'p_atasan': pangkat_atasan_input
-                }
-                
-                docx_file = create_docx_from_template(data_spt, img_ttd)
-                
-                if docx_file:
-                    if sheets_service:
-                        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, perihal_spt, unit_kerja_final, status_pegawai, nama_admin, f"'{nip_admin}", email, nama_atasan_input]]
-                        sheets_service.spreadsheets().values().append(
-                            spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                            valueInputOption="USER_ENTERED", body={'values': row}
-                        ).execute()
-                    
-                    st.success("✅ SPT Berhasil Dibuat!")
-                    st.download_button(
-                        label="📥 Download SPT (Word)",
-                        data=docx_file,
-                        file_name=f"SPT_{nama_admin.replace(' ', '_')}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
-        except Exception as e:
-            st.error(f"Terjadi kesalahan: {e}")
+# --- 3. EKSEKUSI ---
+if submit:
+    if canvas_result.image_data is not None:
+        # Konversi canvas ke PIL Image
+        raw_img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+        
+        # Validasi sederhana apakah canvas kosong (opsional)
+        # Kita anggap user sudah tanda tangan
+        
+        data_spt = {
+            'unit_kerja': opd, 'nama': nama, 'nip': nip, 'pangkat': "", 
+            'jabatan': "", 'no_hp': "", 'email': "", 'j_atasan': j_atasan, 
+            'n_atasan': n_atasan, 'nip_atasan': "", 'p_atasan': ""
+        }
+        
+        docx_res = create_docx_from_template(data_spt, raw_img)
+        
+        if docx_res:
+            st.success("Berhasil! Klik tombol di bawah untuk download.")
+            st.download_button("📥 Download File Word", docx_res, f"SPT_{nama}.docx")
