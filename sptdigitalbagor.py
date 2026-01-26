@@ -8,10 +8,9 @@ from PIL import Image
 from docx import Document
 from docx.shared import Mm
 import os
-import re
 
 # --- 1. SETTING HALAMAN ---
-st.set_page_config(page_title="Kirim SPT", layout="centered")
+st.set_page_config(page_title="Kirim SPT", layout="centered", page_icon="📝")
 
 # --- 2. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
@@ -89,8 +88,25 @@ st.subheader("I. Perihal & Unit Kerja")
 opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
 perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
 
-list_opd = ["Sekretariat Daerah", "Inspektorat", "Dinas Pendidikan", "Dinas Kesehatan", "RSUD Ahmad Ripin", "Bagian Organisasi", "Bagian Umum", "Bagian PBJ"]
-opsi_opd = st.selectbox("Pilih OPD:", [""] + sorted(list_opd) + ["Lainnya"])
+# DAFTAR OPD LENGKAP MUARO JAMBI
+list_opd = [
+    "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat Daerah",
+    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja dan Damkar",
+    "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", "Dinas Lingkungan Hidup",
+    "Dinas Kependudukan dan Pencatatan Sipil", "Dinas Pemberdayaan Masyarakat dan Desa",
+    "Dinas Perhubungan", "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan",
+    "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", "Dinas Pariwisata, Pemuda dan Olahraga",
+    "Dinas Perpustakaan dan Arsip Daerah", "Dinas Perikanan", "Dinas Ketahanan Pangan",
+    "Dinas Tanaman Pangan dan Hortikultura", "Dinas Perkebunan dan Peternakan",
+    "Dinas Tenaga Kerja dan Transmigrasi", "Dinas Pengendalian Penduduk dan Keluarga Berencana",
+    "BAPPEDA", "BPKAD", "BPPRD", "BKPSDMD", "BPBD", "Kesbangpol",
+    "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar",
+    "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh",
+    "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
+    "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo"
+]
+opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya"])
 unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
 
 st.write("---")
@@ -100,25 +116,25 @@ st.subheader("II. Data Admin")
 c1, c2 = st.columns(2)
 with c1:
     nama_admin = st.text_input("Nama Lengkap")
-    nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, help="Masukkan 18 digit angka")
+    nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
     no_hp = st.text_input("Nomor WhatsApp")
 with c2:
     pangkat_admin = st.text_input("Pangkat / Golongan")
     jabatan_admin = st.text_input("Jabatan")
-    email = st.text_input("Email", placeholder="contoh@gmail.com")
+    email = st.text_input("Email", placeholder="nama@gmail.com")
 
 st.write("---")
 
 # Bagian III: Data Atasan
 st.subheader("III. Data Atasan")
 n_atasan = st.text_input("Nama Lengkap Atasan")
-j_atasan = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
+j_atasan = st.text_input("Jabatan Atasan (Contoh: Kepala Bagian Organisasi)")
 
 c3, c4 = st.columns(2)
 with c3:
     p_atasan = st.text_input("Pangkat / Golongan Atasan")
 with c4:
-    nip_atasan = st.text_input("NIP Atasan", max_chars=18)
+    nip_atasan = st.text_input("NIP Atasan", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
     st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
 st.write("---")
@@ -133,21 +149,21 @@ canvas_result = st_canvas(
 
 st.write("")
 if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=True):
-    # Validasi NIP (18 Digit Angka)
+    # VALIDASI
     is_nip_admin_valid = nip_admin.isdigit() and len(nip_admin) == 18
     is_nip_atasan_valid = nip_atasan.isdigit() and len(nip_atasan) == 18
-    
-    # Validasi Email @gmail.com
     is_email_valid = email.lower().endswith("@gmail.com")
 
-    if not is_nip_admin_valid or not is_nip_atasan_valid:
-        st.error("❌ NIP Admin dan NIP Atasan harus berupa 18 digit angka!")
+    if not is_nip_admin_valid:
+        st.error("❌ NIP Admin harus 18 digit angka!")
+    elif not is_nip_atasan_valid:
+        st.error("❌ NIP Atasan harus 18 digit angka!")
     elif not is_email_valid:
-        st.error("❌ Email harus menggunakan domain @gmail.com!")
-    elif not nama_admin or not unit_kerja_final or not perihal_final:
-        st.warning("⚠️ Mohon lengkapi Nama, Unit Kerja, dan Perihal!")
+        st.error("❌ Email wajib menggunakan domain @gmail.com!")
+    elif not nama_admin or not unit_kerja_final or not n_atasan:
+        st.warning("⚠️ Mohon lengkapi data yang masih kosong!")
     else:
-        with st.spinner('Sedang memproses dokumen...'):
+        with st.spinner('Memproses dokumen...'):
             data_spt = {
                 'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
                 'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
@@ -168,5 +184,5 @@ if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=T
                         ).execute()
                     except: pass
                 
-                st.success("✅ SPT Berhasil Dibuat dan Data Terkirim!")
-                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin}.docx", use_container_width=True)
+                st.success("✅ SPT Berhasil Dibuat!")
+                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
