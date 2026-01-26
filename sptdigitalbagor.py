@@ -41,9 +41,8 @@ def create_pdf_from_template(data, signature_img):
     
     # --- KOORDINAT DATA ADMIN ---
     can.setFont("Helvetica", 11)
-    x_data = 7.2 * cm  # Sesuaikan dengan letak titik dua di template
+    x_data = 7.2 * cm 
     
-    # Menyesuaikan tinggi (Y) dengan baris di template PDF Anda
     can.drawString(x_data, 19.3 * cm, f": {data['nama']}")
     can.drawString(x_data, 18.6 * cm, f": {data['nip']}")
     can.drawString(x_data, 17.9 * cm, f": {data['pangkat']}")
@@ -53,22 +52,17 @@ def create_pdf_from_template(data, signature_img):
 
     # --- KOORDINAT TANDA TANGAN & ATASAN ---
     x_ttd = 12.0 * cm
-    
-    # Tanggal di bagian bawah
     tgl_teks = datetime.datetime.now().strftime('%d %B %Y')
-    can.drawString(x_ttd + 2.0 * cm, 7.8 * cm, tgl_teks)
+    can.drawString(x_ttd + 2.5 * cm, 7.8 * cm, tgl_teks)
     
-    # Jabatan Atasan
     can.setFont("Helvetica-Bold", 10)
     can.drawString(x_ttd, 6.8 * cm, data['jabatan_atasan'].upper())
 
-    # Gambar Tanda Tangan
     if signature_img:
         img_temp = signature_img.convert("RGBA")
         img_reader = ImageReader(img_temp)
         can.drawImage(img_reader, x_ttd + 0.5 * cm, 4.3 * cm, width=4*cm, height=2*cm, mask='auto')
 
-    # Nama dan NIP Atasan
     can.setFont("Helvetica-Bold", 11)
     can.drawString(x_ttd, 4.0 * cm, data['nama_atasan'])
     can.setFont("Helvetica", 11)
@@ -82,32 +76,27 @@ def create_pdf_from_template(data, signature_img):
         new_pdf = PdfReader(packet)
         existing_pdf = PdfReader(open("templatespt.pdf", "rb"))
         output = PdfWriter()
-
         page = existing_pdf.pages[0]
         page.merge_page(new_pdf.pages[0])
         output.add_page(page)
-
         final_buffer = BytesIO()
         output.write(final_buffer)
         final_buffer.seek(0)
         return final_buffer
     except Exception as e:
-        st.error(f"Sistem tidak menemukan file 'templatespt.pdf'. Error: {e}")
+        st.error(f"Error: {e}")
         return None
 
 # --- 4. FUNGSI DIALOG ---
 @st.dialog("✅ SPT Berhasil Dibuat")
 def show_success_dialog(nama_admin, pdf_data):
     st.write(f"Halo **{nama_admin}**, data Anda telah berhasil disimpan.")
-    st.success("Silakan unduh dokumen SPT Anda di bawah ini:")
-    
     st.download_button(
         label="📥 Download SPT (PDF)",
         data=pdf_data,
         file_name=f"SPT_{nama_admin.replace(' ', '_')}.pdf",
         mime="application/pdf"
     )
-    
     if st.button("Tutup"):
         st.rerun()
 
@@ -139,10 +128,12 @@ list_opd = [
 st.title("📝 Form SPT Admin OPD")
 st.write("---")
 
-# KOLOM BARU: PERIHAL SURAT TUGAS
-st.header("I. Perihal & Unit Kerja")
+# PEMISAHAN KOLOM PERIHAL DAN UNIT KERJA
+st.header("I. Informasi Surat")
 perihal_spt = st.selectbox("Perihal Surat Tugas", ["SPT Rekon TPP dan SIMONA"])
 opd_final = st.selectbox("Pilih Unit Kerja / OPD", [""] + sorted(list_opd))
+
+st.write("---")
 
 with st.form("spt_form"):
     st.header("II. Data Admin (Penerima Tugas)")
@@ -180,40 +171,34 @@ with st.form("spt_form"):
 # --- 7. LOGIKA SUBMIT ---
 if submit_button:
     if not opd_final or not nama or not nip or not nama_atasan:
-        st.error("Gagal: Mohon lengkapi semua data dan tanda tangan!")
-    elif len(nip) != 18 or len(nip_atasan) != 18:
-        st.error("Gagal: NIP harus 18 digit!")
-    elif canvas_result.image_data is None:
-        st.error("Gagal: Tanda tangan diperlukan!")
+        st.error("Gagal: Mohon lengkapi semua data!")
     else:
         try:
-            with st.spinner('Memproses dokumen...'):
+            with st.spinner('Memproses...'):
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
                 
                 data_spt = {
-                    'perihal': perihal_spt,
-                    'opd': opd_final, 'nama': nama, 'nip': nip, 'pangkat': pangkat,
-                    'jabatan': jabatan, 'no_hp': no_hp, 'email': email,
-                    'nama_atasan': nama_atasan, 'nip_atasan': nip_atasan,
-                    'jabatan_atasan': jabatan_atasan, 'pangkat_atasan': pangkat_atasan
+                    'perihal': perihal_spt, 'opd': opd_final, 'nama': nama, 
+                    'nip': nip, 'pangkat': pangkat, 'jabatan': jabatan, 
+                    'no_hp': no_hp, 'email': email, 'nama_atasan': nama_atasan, 
+                    'nip_atasan': nip_atasan, 'jabatan_atasan': jabatan_atasan, 
+                    'pangkat_atasan': pangkat_atasan
                 }
 
                 pdf_file = create_pdf_from_template(data_spt, img_ttd)
                 
-                if pdf_file:
-                    if sheets_service:
-                        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        # Data yang dikirim ke Sheets termasuk Kolom Perihal
-                        row = [[now, perihal_spt, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
-                        sheets_service.spreadsheets().values().append(
-                            spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                            valueInputOption="USER_ENTERED", body={'values': row}
-                        ).execute()
-                        
-                        st.balloons()
-                        show_success_dialog(nama, pdf_file)
+                if pdf_file and sheets_service:
+                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    row = [[now, perihal_spt, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
+                    sheets_service.spreadsheets().values().append(
+                        spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
+                        valueInputOption="USER_ENTERED", body={'values': row}
+                    ).execute()
+                    
+                    st.balloons()
+                    show_success_dialog(nama, pdf_file)
         except Exception as e:
-            st.error(f"Terjadi kesalahan teknis: {e}")
+            st.error(f"Error: {e}")
 
 st.markdown("---")
 st.caption("Tim Bagian Organisasi Muaro Jambi - 2026")
