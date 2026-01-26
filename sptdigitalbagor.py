@@ -37,37 +37,39 @@ def create_docx_final(data, signature_img):
     try:
         doc = Document(template_name)
         
-     replacements = {
-            '{{Unit_Kerja}}': str(data['unit_kerja']),           # Sesuaikan huruf besar/kecil
+        # Daftar penggantian teks (Pastikan lurus dengan baris di atasnya)
+        replacements = {
+            '{{Unit_Kerja}}': str(data['unit_kerja']),
             '{{nama_admin}}': str(data['nama']),
             '{{pangkat_admin}}': str(data['pangkat']),
             '{{NIP_admin}}': str(data['nip']),
-            '{{Jabatan_admin}}': str(data['jabatan']),           # Pastikan J besar
+            '{{Jabatan_admin}}': str(data['jabatan']),
             '{{no_hpadmin}}': str(data['no_hp']),
             '{{email_admin}}': str(data['email']),
             '{{JABATAN_ATASAN}}': str(data['j_atasan']),
             '{{NAMA_ATASAN}}': str(data['n_atasan']),
             '{{NIP_ATASAN}}': str(data['nip_atasan']),
             '{{PANGKAT_GOL_ATASAN}}': str(data['p_atasan']),
-            '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y') # Pakai underscore
+            '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y')
         }
 
-        # Iterasi paragraf dengan mempertahankan format (Bold/Italic)
+        # Iterasi setiap paragraf
         for paragraph in doc.paragraphs:
+            # Ganti teks di dalam runs agar format Bold tidak hilang
             for key, value in replacements.items():
                 if key in paragraph.text:
-                    # Ganti teks di dalam 'runs' agar format Bold tidak hilang
                     for run in paragraph.runs:
                         if key in run.text:
                             run.text = run.text.replace(key, value)
             
-            # Khusus untuk TTD (tetap hapus teks dan ganti gambar)
+            # Suntik Gambar Tanda Tangan (Cari tag {{ttd}})
             if '{{ttd}}' in paragraph.text:
                 for run in paragraph.runs:
                     if '{{ttd}}' in run.text:
-                        run.text = run.text.replace('{{ttd}}', "")
+                        run.text = run.text.replace('{{ttd}}', "") # Hapus teks tag
                 
                 if signature_img is not None:
+                    # Olah gambar agar latar putih
                     img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
                     white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
                     final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
