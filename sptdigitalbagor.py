@@ -167,7 +167,7 @@ canvas_result = st_canvas(
 )
 
 st.write("")
-if st.button("KIRIM DATA & GENERATE", type="primary", use_container_width=True):
+if st.button("KIRIM DATA", type="primary", use_container_width=True):
     # Logika Validasi
     val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
     val_email = email.lower().endswith("@gmail.com")
