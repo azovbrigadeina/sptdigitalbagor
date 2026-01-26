@@ -30,9 +30,8 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 # --- 3. FUNGSI GENERATE DOCX ---
 def create_docx_from_template(data, signature_img):
     template_name = "template spt simona.docx" 
-    
     if not os.path.exists(template_name):
-        st.error(f"File '{template_name}' tidak ditemukan!")
+        st.error("File template tidak ditemukan!")
         return None
 
     try:
@@ -40,46 +39,46 @@ def create_docx_from_template(data, signature_img):
         
         img_obj = ""
         if signature_img:
-            # Pastikan gambar diproses dengan latar belakang putih agar pasti muncul
+            # --- TRICK: KONVERSI KE JPG AGAR TERDETEKSI SEBAGAI OBJEK ---
+            # 1. Konversi ke RGB (Menghilangkan transparansi)
+            # 2. Tambahkan latar belakang putih agar Word mengenalinya sebagai gambar fisik
             signature_img = signature_img.convert("RGBA")
             white_bg = Image.new("RGBA", signature_img.size, (255, 255, 255, 255))
-            combined_img = Image.alpha_composite(white_bg, signature_img).convert("RGB")
+            final_img = Image.alpha_composite(white_bg, signature_img).convert("RGB")
             
-            temp_path = "temp_signature.png"
-            combined_img.save(temp_path)
+            temp_path = "temp_signature.jpg" # Gunakan format JPG
+            final_img.save(temp_path, "JPEG", quality=95)
             
-            # Ukuran ttd diatur lebar 45mm
-            img_obj = InlineImage(doc, temp_path, width=45 * mm)
+            # Masukkan ke Word dengan ukuran lebar 5cm (agar mudah diklik/dilihat)
+            img_obj = InlineImage(doc, temp_path, width=50 * mm)
 
-        # MAPPING CONTEXT: Harus sama persis dengan {{tag}} di Word Anda
         context = {
-            'Unit_Kerja': data['unit_kerja'],          # {{Unit_Kerja}} [cite: 24]
-            'nama_admin': data['nama'],                # {{nama_admin}} [cite: 30]
-            'pangkat_admin': data['pangkat'],          # {{pangkat_admin}} [cite: 31]
-            'NIP_admin': data['nip'],                  # {{NIP_admin}} [cite: 32]
-            'Jabatan_admin': data['jabatan'],          # {{Jabatan_admin}} [cite: 33]
-            'no_hpadmin': data['no_hp'],               # {{no_hpadmin}} [cite: 34]
-            'email_admin': data['email'],              # {{email_admin}} [cite: 35]
-            'JABATAN_ATASAN': data['j_atasan'],        # {{JABATAN_ATASAN}} [cite: 40]
-            'NAMA_ATASAN': data['n_atasan'],           # {{NAMA_ATASAN}} [cite: 42]
-            'NIP_ATASAN': data['nip_atasan'],          # {{NIP_ATASAN}} [cite: 43]
-            'PANGKAT_GOL_ATASAN': data['p_atasan'],    # {{PANGKAT_GOL_ATASAN}} [cite: 44]
-            'Tanggal_Bulan_Tahun': datetime.datetime.now().strftime('%d %B %Y'), # {{Tanggal_Bulan_Tahun}} 
-            'ttd': img_obj                              # {{ttd}} 
+            'Unit_Kerja': data['unit_kerja'],
+            'nama_admin': data['nama'],
+            'pangkat_admin': data['pangkat'],
+            'NIP_admin': data['nip'],
+            'Jabatan_admin': data['jabatan'],
+            'no_hpadmin': data['no_hp'],
+            'email_admin': data['email'],
+            'JABATAN_ATASAN': data['j_atasan'],
+            'NAMA_ATASAN': data['n_atasan'],
+            'NIP_ATASAN': data['nip_atasan'],
+            'PANGKAT_GOL_ATASAN': data['p_atasan'],
+            'Tanggal_Bulan_Tahun': datetime.datetime.now().strftime('%d %B %Y'),
+            'ttd': img_obj 
         }
 
         doc.render(context)
-        
         target_stream = BytesIO()
         doc.save(target_stream)
         target_stream.seek(0)
         
-        if os.path.exists("temp_signature.png"):
-            os.remove("temp_signature.png")
+        if os.path.exists("temp_signature.jpg"):
+            os.remove("temp_signature.jpg")
             
         return target_stream
     except Exception as e:
-        st.error(f"Gagal memproses dokumen: {e}")
+        st.error(f"Gagal memproses gambar ke Word: {e}")
         return None
 
 # --- 4. TAMPILAN FORM ---
