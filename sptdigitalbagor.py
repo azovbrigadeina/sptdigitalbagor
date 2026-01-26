@@ -118,7 +118,7 @@ with st.form("spt_form"):
     p_atasan = st.text_input("Pangkat Atasan")
     nip_atasan = st.text_input("NIP Atasan", max_chars=18)
 
-    st.header("V. Tanda Tangan")
+    st.header("V. Tanda Tangan Atasan")
     canvas_result = st_canvas(
         stroke_width=3, stroke_color="#000000", background_color="#ffffff", 
         height=150, width=300, drawing_mode="freedraw", key="canvas_last"
@@ -157,5 +157,5 @@ if submit:
                         ).execute()
                     except: pass
                 
-                st.success("✅ Berhasil!")
-                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin}.docx")
+                st.success("✅ Berhasil! Submit SPT")
+                st.download_button("📥 Download SPT Sekarang (hanya experimental)", docx_file, f"SPT_{nama_admin}.docx")
