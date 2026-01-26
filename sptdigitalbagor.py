@@ -10,7 +10,7 @@ from docx.shared import Mm
 import os
 
 # --- 1. SETTING HALAMAN ---
-st.set_page_config(page_title="Kirim SPT", layout="centered", page_icon="📝")
+st.set_page_config(page_title="Kirim Surat Tugas", layout="centered", page_icon="📝")
 
 # --- 2. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
