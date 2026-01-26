@@ -96,25 +96,26 @@ st.write("---")
 st.subheader("II. Data Admin")
 c1, c2 = st.columns(2)
 with c1:
-    nama_admin = st.text_input("Nama Lengkap Admin")
-    nip_admin = st.text_input("NIP Admin (18 Digit)", max_chars=18)
+    nama_admin = st.text_input("Nama Lengkap")
+    nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, help="Masukkan 18 digit angka")
     no_hp = st.text_input("Nomor WhatsApp")
 with c2:
-    pangkat_admin = st.text_input("Pangkat/Golongan")
-    jabatan_admin = st.text_input("Jabatan Admin")
+    pangkat_admin = st.text_input("Pangkat / Golongan")
+    jabatan_admin = st.text_input("Jabatan")
     email = st.text_input("Email")
 
 st.write("---")
 
 # Bagian III: Data Atasan
 st.subheader("III. Data Atasan")
+n_atasan = st.text_input("Nama Lengkap Atasan")
 j_atasan = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
+
 c3, c4 = st.columns(2)
 with c3:
-    n_atasan = st.text_input("Nama Atasan")
-    p_atasan = st.text_input("Pangkat Atasan")
+    p_atasan = st.text_input("Pangkat / Golongan Atasan")
 with c4:
-    nip_atasan = st.text_input("NIP Atasan")
+    nip_atasan = st.text_input("NIP Atasan", max_chars=18)
     st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
 st.write("---")
@@ -128,10 +129,17 @@ canvas_result = st_canvas(
 
 st.write("")
 if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=True):
-    if not nip_admin.isdigit() or len(nip_admin) != 18:
-        st.error("❌ NIP Admin harus 18 digit angka!")
-    elif not nama_admin or not unit_kerja_final:
-        st.warning("⚠️ Mohon isi Nama Admin dan Unit Kerja!")
+    # Validasi NIP Admin
+    is_nip_admin_valid = nip_admin.isdigit() and len(nip_admin) == 18
+    # Validasi NIP Atasan
+    is_nip_atasan_valid = nip_atasan.isdigit() and len(nip_atasan) == 18
+
+    if not is_nip_admin_valid:
+        st.error("❌ NIP Admin harus berupa 18 digit angka!")
+    elif not is_nip_atasan_valid:
+        st.error("❌ NIP Atasan harus berupa 18 digit angka!")
+    elif not nama_admin or not unit_kerja_final or not n_atasan:
+        st.warning("⚠️ Mohon lengkapi Nama, Unit Kerja, dan Nama Atasan!")
     else:
         with st.spinner('Sedang memproses dokumen...'):
             data_spt = {
@@ -144,7 +152,6 @@ if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=T
             docx_file = create_docx_final(data_spt, canvas_result.image_data)
             
             if docx_file:
-                # Kirim ke Sheets
                 if sheets_service:
                     try:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
