@@ -40,25 +40,32 @@ def create_docx_from_template(data, signature_img):
         
         img_obj = ""
         if signature_img:
+            # 1. Konversi ke RGB dengan latar belakang putih agar TTD terlihat jelas [cite: 19]
+            rgb_img = Image.new("RGB", signature_img.size, (255, 255, 255))
+            rgb_img.paste(signature_img, mask=signature_img.split()[3]) 
+            
+            # 2. Simpan sementara [cite: 19]
             temp_path = "temp_signature.png"
-            signature_img.save(temp_path)
-            img_obj = InlineImage(doc, temp_path, width=40 * mm)
+            rgb_img.save(temp_path)
+            
+            # 3. Masukkan ke variabel img_obj untuk tag {{ttd}} [cite: 19]
+            img_obj = InlineImage(doc, temp_path, width=45 * mm)
 
+        # MAPPING CONTEXT (PASTIKAN NAMA TAG SAMA DENGAN DI WORD)
         context = {
-            'Unit_Kerja': data['unit_kerja'],
-            'status_pegawai': data['status'], # Bisa digunakan di Word jika ada tag {{status_pegawai}}
-            'nama_admin': data['nama'],
-            'pangkat_admin': data['pangkat'],
-            'NIP_admin': data['nip'],
-            'Jabatan_admin': data['jabatan'],
-            'no_hpadmin': data['no_hp'],
-            'email_admin': data['email'],
-            'JABATAN_ATASAN': data['j_atasan'],
-            'NAMA_ATASAN': data['n_atasan'],
-            'NIP_ATASAN': data['nip_atasan'],
-            'PANGKAT_GOL_ATASAN': data['p_atasan'],
-            'Tanggal_Bulan_Tahun': datetime.datetime.now().strftime('%d %B %Y'),
-            'ttd': img_obj 
+            'Unit_Kerja': data['unit_kerja'],        # {{ Unit_Kerja }} [cite: 2]
+            'nama_admin': data['nama'],              # {{ nama_admin }} [cite: 8]
+            'pangkat_admin': data['pangkat'],        # {{ pangkat_admin }} [cite: 9]
+            'NIP_admin': data['nip'],                # {{ NIP_admin }} [cite: 10]
+            'Jabatan_admin': data['jabatan'],        # {{ Jabatan_admin }} [cite: 11]
+            'no_hpadmin': data['no_hp'],             # {{ no_hpadmin }} [cite: 12]
+            'email_admin': data['email'],            # {{ email_admin }} [cite: 13]
+            'JABATAN_ATASAN': data['j_atasan'],      # {{ JABATAN_ATASAN }} [cite: 18]
+            'NAMA_ATASAN': data['n_atasan'],         # {{ NAMA_ATASAN }} [cite: 20]
+            'NIP_ATASAN': data['nip_atasan'],        # {{ NIP_ATASAN }} [cite: 21]
+            'PANGKAT_GOL_ATASAN': data['p_atasan'],  # {{ PANGKAT_GOL_ATASAN }} [cite: 22]
+            'Tanggal_Bulan_Tahun': datetime.datetime.now().strftime('%d %B %Y'), # {{ Tanggal_Bulan_Tahun }} 
+            'ttd': img_obj                            # {{ ttd }} [cite: 19]
         }
 
         doc.render(context)
@@ -67,12 +74,13 @@ def create_docx_from_template(data, signature_img):
         doc.save(target_stream)
         target_stream.seek(0)
         
+        # Bersihkan file sementara [cite: 19]
         if os.path.exists("temp_signature.png"):
             os.remove("temp_signature.png")
             
         return target_stream
     except Exception as e:
-        st.error(f"Gagal memproses template: {e}")
+        st.error(f"Gagal memproses TTD: {e}")
         return None
 
 # --- 4. TAMPILAN FORM ---
