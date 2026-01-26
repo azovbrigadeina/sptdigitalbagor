@@ -206,8 +206,8 @@ if st.button("KIRIM DATA & GENERATE", type="primary", use_container_width=True):
             docx_file = create_docx_final(data_spt, canvas_result.image_data)
             
             if docx_file:
-                st.success("✅ Data berhasil masuk Spreadsheet & Dokumen siap!")
-                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.success("✅ Data berhasil masuk, Terima Kasih")
+                st.download_button("📥 Download SPT Sekarang (hanya experimental saja ya...", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
 st.write("")
