@@ -10,7 +10,7 @@ from docx.shared import Mm
 import os
 
 # --- 1. SETTING HALAMAN ---
-st.set_page_config(page_title="SPT SIMONA", layout="centered")
+st.set_page_config(page_title="Kirim SPT", layout="centered")
 
 # --- 2. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
@@ -80,78 +80,80 @@ def create_docx_final(data, signature_img):
         return None
 
 # --- 4. TAMPILAN UI (SINGLE PAGE) ---
-st.markdown("<h2 style='text-align: center;'>📝 Form SPT Digital</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>📝 Kirim SPT</h2>", unsafe_allow_html=True)
 st.write("---")
 
-with st.container():
-    # SEKSI 1: UNIT KERJA
-    st.subheader("🏢 Unit Kerja")
-    list_opd = ["Sekretariat Daerah", "Inspektorat", "Dinas Pendidikan", "Dinas Kesehatan", "RSUD Ahmad Ripin", "Bagian Organisasi", "Bagian Umum", "Bagian PBJ"]
-    opsi_opd = st.selectbox("Pilih OPD:", [""] + sorted(list_opd) + ["Lainnya"])
-    unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
-    
-    st.write("---")
-    
-    # SEKSI 2: DATA ADMIN
-    st.subheader("👤 Data Admin")
-    c1, c2 = st.columns(2)
-    with c1:
-        nama_admin = st.text_input("Nama Lengkap Admin")
-        nip_admin = st.text_input("NIP Admin (18 Digit)", max_chars=18)
-        no_hp = st.text_input("Nomor WhatsApp")
-    with c2:
-        pangkat_admin = st.text_input("Pangkat/Golongan")
-        jabatan_admin = st.text_input("Jabatan Admin")
-        email = st.text_input("Email")
+# Bagian I: Perihal & Unit Kerja
+st.subheader("I. Perihal & Unit Kerja")
+perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
+list_opd = ["Sekretariat Daerah", "Inspektorat", "Dinas Pendidikan", "Dinas Kesehatan", "RSUD Ahmad Ripin", "Bagian Organisasi", "Bagian Umum", "Bagian PBJ"]
+opsi_opd = st.selectbox("Pilih OPD:", [""] + sorted(list_opd) + ["Lainnya"])
+unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
 
-    st.write("---")
+st.write("---")
 
-    # SEKSI 3: DATA ATASAN & TTD
-    st.subheader("✍️ Pengesahan Atasan")
-    j_atasan = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
-    
-    c3, c4 = st.columns(2)
-    with c3:
-        n_atasan = st.text_input("Nama Atasan")
-        p_atasan = st.text_input("Pangkat Atasan")
-    with c4:
-        nip_atasan = st.text_input("NIP Atasan")
-        st.info(f"Tanggal: {datetime.datetime.now().strftime('%d %B %Y')}")
+# Bagian II: Data Admin
+st.subheader("II. Data Admin")
+c1, c2 = st.columns(2)
+with c1:
+    nama_admin = st.text_input("Nama Lengkap Admin")
+    nip_admin = st.text_input("NIP Admin (18 Digit)", max_chars=18)
+    no_hp = st.text_input("Nomor WhatsApp")
+with c2:
+    pangkat_admin = st.text_input("Pangkat/Golongan")
+    jabatan_admin = st.text_input("Jabatan Admin")
+    email = st.text_input("Email")
 
-    st.markdown("**Tanda Tangan Atasan:**")
-    canvas_result = st_canvas(
-        stroke_width=3, stroke_color="#000000", background_color="#ffffff",
-        height=150, width=350, drawing_mode="freedraw", key="canvas_single"
-    )
+st.write("---")
 
-    st.write("")
-    if st.button("🚀 GENERATE & SUBMIT SPT", type="primary", use_container_width=True):
-        if not nip_admin.isdigit() or len(nip_admin) != 18:
-            st.error("NIP Admin harus 18 digit angka!")
-        elif not nama_admin or not unit_kerja_final:
-            st.warning("Mohon isi Nama Admin dan Unit Kerja!")
-        else:
-            with st.spinner('Memproses...'):
-                data_spt = {
-                    'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
-                    'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
-                    'email': email, 'j_atasan': j_atasan, 'n_atasan': n_atasan,
-                    'nip_atasan': nip_atasan, 'p_atasan': p_atasan
-                }
+# Bagian III: Data Atasan
+st.subheader("III. Data Atasan")
+j_atasan = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
+c3, c4 = st.columns(2)
+with c3:
+    n_atasan = st.text_input("Nama Atasan")
+    p_atasan = st.text_input("Pangkat Atasan")
+with c4:
+    nip_atasan = st.text_input("NIP Atasan")
+    st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
+
+st.write("---")
+
+# Bagian IV: Tanda Tangan
+st.subheader("IV. Tanda Tangan Atasan")
+canvas_result = st_canvas(
+    stroke_width=3, stroke_color="#000000", background_color="#ffffff",
+    height=150, width=350, drawing_mode="freedraw", key="canvas_last"
+)
+
+st.write("")
+if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=True):
+    if not nip_admin.isdigit() or len(nip_admin) != 18:
+        st.error("❌ NIP Admin harus 18 digit angka!")
+    elif not nama_admin or not unit_kerja_final:
+        st.warning("⚠️ Mohon isi Nama Admin dan Unit Kerja!")
+    else:
+        with st.spinner('Sedang memproses dokumen...'):
+            data_spt = {
+                'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
+                'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
+                'email': email, 'j_atasan': j_atasan, 'n_atasan': n_atasan,
+                'nip_atasan': nip_atasan, 'p_atasan': p_atasan
+            }
+            
+            docx_file = create_docx_final(data_spt, canvas_result.image_data)
+            
+            if docx_file:
+                # Kirim ke Sheets
+                if sheets_service:
+                    try:
+                        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        row = [[now, perihal_spt, unit_kerja_final, nama_admin, f"'{nip_admin}", email, n_atasan]]
+                        sheets_service.spreadsheets().values().append(
+                            spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
+                            valueInputOption="USER_ENTERED", body={'values': row}
+                        ).execute()
+                    except: pass
                 
-                docx_file = create_docx_final(data_spt, canvas_result.image_data)
-                
-                if docx_file:
-                    # Kirim ke Sheets
-                    if sheets_service:
-                        try:
-                            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            row = [[now, "SPT SIMONA", unit_kerja_final, nama_admin, f"'{nip_admin}", email, n_atasan]]
-                            sheets_service.spreadsheets().values().append(
-                                spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                                valueInputOption="USER_ENTERED", body={'values': row}
-                            ).execute()
-                        except: pass
-                    
-                    st.success("✅ Berhasil!")
-                    st.download_button("📥 Klik untuk Download File", docx_file, f"SPT_{nama_admin}.docx", use_container_width=True)
+                st.success("✅ SPT Berhasil Dibuat dan Data Terkirim!")
+                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin}.docx", use_container_width=True)
