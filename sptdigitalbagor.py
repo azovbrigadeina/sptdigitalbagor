@@ -183,18 +183,36 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
             # Ambil Base64 TTD
             ttd_b64 = get_base64_signature(canvas_result.image_data)
             
-            # Submit ke Google Sheets
-            submit_sheet = False
-            if sheets_service:
-                try:
-                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    row = [[now, perihal_final, unit_kerja_final, f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, n_atasan, ttd_b64]]
-                    sheets_service.spreadsheets().values().append(
-                        spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                        valueInputOption="USER_ENTERED", body={'values': row}
-                    ).execute()
-                    submit_sheet = True
-                except: pass
+            # 2. Submit ke Google Sheets
+        if sheets_service:
+            try:
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # --- BAGIAN INI YANG DIPERBAIKI ---
+                # Susun semua data agar masuk ke kolom spreadsheet
+                row = [[
+                    now,                    # Kolom A: Waktu
+                    perihal_final,          # Kolom B: Perihal
+                    unit_kerja_final,       # Kolom C: Unit Kerja
+                    f"({status_pegawai}) {nama_admin}", # Kolom D: Nama Admin
+                    f"'{nip_admin}",        # Kolom E: NIP Admin
+                    email,                  # Kolom F: Email
+                    n_atasan,               # Kolom G: Nama Atasan
+                    j_atasan,               # Kolom H: Jabatan Atasan (BARU)
+                    p_atasan,               # Kolom I: Pangkat Atasan (BARU)
+                    f"'{nip_atasan}",       # Kolom J: NIP Atasan (BARU)
+                    ttd_b64                 # Kolom K: Base64 TTD
+                ]]
+                
+                sheets_service.spreadsheets().values().append(
+                    spreadsheetId=SPREADSHEET_ID, 
+                    range="Sheet1!A1",
+                    valueInputOption="USER_ENTERED", 
+                    body={'values': row}
+                ).execute()
+                
+            except Exception as e:
+                st.error(f"Gagal kirim ke Sheets: {e}")
 
             # Generate Word
             data_spt = {
