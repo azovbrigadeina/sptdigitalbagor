@@ -79,7 +79,7 @@ def create_docx_final(data, signature_img):
         st.error(f"Gagal: {e}")
         return None
 
-# --- 4. TAMPILAN UI (SINGLE PAGE) ---
+# --- 4. TAMPILAN UI ---
 st.markdown("<h2 style='text-align: center;'>📝 Kirim SPT</h2>", unsafe_allow_html=True)
 st.write("---")
 
@@ -88,7 +88,6 @@ st.subheader("I. Perihal & Unit Kerja")
 opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
 perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
 
-# DAFTAR OPD LENGKAP MUARO JAMBI
 list_opd = [
     "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat Daerah",
     "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang",
@@ -100,7 +99,9 @@ list_opd = [
     "Dinas Perpustakaan dan Arsip Daerah", "Dinas Perikanan", "Dinas Ketahanan Pangan",
     "Dinas Tanaman Pangan dan Hortikultura", "Dinas Perkebunan dan Peternakan",
     "Dinas Tenaga Kerja dan Transmigrasi", "Dinas Pengendalian Penduduk dan Keluarga Berencana",
-    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Pengelola Keuangan dan Aset Daerah", "Badan Pengelola Pajak dan Retribusi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia ", "Badan Penanggulangan Bencana Daerah", "Kesbangpol",
+    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Pengelola Keuangan dan Aset Daerah", 
+    "Badan Pengelola Pajak dan Retribusi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia ", 
+    "Badan Penanggulangan Bencana Daerah", "Kesbangpol",
     "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar",
     "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh",
     "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
@@ -113,10 +114,12 @@ st.write("---")
 
 # Bagian II: Data Admin
 st.subheader("II. Data Admin")
+status_pegawai = st.radio("Status Pegawai:", ["PNS", "PPPK"], horizontal=True)
+
 c1, c2 = st.columns(2)
 with c1:
     nama_admin = st.text_input("Nama Lengkap")
-    nip_admin = st.text_input("NIP / NI PPPK", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
+    nip_admin = st.text_input(f"NIP / NI {status_pegawai}", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
     no_hp = st.text_input("Nomor WhatsApp")
 with c2:
     pangkat_admin = st.text_input("Pangkat / Golongan")
@@ -155,7 +158,7 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
     is_email_valid = email.lower().endswith("@gmail.com")
 
     if not is_nip_admin_valid:
-        st.error("❌ NIP Admin harus 18 digit angka!")
+        st.error(f"❌ NIP / NI {status_pegawai} harus 18 digit angka!")
     elif not is_nip_atasan_valid:
         st.error("❌ NIP Atasan harus 18 digit angka!")
     elif not is_email_valid:
@@ -177,7 +180,8 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
                 if sheets_service:
                     try:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, perihal_final, unit_kerja_final, nama_admin, f"'{nip_admin}", email, n_atasan]]
+                        # Tambahkan status_pegawai ke kolom Google Sheets agar lebih informatif
+                        row = [[now, perihal_final, unit_kerja_final, f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, n_atasan]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
                             valueInputOption="USER_ENTERED", body={'values': row}
@@ -185,16 +189,16 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
                     except: pass
                 
                 st.success("✅ SPT Berhasil Terkirim!")
-                st.download_button("📥 Download SPT Sekarang (Experimental)", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
-st.write("") # Memberi ruang kosong
+st.write("") 
 st.write("---")
 st.markdown(
     """
     <div style='text-align: center; color: #808495; font-size: 0.9em;'>
         Made with Love ❤️ oleh <br>
-        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi #SlavaUkraini</strong>
+        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi</strong>
     </div>
     """, 
     unsafe_allow_html=True
