@@ -186,3 +186,16 @@ if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=T
                 
                 st.success("✅ SPT Berhasil Dibuat!")
                 st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+
+# --- 6. FOOTER ---
+st.write("") # Memberi ruang kosong
+st.write("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: #808495; font-size: 0.9em;'>
+        Made with Love ❤️ oleh <br>
+        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi</strong>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
