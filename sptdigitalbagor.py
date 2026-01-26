@@ -132,9 +132,15 @@ st.write("---")
 st.header("I. Perihal Surat Tugas")
 perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
 
-# II. UNIT KERJA
+# II. UNIT KERJA (DENGAN OPSI MANUAL)
 st.header("II. Unit Kerja")
-opd_final = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd))
+opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
+
+opd_final = ""
+if opsi_opd == "Lainnya (Isi Manual)":
+    opd_final = st.text_input("Tuliskan Nama Unit Kerja / OPD Anda:")
+else:
+    opd_final = opsi_opd
 
 st.write("---")
 
@@ -179,7 +185,7 @@ with st.form("spt_form"):
 # --- 7. LOGIKA SUBMIT ---
 if submit_button:
     if not opd_final or not nama or not nip or not nama_atasan:
-        st.error("Gagal: Mohon pilih Unit Kerja dan lengkapi semua data!")
+        st.error("Gagal: Mohon isi/pilih Unit Kerja dan lengkapi semua data!")
     else:
         try:
             with st.spinner('Memproses...'):
