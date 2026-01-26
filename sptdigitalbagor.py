@@ -184,7 +184,7 @@ if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=T
                         ).execute()
                     except: pass
                 
-                st.success("✅ SPT Berhasil Terkirim Dibuat!")
+                st.success("✅ SPT Berhasil Terkirim!")
                 st.download_button("📥 Download SPT Sekarang (Experimental)", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
