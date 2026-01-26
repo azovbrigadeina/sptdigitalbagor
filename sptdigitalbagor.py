@@ -189,7 +189,7 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
                     except: pass
                 
                 st.success("✅ SPT Berhasil Terkirim!")
-                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.download_button("📥 Download SPT Sekarang (hanya experimental sajaa)", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
 st.write("") 
