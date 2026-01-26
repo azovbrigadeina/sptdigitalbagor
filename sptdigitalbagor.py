@@ -43,7 +43,7 @@ def create_pdf_from_template(data, signature_img):
     can.setFont("Helvetica", 11)
     x_data = 7.2 * cm  # Sesuaikan dengan letak titik dua di template
     
-    # Menyesuaikan tinggi (Y) dengan baris di template DOCX/PDF Anda
+    # Menyesuaikan tinggi (Y) dengan baris di template PDF Anda
     can.drawString(x_data, 19.3 * cm, f": {data['nama']}")
     can.drawString(x_data, 18.6 * cm, f": {data['nip']}")
     can.drawString(x_data, 17.9 * cm, f": {data['pangkat']}")
@@ -56,7 +56,7 @@ def create_pdf_from_template(data, signature_img):
     
     # Tanggal di bagian bawah
     tgl_teks = datetime.datetime.now().strftime('%d %B %Y')
-    can.drawString(x_ttd + 2.5 * cm, 7.8 * cm, tgl_teks)
+    can.drawString(x_ttd + 2.0 * cm, 7.8 * cm, tgl_teks)
     
     # Jabatan Atasan
     can.setFont("Helvetica-Bold", 10)
@@ -64,10 +64,8 @@ def create_pdf_from_template(data, signature_img):
 
     # Gambar Tanda Tangan
     if signature_img:
-        # Konversi ke RGBA agar transparan
         img_temp = signature_img.convert("RGBA")
         img_reader = ImageReader(img_temp)
-        # Gambar diletakkan di atas nama atasan
         can.drawImage(img_reader, x_ttd + 0.5 * cm, 4.3 * cm, width=4*cm, height=2*cm, mask='auto')
 
     # Nama dan NIP Atasan
@@ -82,7 +80,6 @@ def create_pdf_from_template(data, signature_img):
 
     try:
         new_pdf = PdfReader(packet)
-        # Membaca file templatespt.pdf dari repository
         existing_pdf = PdfReader(open("templatespt.pdf", "rb"))
         output = PdfWriter()
 
@@ -95,13 +92,13 @@ def create_pdf_from_template(data, signature_img):
         final_buffer.seek(0)
         return final_buffer
     except Exception as e:
-        st.error(f"Sistem tidak menemukan file 'templatespt.pdf'. Pastikan sudah diupload ke GitHub. Error: {e}")
+        st.error(f"Sistem tidak menemukan file 'templatespt.pdf'. Error: {e}")
         return None
 
 # --- 4. FUNGSI DIALOG ---
 @st.dialog("✅ SPT Berhasil Dibuat")
 def show_success_dialog(nama_admin, pdf_data):
-    st.write(f"Halo **{nama_admin}**, data Anda telah berhasil disimpan ke database.")
+    st.write(f"Halo **{nama_admin}**, data Anda telah berhasil disimpan.")
     st.success("Silakan unduh dokumen SPT Anda di bawah ini:")
     
     st.download_button(
@@ -140,9 +137,11 @@ list_opd = [
 
 # --- 6. TAMPILAN APLIKASI ---
 st.title("📝 Form SPT Admin OPD")
-st.info("Pastikan data yang diinput benar sebelum menekan tombol kirim.")
+st.write("---")
 
-st.header("I. Unit Kerja")
+# KOLOM BARU: PERIHAL SURAT TUGAS
+st.header("I. Perihal & Unit Kerja")
+perihal_spt = st.selectbox("Perihal Surat Tugas", ["SPT Rekon TPP dan SIMONA"])
 opd_final = st.selectbox("Pilih Unit Kerja / OPD", [""] + sorted(list_opd))
 
 with st.form("spt_form"):
@@ -189,25 +188,23 @@ if submit_button:
     else:
         try:
             with st.spinner('Memproses dokumen...'):
-                # 1. Proses Gambar TTD
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
                 
-                # 2. Data Dictionary
                 data_spt = {
+                    'perihal': perihal_spt,
                     'opd': opd_final, 'nama': nama, 'nip': nip, 'pangkat': pangkat,
                     'jabatan': jabatan, 'no_hp': no_hp, 'email': email,
                     'nama_atasan': nama_atasan, 'nip_atasan': nip_atasan,
                     'jabatan_atasan': jabatan_atasan, 'pangkat_atasan': pangkat_atasan
                 }
 
-                # 3. Generate PDF
                 pdf_file = create_pdf_from_template(data_spt, img_ttd)
                 
                 if pdf_file:
-                    # 4. Simpan ke Google Sheets
                     if sheets_service:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
+                        # Data yang dikirim ke Sheets termasuk Kolom Perihal
+                        row = [[now, perihal_spt, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
                             valueInputOption="USER_ENTERED", body={'values': row}
