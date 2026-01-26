@@ -148,7 +148,7 @@ canvas_result = st_canvas(
 )
 
 st.write("")
-if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=True):
+if st.button("KIRIM DATA", type="primary", use_container_width=True):
     # VALIDASI
     is_nip_admin_valid = nip_admin.isdigit() and len(nip_admin) == 18
     is_nip_atasan_valid = nip_atasan.isdigit() and len(nip_atasan) == 18
