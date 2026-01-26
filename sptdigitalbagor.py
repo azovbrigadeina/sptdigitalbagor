@@ -38,39 +38,42 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 def create_pdf_from_template(data, signature_img):
     packet = BytesIO()
     can = canvas.Canvas(packet, pagesize=A4)
-    
-    # --- KOORDINAT DATA ADMIN ---
     can.setFont("Helvetica", 11)
-    x_data = 7.2 * cm 
     
-    can.drawString(x_data, 19.3 * cm, f": {data['nama']}")
-    can.drawString(x_data, 18.6 * cm, f": {data['nip']}")
-    can.drawString(x_data, 17.9 * cm, f": {data['pangkat']}")
-    can.drawString(x_data, 17.2 * cm, f": {data['jabatan']}")
-    can.drawString(x_data, 16.5 * cm, f": {data['no_hp']}")
-    can.drawString(x_data, 15.8 * cm, f": {data['email']}")
+    # Sumbu X (Horizontal) - Geser sedikit ke kanan agar melewati titik dua (:)
+    x_data = 7.8 * cm 
+    
+    # Sumbu Y (Vertikal) - Koordinat ini harus disesuaikan dengan baris kosong di PDF Anda
+    # Gunakan jeda sekitar 0.7cm atau 0.8cm antar baris
+    can.drawString(x_data, 18.5 * cm, f": {data['nama']}")     # Baris Nama
+    can.drawString(x_data, 17.8 * cm, f": {data['nip']}")      # Baris NIP
+    can.drawString(x_data, 17.1 * cm, f": {data['pangkat']}")  # Baris Pangkat
+    can.drawString(x_data, 16.4 * cm, f": {data['jabatan']}")  # Baris Jabatan
+    can.drawString(x_data, 15.7 * cm, f": {data['no_hp']}")    # Baris No HP
+    can.drawString(x_data, 15.0 * cm, f": {data['email']}")    # Baris Email
 
-    # --- KOORDINAT TANDA TANGAN & ATASAN ---
+    # Bagian Tanda Tangan (Kanan Bawah)
     x_ttd = 12.0 * cm
-    tgl_teks = datetime.datetime.now().strftime('%d %B %Y')
-    can.drawString(x_ttd + 2.5 * cm, 7.8 * cm, tgl_teks)
+    can.setFont("Helvetica", 11)
+    can.drawString(x_ttd + 2.0 * cm, 7.8 * cm, datetime.datetime.now().strftime('%d %B %Y')) # Tanggal
     
     can.setFont("Helvetica-Bold", 10)
-    can.drawString(x_ttd, 6.8 * cm, data['jabatan_atasan'].upper())
+    can.drawString(x_ttd, 6.8 * cm, data['jabatan_atasan'].upper()) # JABATAN ATASAN
 
     if signature_img:
         img_temp = signature_img.convert("RGBA")
         img_reader = ImageReader(img_temp)
-        can.drawImage(img_reader, x_ttd + 0.5 * cm, 4.3 * cm, width=4*cm, height=2*cm, mask='auto')
+        can.drawImage(img_reader, x_ttd + 0.5 * cm, 4.5 * cm, width=4*cm, height=2*cm, mask='auto')
 
     can.setFont("Helvetica-Bold", 11)
-    can.drawString(x_ttd, 4.0 * cm, data['nama_atasan'])
+    can.drawString(x_ttd, 4.0 * cm, data['nama_atasan']) # NAMA ATASAN
     can.setFont("Helvetica", 11)
-    can.drawString(x_ttd, 3.5 * cm, f"NIP. {data['nip_atasan']}")
-    can.drawString(x_ttd, 3.0 * cm, data['pangkat_atasan'])
+    can.drawString(x_ttd, 3.4 * cm, f"NIP. {data['nip_atasan']}")
+    can.drawString(x_ttd, 2.9 * cm, data['pangkat_atasan'])
 
     can.save()
     packet.seek(0)
+    # ... (sisa kode merge PDF tetap sama)
 
     try:
         new_pdf = PdfReader(packet)
