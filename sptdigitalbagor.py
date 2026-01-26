@@ -84,7 +84,7 @@ def create_pdf_from_template(data, signature_img):
         final_buffer.seek(0)
         return final_buffer
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error PDF: {e}")
         return None
 
 # --- 4. FUNGSI DIALOG ---
@@ -128,15 +128,19 @@ list_opd = [
 st.title("📝 Form SPT Admin OPD")
 st.write("---")
 
-# PEMISAHAN KOLOM PERIHAL DAN UNIT KERJA
-st.header("I. Informasi Surat")
-perihal_spt = st.selectbox("Perihal Surat Tugas", ["SPT Rekon TPP dan SIMONA"])
-opd_final = st.selectbox("Pilih Unit Kerja / OPD", [""] + sorted(list_opd))
+# I. PERIHAL
+st.header("I. Perihal Surat Tugas")
+perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
+
+# II. UNIT KERJA
+st.header("II. Unit Kerja")
+opd_final = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd))
 
 st.write("---")
 
 with st.form("spt_form"):
-    st.header("II. Data Admin (Penerima Tugas)")
+    # III. DATA ADMIN
+    st.header("III. Data Admin (Penerima Tugas)")
     status_asn = st.radio("Status ASN:", ["PNS", "PPPK"], horizontal=True)
     
     col1, col2 = st.columns(2)
@@ -150,7 +154,9 @@ with st.form("spt_form"):
         email = st.text_input("Email Aktif")
 
     st.write("---")
-    st.header("III. Data Atasan Pemberi Perintah")
+    
+    # IV. DATA ATASAN
+    st.header("IV. Data Atasan Pemberi Perintah")
     col3, col4 = st.columns(2)
     with col3:
         nama_atasan = st.text_input("Nama Atasan & Gelar")
@@ -160,7 +166,9 @@ with st.form("spt_form"):
         jabatan_atasan = st.text_input("Jabatan Atasan")
 
     st.write("---")
-    st.header("IV. Tanda Tangan Atasan")
+    
+    # V. TANDA TANGAN
+    st.header("V. Tanda Tangan Atasan")
     canvas_result = st_canvas(
         stroke_width=2, stroke_color="#000000", background_color="#ffffff",
         height=150, width=300, drawing_mode="freedraw", key="canvas_ttd"
@@ -171,7 +179,7 @@ with st.form("spt_form"):
 # --- 7. LOGIKA SUBMIT ---
 if submit_button:
     if not opd_final or not nama or not nip or not nama_atasan:
-        st.error("Gagal: Mohon lengkapi semua data!")
+        st.error("Gagal: Mohon pilih Unit Kerja dan lengkapi semua data!")
     else:
         try:
             with st.spinner('Memproses...'):
