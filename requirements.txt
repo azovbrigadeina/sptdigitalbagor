@@ -7,3 +7,4 @@ pandas
 Pillow
 reportlab
 docxtpl
+pypdf
