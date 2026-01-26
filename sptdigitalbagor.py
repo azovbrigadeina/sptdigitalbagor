@@ -198,7 +198,7 @@ st.markdown(
     """
     <div style='text-align: center; color: #808495; font-size: 0.9em;'>
         Made with Love ❤️ oleh <br>
-        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi</strong>
+        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi #SlavaUkraini</strong>
     </div>
     """, 
     unsafe_allow_html=True
