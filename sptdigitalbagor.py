@@ -80,7 +80,7 @@ def create_docx_final(data, signature_img):
         return None
 
 # --- 4. TAMPILAN UI ---
-st.markdown("<h2 style='text-align: center;'>📝 Kirim SPT</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>📝 Kirim Surat Tugas</h2>", unsafe_allow_html=True)
 st.write("---")
 
 # Bagian I: Perihal & Unit Kerja
