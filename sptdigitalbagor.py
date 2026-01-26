@@ -35,10 +35,8 @@ def create_docx_final(data, signature_img):
         return None
 
     try:
-        # Membuka dokumen secara manual dengan python-docx
         doc = Document(template_name)
         
-        # Daftar penggantian teks (Context)
         replacements = {
             '{{Unit_Kerja}}': str(data['unit_kerja']),
             '{{nama_admin}}': str(data['nama']),
@@ -54,33 +52,34 @@ def create_docx_final(data, signature_img):
             '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y')
         }
 
-        # Iterasi setiap paragraf untuk ganti teks dan suntik gambar
+        # Iterasi paragraf dengan mempertahankan format (Bold/Italic)
         for paragraph in doc.paragraphs:
-            # 1. Ganti Teks Biasa
             for key, value in replacements.items():
                 if key in paragraph.text:
-                    paragraph.text = paragraph.text.replace(key, value)
+                    # Ganti teks di dalam 'runs' agar format Bold tidak hilang
+                    for run in paragraph.runs:
+                        if key in run.text:
+                            run.text = run.text.replace(key, value)
             
-            # 2. Suntik Gambar Tanda Tangan (Cari tag {{ttd}})
+            # Khusus untuk TTD (tetap hapus teks dan ganti gambar)
             if '{{ttd}}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{{ttd}}', "") # Hapus teks tag-nya
-                run = paragraph.add_run()
+                for run in paragraph.runs:
+                    if '{{ttd}}' in run.text:
+                        run.text = run.text.replace('{{ttd}}', "")
                 
                 if signature_img is not None:
-                    # Olah gambar agar latar putih
                     img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
                     white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
                     final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
                     
-                    # Simpan sementara
                     img_io = BytesIO()
                     final_img.save(img_io, format='PNG')
                     img_io.seek(0)
                     
-                    # Suntikkan gambar ke posisi tag {{ttd}} tadi
-                    run.add_picture(img_io, width=Mm(45))
+                    # Tambahkan run baru khusus untuk gambar
+                    new_run = paragraph.add_run()
+                    new_run.add_picture(img_io, width=Mm(45))
 
-        # Simpan hasil ke memori
         target_stream = BytesIO()
         doc.save(target_stream)
         target_stream.seek(0)
