@@ -8,6 +8,7 @@ from PIL import Image
 from docx import Document
 from docx.shared import Mm
 import os
+import base64
 
 # --- 1. SETTING HALAMAN ---
 st.set_page_config(page_title="Kirim Surat Tugas", layout="centered", page_icon="📝")
@@ -27,7 +28,23 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 3. FUNGSI GENERATE ---
+# --- 3. FUNGSI KONVERSI TTD KE BASE64 (Untuk Spreadsheet) ---
+def get_base64_signature(signature_img):
+    try:
+        if signature_img is not None and signature_img.any():
+            img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
+            # Tambahkan background putih agar tidak transparan di Base64
+            white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
+            final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
+            
+            buffered = BytesIO()
+            final_img.save(buffered, format="PNG")
+            return base64.b64encode(buffered.getvalue()).decode()
+        return "Tidak ada TTD"
+    except:
+        return "Error TTD"
+
+# --- 4. FUNGSI GENERATE DOCX (Untuk Download) ---
 def create_docx_final(data, signature_img):
     template_name = "template spt simona.docx" 
     if not os.path.exists(template_name):
@@ -76,14 +93,14 @@ def create_docx_final(data, signature_img):
         target_stream.seek(0)
         return target_stream
     except Exception as e:
-        st.error(f"Gagal: {e}")
+        st.error(f"Gagal memproses dokumen: {e}")
         return None
 
-# --- 4. TAMPILAN UI ---
+# --- 5. TAMPILAN UI ---
 st.markdown("<h2 style='text-align: center;'>📝 Kirim Surat Tugas</h2>", unsafe_allow_html=True)
 st.write("---")
 
-# Bagian I: Perihal & Unit Kerja
+# SEKSI I: PERIHAL & OPD
 st.subheader("I. Perihal & Unit Kerja")
 opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
 perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
@@ -112,23 +129,23 @@ unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd =
 
 st.write("---")
 
-# Bagian II: Data Admin
+# SEKSI II: DATA ADMIN
 st.subheader("II. Data Admin")
 status_pegawai = st.radio("Status Pegawai:", ["PNS", "PPPK"], horizontal=True)
 
 c1, c2 = st.columns(2)
 with c1:
     nama_admin = st.text_input("Nama Lengkap")
-    nip_admin = st.text_input(f"NIP / NI {status_pegawai}", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
+    nip_admin = st.text_input(f"NIP / NI {status_pegawai}", max_chars=18, placeholder="18 Digit Angka")
     no_hp = st.text_input("Nomor WhatsApp")
 with c2:
     pangkat_admin = st.text_input("Pangkat / Golongan")
     jabatan_admin = st.text_input("Jabatan")
-    email = st.text_input("Email", placeholder="nama@gmail.com")
+    email = st.text_input("Email", placeholder="harus @gmail.com")
 
 st.write("---")
 
-# Bagian III: Data Atasan
+# SEKSI III: DATA ATASAN
 st.subheader("III. Data Atasan")
 n_atasan = st.text_input("Nama Lengkap Atasan")
 j_atasan = st.text_input("Jabatan Atasan (Contoh: Kepala Bagian Organisasi)")
@@ -137,62 +154,63 @@ c3, c4 = st.columns(2)
 with c3:
     p_atasan = st.text_input("Pangkat / Golongan Atasan")
 with c4:
-    nip_atasan = st.text_input("NIP Atasan", max_chars=18, placeholder="19XXXXXXXXXXXXXX")
+    nip_atasan = st.text_input("NIP Atasan", max_chars=18)
     st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
 st.write("---")
 
-# Bagian IV: Tanda Tangan
+# SEKSI IV: TANDA TANGAN
 st.subheader("IV. Tanda Tangan Atasan")
 canvas_result = st_canvas(
     stroke_width=3, stroke_color="#000000", background_color="#ffffff",
-    height=150, width=350, drawing_mode="freedraw", key="canvas_last",
-    display_toolbar=True
+    height=150, width=350, drawing_mode="freedraw", key="canvas_final",
 )
 
 st.write("")
-if st.button("KIRIM DATA", type="primary", use_container_width=True):
-    # VALIDASI
-    is_nip_admin_valid = nip_admin.isdigit() and len(nip_admin) == 18
-    is_nip_atasan_valid = nip_atasan.isdigit() and len(nip_atasan) == 18
-    is_email_valid = email.lower().endswith("@gmail.com")
+if st.button("KIRIM DATA & GENERATE", type="primary", use_container_width=True):
+    # Logika Validasi
+    val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
+    val_email = email.lower().endswith("@gmail.com")
 
-    if not is_nip_admin_valid:
-        st.error(f"❌ NIP / NI {status_pegawai} harus 18 digit angka!")
-    elif not is_nip_atasan_valid:
-        st.error("❌ NIP Atasan harus 18 digit angka!")
-    elif not is_email_valid:
+    if not val_nip:
+        st.error("❌ NIP Admin dan Atasan harus 18 digit angka!")
+    elif not val_email:
         st.error("❌ Email wajib menggunakan domain @gmail.com!")
     elif not nama_admin or not unit_kerja_final or not n_atasan:
-        st.warning("⚠️ Mohon lengkapi data yang masih kosong!")
+        st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
     else:
-        with st.spinner('Memproses dokumen...'):
+        with st.spinner('Memproses data...'):
+            # Ambil Base64 TTD
+            ttd_b64 = get_base64_signature(canvas_result.image_data)
+            
+            # Submit ke Google Sheets
+            submit_sheet = False
+            if sheets_service:
+                try:
+                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    row = [[now, perihal_final, unit_kerja_final, f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, n_atasan, ttd_b64]]
+                    sheets_service.spreadsheets().values().append(
+                        spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
+                        valueInputOption="USER_ENTERED", body={'values': row}
+                    ).execute()
+                    submit_sheet = True
+                except: pass
+
+            # Generate Word
             data_spt = {
                 'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
                 'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
                 'email': email, 'j_atasan': j_atasan, 'n_atasan': n_atasan,
                 'nip_atasan': nip_atasan, 'p_atasan': p_atasan
             }
-            
             docx_file = create_docx_final(data_spt, canvas_result.image_data)
             
             if docx_file:
-                if sheets_service:
-                    try:
-                        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        # Tambahkan status_pegawai ke kolom Google Sheets agar lebih informatif
-                        row = [[now, perihal_final, unit_kerja_final, f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, n_atasan]]
-                        sheets_service.spreadsheets().values().append(
-                            spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                            valueInputOption="USER_ENTERED", body={'values': row}
-                        ).execute()
-                    except: pass
-                
-                st.success("✅ SPT Berhasil Terkirim!")
-                st.download_button("📥 Download SPT Sekarang (hanya experimental sajaa)", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.success("✅ Data berhasil masuk Spreadsheet & Dokumen siap!")
+                st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
-st.write("") 
+st.write("")
 st.write("---")
 st.markdown(
     """
