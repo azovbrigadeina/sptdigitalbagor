@@ -29,15 +29,14 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
 # --- 3. FUNGSI GENERATE DOCX ---
 def create_docx_from_template(data, signature_img):
-    # Pastikan nama ini SAMA PERSIS dengan file yang Anda upload ke GitHub
-    template_name = "templatespt.docx"
+    # Nama file baru sesuai info Anda (Sangat sensitif terhadap spasi dan huruf kecil)
+    template_name = "template spt simona.docx"
     
-    # CEK KEBERADAAN FILE
+    # CEK APAKAH FILE ADA DI SISTEM
     if not os.path.exists(template_name):
-        st.error(f"❌ ERROR: File '{template_name}' tidak ditemukan di folder utama.")
-        st.info("💡 Solusi: Pastikan Anda sudah mengupload file tersebut ke GitHub di folder yang sama dengan file app.py ini.")
-        # Menampilkan daftar file yang ada di folder untuk memudahkan pelacakan
-        st.write("File yang tersedia saat ini:", os.listdir("."))
+        st.error(f"❌ File '{template_name}' tidak ditemukan!")
+        st.write("Daftar file yang ada di folder GitHub Anda saat ini:")
+        st.code(os.listdir(".")) # Menampilkan semua file yang ada di direktori
         return None
 
     try:
@@ -50,7 +49,7 @@ def create_docx_from_template(data, signature_img):
             # Menggunakan 40 * mm (perkalian)
             img_obj = InlineImage(doc, temp_path, width=40 * mm)
 
-        # Mapping data ke tag {{ }} di Word
+        # Mapping data (Pastikan di Word menggunakan {{ nama }} dsb)
         context = {
             'perihal': data['perihal'],
             'opd': data['opd'],
@@ -82,56 +81,61 @@ def create_docx_from_template(data, signature_img):
         st.error(f"❌ Gagal memproses Word: {e}")
         return None
 
-# --- 4. TAMPILAN ANTARMUKA ---
+# --- 4. ANTARMUKA PENGGUNA ---
 st.title("📝 Form SPT Admin OPD")
 st.write("---")
 
-# I. PERIHAL & II. UNIT KERJA
-st.header("I. Perihal Surat Tugas")
+# Bagian Pilihan Unit Kerja
+st.header("I. Unit Kerja & Perihal")
 perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
 
-st.header("II. Unit Kerja")
-list_opd = ["Bagian Organisasi", "Bagian Umum", "Dinas Pendidikan", "RSUD Ahmad Ripin"]
+list_opd = [
+    "Bagian Organisasi", "Bagian Umum", "Bagian Tata Pemerintahan",
+    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "RSUD Ahmad Ripin"
+]
 opsi_opd = st.selectbox("Pilih Unit Kerja:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
-opd_final = st.text_input("Tulis Nama Unit Kerja:") if opsi_opd == "Lainnya (Isi Manual)" else opsi_opd
 
-st.write("---")
+if opsi_opd == "Lainnya (Isi Manual)":
+    opd_final = st.text_input("Tuliskan Nama Unit Kerja:")
+else:
+    opd_final = opsi_opd
 
 with st.form("spt_form"):
-    st.header("III. Data Admin")
+    st.header("II. Data Admin & Atasan")
     col1, col2 = st.columns(2)
     with col1:
-        nama = st.text_input("Nama Lengkap")
-        nip = st.text_input("NIP", max_chars=18)
+        nama = st.text_input("Nama Lengkap Admin")
+        nip = st.text_input("NIP Admin")
+        nama_atasan = st.text_input("Nama Lengkap Atasan")
     with col2:
-        pangkat = st.text_input("Pangkat")
-        jabatan = st.text_input("Jabatan")
+        pangkat = st.text_input("Pangkat Admin")
+        jabatan = st.text_input("Jabatan Admin")
+        nip_atasan = st.text_input("NIP Atasan")
     
-    no_hp = st.text_input("WhatsApp")
-    email = st.text_input("Email")
-
-    st.write("---")
-    st.header("IV. Data Atasan")
     col3, col4 = st.columns(2)
     with col3:
-        nama_atasan = st.text_input("Nama Atasan")
         pangkat_atasan = st.text_input("Pangkat Atasan")
     with col4:
-        nip_atasan = st.text_input("NIP Atasan", max_chars=18)
         jabatan_atasan = st.text_input("Jabatan Atasan")
+        
+    no_hp = st.text_input("Nomor WhatsApp")
+    email = st.text_input("Email Aktif")
 
-    st.header("V. Tanda Tangan Atasan")
-    canvas_result = st_canvas(height=150, width=300, drawing_mode="freedraw", key="canvas_ttd")
+    st.header("III. Tanda Tangan Atasan")
+    canvas_result = st_canvas(
+        stroke_width=2, stroke_color="#000000", background_color="#ffffff",
+        height=150, width=300, drawing_mode="freedraw", key="canvas_ttd"
+    )
 
-    submit_button = st.form_submit_button("Generate & Kirim SPT", type="primary")
+    submit_button = st.form_submit_button("Simpan Data & Generate SPT", type="primary")
 
-# --- 5. LOGIKA SUBMIT ---
+# --- 5. LOGIKA PROSES ---
 if submit_button:
-    if not opd_final or not nama:
-        st.warning("⚠️ Mohon lengkapi Nama dan Unit Kerja.")
+    if not opd_final or not nama or not nama_atasan:
+        st.warning("⚠️ Mohon lengkapi Unit Kerja, Nama Admin, dan Nama Atasan.")
     else:
         try:
-            with st.spinner('Menghasilkan dokumen...'):
+            with st.spinner('Sedang membuat SPT...'):
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
                 data_spt = {
                     'perihal': perihal_spt, 'opd': opd_final, 'nama': nama, 'nip': nip,
@@ -159,4 +163,4 @@ if submit_button:
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
         except Exception as e:
-            st.error(f"Terjadi kesalahan: {e}")
+            st.error(f"Terjadi kesalahan teknis: {e}")
