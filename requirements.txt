@@ -6,3 +6,4 @@ google-auth-oauthlib
 pandas
 Pillow
 reportlab
+docxtpl
