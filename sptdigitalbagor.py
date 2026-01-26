@@ -37,19 +37,19 @@ def create_docx_final(data, signature_img):
     try:
         doc = Document(template_name)
         
-        replacements = {
-            '{{Unit_Kerja}}': str(data['unit_kerja']),
+     replacements = {
+            '{{Unit_Kerja}}': str(data['unit_kerja']),           # Sesuaikan huruf besar/kecil
             '{{nama_admin}}': str(data['nama']),
             '{{pangkat_admin}}': str(data['pangkat']),
             '{{NIP_admin}}': str(data['nip']),
-            '{{Jabatan_admin}}': str(data['jabatan']),
+            '{{Jabatan_admin}}': str(data['jabatan']),           # Pastikan J besar
             '{{no_hpadmin}}': str(data['no_hp']),
             '{{email_admin}}': str(data['email']),
             '{{JABATAN_ATASAN}}': str(data['j_atasan']),
             '{{NAMA_ATASAN}}': str(data['n_atasan']),
             '{{NIP_ATASAN}}': str(data['nip_atasan']),
             '{{PANGKAT_GOL_ATASAN}}': str(data['p_atasan']),
-            '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y')
+            '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y') # Pakai underscore
         }
 
         # Iterasi paragraf dengan mempertahankan format (Bold/Italic)
