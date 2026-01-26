@@ -8,7 +8,6 @@ from PIL import Image
 from docxtpl import DocxTemplate, InlineImage
 from reportlab.lib.units import mm
 import os
-import re
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Form SPT Admin OPD", layout="centered", page_icon="📝")
@@ -78,16 +77,28 @@ def create_docx_from_template(data, signature_img):
 # --- 4. TAMPILAN FORM ---
 st.title("📝 Form SPT Admin OPD")
 
-# I. PERIHAL (Ditambahkan sebelum Unit Kerja)
+# I. PERIHAL
 st.header("I. Perihal Surat Tugas")
 perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
 
-# II. UNIT KERJA
+# II. UNIT KERJA (Daftar OPD Diperbanyak)
 st.header("II. Unit Kerja")
 list_opd = [
+    "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat", 
+    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", 
+    "Dinas Pekerjaan Umum dan Penataan Ruang", "Dinas Perumahan dan Kawasan Permukiman",
+    "Satuan Polisi Pamong Praja", "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak",
+    "Dinas Lingkungan Hidup", "Dinas Kependudukan dan Pencatatan Sipil",
+    "Dinas Pemberdayaan Masyarakat dan Desa", "Dinas Perhubungan",
+    "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan",
+    "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", "Dinas Pemuda dan Olahraga",
+    "Dinas Perpustakaan dan Kearsipan", "Dinas Perikanan", "Dinas Tanaman Pangan dan Hortikultura",
+    "Dinas Perkebunan dan Peternakan", "Badan Perencanaan Pembangunan Daerah",
+    "Badan Pengelola Keuangan dan Aset Daerah", "Badan Kepegawaian Daerah",
+    "Badan Penelitian dan Pengembangan Daerah", "Badan Penanggulangan Bencana Daerah",
+    "Badan Kesatuan Bangsa dan Politik", "RSUD Ahmad Ripin",
     "Bagian Organisasi", "Bagian Umum", "Bagian Tata Pemerintahan", 
-    "Bagian Hukum", "Bagian Kesejahteraan Rakyat", "Dinas Pendidikan dan Kebudayaan", 
-    "Dinas Kesehatan", "RSUD Ahmad Ripin"
+    "Bagian Hukum", "Bagian Kesejahteraan Rakyat", "Bagian PBJ"
 ]
 opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
 unit_kerja_final = st.text_input("Tulis Nama OPD (Jika pilih Lainnya):") if opsi_opd == "Lainnya (Isi Manual)" else opsi_opd
@@ -98,7 +109,6 @@ with st.form("spt_form"):
     col1, col2 = st.columns(2)
     with col1:
         nama_admin = st.text_input("Nama Lengkap Admin")
-        # Validasi NIP: max_chars=18 dan help text
         nip_admin = st.text_input("NIP Admin", max_chars=18, help="Masukkan 18 digit angka NIP")
         no_hp = st.text_input("Nomor WhatsApp")
     with col2:
@@ -110,7 +120,7 @@ with st.form("spt_form"):
     
     # IV. DATA ATASAN
     st.header("IV. Data Atasan")
-    jabatan_atasan_input = st.text_input("Jabatan Atasan (Contoh: KEPALA BAGIAN ORGANISASI)")
+    jabatan_atasan_input = st.text_input("Jabatan Atasan (CONTOH: KEPALA BAGIAN ORGANISASI)")
     col3, col4 = st.columns(2)
     with col3:
         nama_atasan_input = st.text_input("Nama Lengkap Atasan")
@@ -131,7 +141,7 @@ with st.form("spt_form"):
 
 # --- 5. LOGIKA SUBMIT & VALIDASI ---
 if submit_button:
-    # Validasi NIP Admin (Harus angka dan 18 digit)
+    # Validasi NIP (Angka & 18 Digit)
     is_nip_valid = nip_admin.isdigit() and len(nip_admin) == 18
     
     if not unit_kerja_final or not nama_admin or not nama_atasan_input:
@@ -140,7 +150,7 @@ if submit_button:
         st.error("❌ NIP Admin harus berupa angka dan berjumlah tepat 18 digit!")
     else:
         try:
-            with st.spinner('Sedang memproses dokumen Word...'):
+            with st.spinner('Menghasilkan dokumen...'):
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
                 
                 data_spt = {
@@ -176,4 +186,4 @@ if submit_button:
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
         except Exception as e:
-            st.error(f"Terjadi kesalahan teknis: {e}")
+            st.error(f"Terjadi kesalahan: {e}")
