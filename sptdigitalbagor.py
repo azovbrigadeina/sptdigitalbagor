@@ -100,7 +100,7 @@ list_opd = [
     "Dinas Perpustakaan dan Arsip Daerah", "Dinas Perikanan", "Dinas Ketahanan Pangan",
     "Dinas Tanaman Pangan dan Hortikultura", "Dinas Perkebunan dan Peternakan",
     "Dinas Tenaga Kerja dan Transmigrasi", "Dinas Pengendalian Penduduk dan Keluarga Berencana",
-    "BAPPEDA", "BPKAD", "BPPRD", "BKPSDMD", "BPBD", "Kesbangpol",
+    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Pengelola Keuangan dan Aset Daerah", "Badan Pengelola Pajak dan Retribusi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia ", "Badan Penanggulangan Bencana Daerah", "Kesbangpol",
     "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar",
     "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh",
     "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
