@@ -6,7 +6,7 @@ import datetime
 from io import BytesIO
 from PIL import Image
 from docxtpl import DocxTemplate, InlineImage
-from reportlab.lib.units import mm  # mm di sini adalah nilai float (2.8346...)
+from reportlab.lib.units import mm
 import os
 
 # --- 1. KONFIGURASI HALAMAN ---
@@ -20,8 +20,7 @@ def get_sheets_service():
             cred_info = st.secrets["gcp_service_account"]
             creds = service_account.Credentials.from_service_account_info(cred_info)
             return build('sheets', 'v4', credentials=creds)
-        else:
-            return None
+        return None
     except Exception as e:
         st.error(f"Error Koneksi Google Sheets: {e}")
         return None
@@ -32,18 +31,16 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 # --- 3. FUNGSI GENERATE DOCX ---
 def create_docx_from_template(data, signature_img):
     try:
-        # Nama file template di GitHub
-        doc = DocxTemplate("template spt simona.docx")
+        # Nama file disesuaikan dengan yang ada di GitHub Anda (templatespt.docx)
+        doc = DocxTemplate("templatespt.docx")
         
         img_obj = ""
         if signature_img:
             temp_path = "temp_sig.png"
             signature_img.save(temp_path)
-            
-            # PERBAIKAN DI SINI: Gunakan perkalian (40 * mm), bukan mm(40)
-            img_obj = InlineImage(doc, temp_path, width=40 * mm) 
+            # Perbaikan: Menggunakan perkalian 40 * mm
+            img_obj = InlineImage(doc, temp_path, width=40 * mm)
 
-        # Mapping data ke {{ tag }} di Word
         context = {
             'perihal': data['perihal'],
             'opd': data['opd'],
@@ -75,86 +72,72 @@ def create_docx_from_template(data, signature_img):
         st.error(f"Gagal memproses template Word: {e}")
         return None
 
-# --- 4. DATA LIST OPD ---
-list_opd = [
-    "Bagian Organisasi", "Bagian Umum", "Bagian Tata Pemerintahan",
-    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "RSUD Ahmad Ripin"
-] 
-
-# --- 5. TAMPILAN UTAMA ---
+# --- 4. TAMPILAN APLIKASI ---
 st.title("📝 Form SPT Admin OPD")
 st.write("---")
 
+# I. Perihal
 st.header("I. Perihal Surat Tugas")
 perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA"])
 
+# II. Unit Kerja
 st.header("II. Unit Kerja")
-opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
-opd_final = st.text_input("Tulis Nama Unit Kerja:") if opsi_opd == "Lainnya (Isi Manual)" else opsi_opd
+list_opd = ["Bagian Organisasi", "Bagian Umum", "Dinas Pendidikan", "RSUD Ahmad Ripin"] # Tambahkan list lainnya
+opsi_opd = st.selectbox("Pilih Unit Kerja:", [""] + sorted(list_opd) + ["Lainnya (Isi Manual)"])
+opd_final = st.text_input("Tulis Nama OPD:") if opsi_opd == "Lainnya (Isi Manual)" else opsi_opd
 
 st.write("---")
 
 with st.form("spt_form"):
-    st.header("III. Data Admin (Penerima Tugas)")
-    status_asn = st.radio("Status ASN:", ["PNS", "PPPK"], horizontal=True)
-    
+    st.header("III. Data Admin")
     col1, col2 = st.columns(2)
     with col1:
-        nama = st.text_input("Nama Lengkap & Gelar")
-        pangkat = st.text_input("Pangkat / Golongan")
-        no_hp = st.text_input("No. WhatsApp")
+        nama = st.text_input("Nama Lengkap")
+        nip = st.text_input("NIP", max_chars=18)
     with col2:
-        nip = st.text_input("NIP Admin (18 Digit)", max_chars=18)
+        pangkat = st.text_input("Pangkat")
         jabatan = st.text_input("Jabatan")
-        email = st.text_input("Email Aktif")
+    
+    no_hp = st.text_input("WhatsApp")
+    email = st.text_input("Email")
 
     st.write("---")
-    st.header("IV. Data Atasan Pemberi Perintah")
-    col3, col4 = st.columns(2)
-    with col3:
-        nama_atasan = st.text_input("Nama Atasan & Gelar")
-        pangkat_atasan = st.text_input("Pangkat Atasan")
-    with col4:
-        nip_atasan = st.text_input("NIP Atasan (18 Digit)", max_chars=18)
-        jabatan_atasan = st.text_input("Jabatan Atasan")
+    st.header("IV. Data Atasan")
+    nama_atasan = st.text_input("Nama Atasan")
+    nip_atasan = st.text_input("NIP Atasan")
+    jabatan_atasan = st.text_input("Jabatan Atasan")
+    pangkat_atasan = st.text_input("Pangkat Atasan")
 
-    st.write("---")
-    st.header("V. Tanda Tangan Atasan")
-    canvas_result = st_canvas(
-        stroke_width=2, stroke_color="#000000", background_color="#ffffff",
-        height=150, width=300, drawing_mode="freedraw", key="canvas_ttd"
-    )
+    st.header("V. Tanda Tangan")
+    canvas_result = st_canvas(height=150, width=300, drawing_mode="freedraw", key="canvas_ttd")
 
-    submit_button = st.form_submit_button("Generate & Kirim SPT", type="primary")
+    submit = st.form_submit_button("Generate SPT", type="primary")
 
-if submit_button:
+if submit:
     if not opd_final or not nama or not nip:
         st.error("Mohon lengkapi data wajib!")
     else:
         try:
-            with st.spinner('Memproses dokumen...'):
+            with st.spinner('Memproses...'):
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
-                
                 data_spt = {
-                    'perihal': perihal_spt, 'opd': opd_final, 'nama': nama, 
-                    'nip': nip, 'pangkat': pangkat, 'jabatan': jabatan, 
-                    'no_hp': no_hp, 'email': email, 'nama_atasan': nama_atasan, 
-                    'nip_atasan': nip_atasan, 'jabatan_atasan': jabatan_atasan, 
-                    'pangkat_atasan': pangkat_atasan
+                    'perihal': perihal_spt, 'opd': opd_final, 'nama': nama, 'nip': nip,
+                    'pangkat': pangkat, 'jabatan': jabatan, 'no_hp': no_hp, 'email': email,
+                    'nama_atasan': nama_atasan, 'nip_atasan': nip_atasan, 
+                    'jabatan_atasan': jabatan_atasan, 'pangkat_atasan': pangkat_atasan
                 }
-
+                
                 docx_file = create_docx_from_template(data_spt, img_ttd)
                 
                 if docx_file:
                     if sheets_service:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, perihal_spt, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
+                        row = [[now, perihal_spt, opd_final, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
                             valueInputOption="USER_ENTERED", body={'values': row}
                         ).execute()
                     
-                    st.balloons()
                     st.success("SPT Berhasil Dibuat!")
                     st.download_button(
                         label="📥 Download SPT (Word)",
@@ -163,4 +146,4 @@ if submit_button:
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
         except Exception as e:
-            st.error(f"Terjadi kesalahan teknis: {e}")
+            st.error(f"Kesalahan: {e}")
