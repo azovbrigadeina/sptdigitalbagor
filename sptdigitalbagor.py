@@ -8,6 +8,7 @@ from PIL import Image
 from docx import Document
 from docx.shared import Mm
 import os
+import re
 
 # --- 1. SETTING HALAMAN ---
 st.set_page_config(page_title="Kirim SPT", layout="centered")
@@ -85,7 +86,9 @@ st.write("---")
 
 # Bagian I: Perihal & Unit Kerja
 st.subheader("I. Perihal & Unit Kerja")
-perihal_spt = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
+opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
+perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
+
 list_opd = ["Sekretariat Daerah", "Inspektorat", "Dinas Pendidikan", "Dinas Kesehatan", "RSUD Ahmad Ripin", "Bagian Organisasi", "Bagian Umum", "Bagian PBJ"]
 opsi_opd = st.selectbox("Pilih OPD:", [""] + sorted(list_opd) + ["Lainnya"])
 unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
@@ -102,7 +105,7 @@ with c1:
 with c2:
     pangkat_admin = st.text_input("Pangkat / Golongan")
     jabatan_admin = st.text_input("Jabatan")
-    email = st.text_input("Email")
+    email = st.text_input("Email", placeholder="contoh@gmail.com")
 
 st.write("---")
 
@@ -124,22 +127,25 @@ st.write("---")
 st.subheader("IV. Tanda Tangan Atasan")
 canvas_result = st_canvas(
     stroke_width=3, stroke_color="#000000", background_color="#ffffff",
-    height=150, width=350, drawing_mode="freedraw", key="canvas_last"
+    height=150, width=350, drawing_mode="freedraw", key="canvas_last",
+    display_toolbar=True
 )
 
 st.write("")
 if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=True):
-    # Validasi NIP Admin
+    # Validasi NIP (18 Digit Angka)
     is_nip_admin_valid = nip_admin.isdigit() and len(nip_admin) == 18
-    # Validasi NIP Atasan
     is_nip_atasan_valid = nip_atasan.isdigit() and len(nip_atasan) == 18
+    
+    # Validasi Email @gmail.com
+    is_email_valid = email.lower().endswith("@gmail.com")
 
-    if not is_nip_admin_valid:
-        st.error("❌ NIP Admin harus berupa 18 digit angka!")
-    elif not is_nip_atasan_valid:
-        st.error("❌ NIP Atasan harus berupa 18 digit angka!")
-    elif not nama_admin or not unit_kerja_final or not n_atasan:
-        st.warning("⚠️ Mohon lengkapi Nama, Unit Kerja, dan Nama Atasan!")
+    if not is_nip_admin_valid or not is_nip_atasan_valid:
+        st.error("❌ NIP Admin dan NIP Atasan harus berupa 18 digit angka!")
+    elif not is_email_valid:
+        st.error("❌ Email harus menggunakan domain @gmail.com!")
+    elif not nama_admin or not unit_kerja_final or not perihal_final:
+        st.warning("⚠️ Mohon lengkapi Nama, Unit Kerja, dan Perihal!")
     else:
         with st.spinner('Sedang memproses dokumen...'):
             data_spt = {
@@ -155,7 +161,7 @@ if st.button("🚀 GENERATE & KIRIM DATA", type="primary", use_container_width=T
                 if sheets_service:
                     try:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        row = [[now, perihal_spt, unit_kerja_final, nama_admin, f"'{nip_admin}", email, n_atasan]]
+                        row = [[now, perihal_final, unit_kerja_final, nama_admin, f"'{nip_admin}", email, n_atasan]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
                             valueInputOption="USER_ENTERED", body={'values': row}
