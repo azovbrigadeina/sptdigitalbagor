@@ -161,10 +161,25 @@ st.write("---")
 
 # SEKSI IV: TANDA TANGAN
 st.subheader("IV. Tanda Tangan Atasan")
+
+# Box tanda tangan
 canvas_result = st_canvas(
-    stroke_width=3, stroke_color="#000000", background_color="#ffffff",
-    height=150, width=350, drawing_mode="freedraw", key="canvas_final",
+    stroke_width=3, 
+    stroke_color="#000000", 
+    background_color="#ffffff",
+    height=150, 
+    width=350, 
+    drawing_mode="freedraw", 
+    key="canvas_final",
+    display_toolbar=True # Menambahkan toolbar agar user bisa undo/hapus jika salah
 )
+
+# Keterangan di bawah tanda tangan
+st.markdown("""
+    <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
+        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan!
+    </p>
+    """, unsafe_allow_html=True)
 
 st.write("")
 if st.button("KIRIM DATA", type="primary", use_container_width=True):
