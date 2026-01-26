@@ -6,7 +6,7 @@ import datetime
 from io import BytesIO
 from PIL import Image
 from docxtpl import DocxTemplate, InlineImage
-from reportlab.lib.units import mm  # Pastikan mm huruf kecil
+from reportlab.lib.units import mm  # mm di sini adalah nilai float (2.8346...)
 import os
 
 # --- 1. KONFIGURASI HALAMAN ---
@@ -21,7 +21,6 @@ def get_sheets_service():
             creds = service_account.Credentials.from_service_account_info(cred_info)
             return build('sheets', 'v4', credentials=creds)
         else:
-            st.warning("GCP Service Account tidak ditemukan di Secrets.")
             return None
     except Exception as e:
         st.error(f"Error Koneksi Google Sheets: {e}")
@@ -30,21 +29,21 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 3. FUNGSI GENERATE DOCX (MAIL MERGE) ---
+# --- 3. FUNGSI GENERATE DOCX ---
 def create_docx_from_template(data, signature_img):
     try:
-        # Nama file harus sama persis dengan yang ada di GitHub
+        # Nama file template di GitHub
         doc = DocxTemplate("template spt simona.docx")
         
         img_obj = ""
         if signature_img:
-            # Simpan sementara tanda tangan
             temp_path = "temp_sig.png"
             signature_img.save(temp_path)
-            # Menggunakan mm (huruf kecil) dari reportlab.lib.units
-            img_obj = InlineImage(doc, temp_path, width=mm(40))
+            
+            # PERBAIKAN DI SINI: Gunakan perkalian (40 * mm), bukan mm(40)
+            img_obj = InlineImage(doc, temp_path, width=40 * mm) 
 
-        # Mapping data ke tag {{ }} di Word
+        # Mapping data ke {{ tag }} di Word
         context = {
             'perihal': data['perihal'],
             'opd': data['opd'],
@@ -68,7 +67,6 @@ def create_docx_from_template(data, signature_img):
         doc.save(target_stream)
         target_stream.seek(0)
         
-        # Bersihkan file sementara
         if os.path.exists("temp_sig.png"):
             os.remove("temp_sig.png")
             
@@ -77,28 +75,13 @@ def create_docx_from_template(data, signature_img):
         st.error(f"Gagal memproses template Word: {e}")
         return None
 
-# --- 4. FUNGSI DIALOG SUKSES ---
-@st.dialog("✅ SPT Berhasil Dibuat")
-def show_success_dialog(nama_admin, docx_data):
-    st.write(f"Halo **{nama_admin}**, data Anda telah berhasil disimpan.")
-    st.success("Silakan unduh dokumen SPT (Word) Anda di bawah ini:")
-    
-    st.download_button(
-        label="📥 Download SPT (DOCX)",
-        data=docx_data,
-        file_name=f"SPT_{nama_admin.replace(' ', '_')}.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-    if st.button("Tutup"):
-        st.rerun()
-
-# --- 5. DATA LIST OPD ---
+# --- 4. DATA LIST OPD ---
 list_opd = [
     "Bagian Organisasi", "Bagian Umum", "Bagian Tata Pemerintahan",
     "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "RSUD Ahmad Ripin"
-] # Tambahkan list lengkap Anda di sini
+] 
 
-# --- 6. TAMPILAN UTAMA ---
+# --- 5. TAMPILAN UTAMA ---
 st.title("📝 Form SPT Admin OPD")
 st.write("---")
 
@@ -144,14 +127,12 @@ with st.form("spt_form"):
 
     submit_button = st.form_submit_button("Generate & Kirim SPT", type="primary")
 
-# --- 7. LOGIKA SUBMIT ---
 if submit_button:
-    if not opd_final or not nama or not nip or not nama_atasan:
-        st.error("Gagal: Mohon lengkapi semua data dan tanda tangan!")
+    if not opd_final or not nama or not nip:
+        st.error("Mohon lengkapi data wajib!")
     else:
         try:
-            with st.spinner('Sedang memproses dokumen...'):
-                # Ubah canvas ke gambar
+            with st.spinner('Memproses dokumen...'):
                 img_ttd = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
                 
                 data_spt = {
@@ -162,11 +143,9 @@ if submit_button:
                     'pangkat_atasan': pangkat_atasan
                 }
 
-                # Generate file Word
                 docx_file = create_docx_from_template(data_spt, img_ttd)
                 
                 if docx_file:
-                    # Kirim ke Google Sheets jika service aktif
                     if sheets_service:
                         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         row = [[now, perihal_spt, opd_final, status_asn, f"'{nip}", nama, pangkat, jabatan, no_hp, email, f"'{nip_atasan}", nama_atasan]]
@@ -176,9 +155,12 @@ if submit_button:
                         ).execute()
                     
                     st.balloons()
-                    show_success_dialog(nama, docx_file)
+                    st.success("SPT Berhasil Dibuat!")
+                    st.download_button(
+                        label="📥 Download SPT (Word)",
+                        data=docx_file,
+                        file_name=f"SPT_{nama.replace(' ', '_')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
         except Exception as e:
             st.error(f"Terjadi kesalahan teknis: {e}")
-
-st.markdown("---")
-st.caption("Tim Bagian Organisasi Muaro Jambi - 2026")
