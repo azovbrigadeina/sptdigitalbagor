@@ -37,39 +37,37 @@ def create_docx_final(data, signature_img):
     try:
         doc = Document(template_name)
         
-        # Daftar penggantian teks (Pastikan lurus dengan baris di atasnya)
+        # MAPPING BARU (Pastikan lurus indentasinya)
         replacements = {
-            '{{Unit_Kerja}}': str(data['unit_kerja']),
+            '{{unitkerja}}': str(data['unit_kerja']),
             '{{nama_admin}}': str(data['nama']),
             '{{pangkat_admin}}': str(data['pangkat']),
             '{{NIP_admin}}': str(data['nip']),
-            '{{Jabatan_admin}}': str(data['jabatan']),
+            '{{Jabatanadmin}}': str(data['jabatan']),
             '{{no_hpadmin}}': str(data['no_hp']),
             '{{email_admin}}': str(data['email']),
             '{{JABATAN_ATASAN}}': str(data['j_atasan']),
             '{{NAMA_ATASAN}}': str(data['n_atasan']),
             '{{NIP_ATASAN}}': str(data['nip_atasan']),
             '{{PANGKAT_GOL_ATASAN}}': str(data['p_atasan']),
-            '{{Tanggal_Bulan_Tahun}}': datetime.datetime.now().strftime('%d %B %Y')
+            '{{TTL}}': datetime.datetime.now().strftime('%d %B %Y')
         }
 
-        # Iterasi setiap paragraf
         for paragraph in doc.paragraphs:
-            # Ganti teks di dalam runs agar format Bold tidak hilang
+            # Proses penggantian teks sambil menjaga format Bold
             for key, value in replacements.items():
                 if key in paragraph.text:
                     for run in paragraph.runs:
                         if key in run.text:
                             run.text = run.text.replace(key, value)
             
-            # Suntik Gambar Tanda Tangan (Cari tag {{ttd}})
+            # Proses Tanda Tangan
             if '{{ttd}}' in paragraph.text:
                 for run in paragraph.runs:
                     if '{{ttd}}' in run.text:
-                        run.text = run.text.replace('{{ttd}}', "") # Hapus teks tag
+                        run.text = run.text.replace('{{ttd}}', "")
                 
                 if signature_img is not None:
-                    # Olah gambar agar latar putih
                     img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
                     white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
                     final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
@@ -78,7 +76,6 @@ def create_docx_final(data, signature_img):
                     final_img.save(img_io, format='PNG')
                     img_io.seek(0)
                     
-                    # Tambahkan run baru khusus untuk gambar
                     new_run = paragraph.add_run()
                     new_run.add_picture(img_io, width=Mm(45))
 
@@ -86,9 +83,8 @@ def create_docx_final(data, signature_img):
         doc.save(target_stream)
         target_stream.seek(0)
         return target_stream
-
     except Exception as e:
-        st.error(f"Gagal memproses dokumen: {e}")
+        st.error(f"Gagal: {e}")
         return None
 
 # --- 4. TAMPILAN FORM ---
