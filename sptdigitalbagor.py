@@ -45,12 +45,12 @@ def create_pdf_from_template(data, signature_img):
     
     # Sumbu Y (Vertikal) - Koordinat ini harus disesuaikan dengan baris kosong di PDF Anda
     # Gunakan jeda sekitar 0.7cm atau 0.8cm antar baris
-    can.drawString(x_data, 35 * cm, f": {data['nama']}")     # Baris Nama
-    can.drawString(x_data, 35 * cm, f": {data['nip']}")      # Baris NIP
-    can.drawString(x_data, 35 * cm, f": {data['pangkat']}")  # Baris Pangkat
-    can.drawString(x_data, 35 * cm, f": {data['jabatan']}")  # Baris Jabatan
-    can.drawString(x_data, 35 * cm, f": {data['no_hp']}")    # Baris No HP
-    can.drawString(x_data, 35 * cm, f": {data['email']}")    # Baris Email
+    can.drawString(x_data, 20 * cm, f": {data['nama']}")     # Baris Nama
+    can.drawString(x_data, 20 * cm, f": {data['nip']}")      # Baris NIP
+    can.drawString(x_data, 20 * cm, f": {data['pangkat']}")  # Baris Pangkat
+    can.drawString(x_data, 20 * cm, f": {data['jabatan']}")  # Baris Jabatan
+    can.drawString(x_data, 20 * cm, f": {data['no_hp']}")    # Baris No HP
+    can.drawString(x_data, 20 * cm, f": {data['email']}")    # Baris Email
 
     # Bagian Tanda Tangan (Kanan Bawah)
     x_ttd = 12.0 * cm
