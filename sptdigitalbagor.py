@@ -177,7 +177,7 @@ canvas_result = st_canvas(
 # Keterangan di bawah tanda tangan
 st.markdown("""
     <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
-        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan!
+        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
     </p>
     """, unsafe_allow_html=True)
 
