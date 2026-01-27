@@ -10,56 +10,10 @@ from docx.shared import Mm
 import os
 import base64
 
-# --- 1. SETTING HALAMAN & CUSTOM CSS BACKGROUND ---
+# --- 1. SETTING HALAMAN ---
 st.set_page_config(page_title="Kirim Surat Tugas", layout="centered", page_icon="📝")
 
-st.markdown("""
-    <style>
-    /* 1. Latar Belakang Gradasi sesuai gambar */
-    .stApp {
-        background: linear-gradient(180deg, #245D8F 0%, #4CA085 50%, #D9E021 100%);
-        background-attachment: fixed;
-    }
-
-    /* 2. Penyesuaian Warna Teks agar terbaca (Putih dengan Shadow) */
-    h1, h2, h3, h4, label, .stMarkdown p {
-        color: white !important;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-    }
-
-    /* 3. Styling Input Box agar tetap bersih */
-    .stTextInput input, .stSelectbox div, .stTextArea textarea {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        color: black !important;
-        border-radius: 8px !important;
-    }
-
-    /* 4. Styling Tombol Kirim */
-    div.stButton > button:first-child {
-        background-color: #245D8F;
-        color: white;
-        border: 2px solid #D9E021;
-        border-radius: 10px;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-    div.stButton > button:first-child:hover {
-        background-color: #D9E021;
-        color: #245D8F;
-    }
-
-    /* 5. Footer Box */
-    .footer-box {
-        background-color: rgba(255, 255, 255, 0.2);
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(5px);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 2. KONEKSI GOOGLE SHEETS (Logika Tetap) ---
+# --- 2. KONEKSI GOOGLE SHEETS ---
 @st.cache_resource
 def get_sheets_service():
     try:
@@ -74,13 +28,15 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 3. FUNGSI KONVERSI TTD ---
+# --- 3. FUNGSI KONVERSI TTD KE BASE64 (Untuk Spreadsheet) ---
 def get_base64_signature(signature_img):
     try:
         if signature_img is not None and signature_img.any():
             img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
+            # Tambahkan background putih agar tidak transparan di Base64
             white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
             final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
+            
             buffered = BytesIO()
             final_img.save(buffered, format="PNG")
             return base64.b64encode(buffered.getvalue()).decode()
@@ -88,7 +44,7 @@ def get_base64_signature(signature_img):
     except:
         return "Error TTD"
 
-# --- 4. FUNGSI GENERATE DOCX ---
+# --- 4. FUNGSI GENERATE DOCX (Untuk Download) ---
 def create_docx_final(data, signature_img):
     template_name = "template spt simona.docx" 
     if not os.path.exists(template_name):
@@ -144,16 +100,36 @@ def create_docx_final(data, signature_img):
 st.markdown("<h2 style='text-align: center;'>📝 Kirim Surat Tugas</h2>", unsafe_allow_html=True)
 st.write("---")
 
+# SEKSI I: PERIHAL & OPD
 st.subheader("I. Perihal & Unit Kerja")
 opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lainnya"])
 perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
 
-list_opd = ["Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat Daerah", "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang", "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja dan Damkar", "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", "Dinas Lingkungan Hidup", "Dinas Kependudukan dan Pencatatan Sipil", "Dinas Pemberdayaan Masyarakat dan Desa", "Dinas Perhubungan", "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan", "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", "Dinas Pariwisata, Pemuda dan Olahraga", "Dinas Perpustakaan dan Arsip Daerah", "Dinas Perikanan", "Dinas Ketahanan Pangan", "Dinas Tanaman Pangan dan Hortikultura", "Dinas Perkebunan dan Peternakan", "Dinas Tenaga Kerja dan Transmigrasi", "Dinas Pengendalian Penduduk dan Keluarga Berencana", "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Pengelola Keuangan dan Aset Daerah", "Badan Pengelola Pajak dan Retribusi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia ", "Badan Penanggulangan Bencana Daerah", "Kesbangpol", "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar", "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh", "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar", "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo"]
+list_opd = [
+    "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat Daerah",
+    "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja dan Damkar",
+    "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", "Dinas Lingkungan Hidup",
+    "Dinas Kependudukan dan Pencatatan Sipil", "Dinas Pemberdayaan Masyarakat dan Desa",
+    "Dinas Perhubungan", "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan",
+    "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", "Dinas Pariwisata, Pemuda dan Olahraga",
+    "Dinas Perpustakaan dan Arsip Daerah", "Dinas Perikanan", "Dinas Ketahanan Pangan",
+    "Dinas Tanaman Pangan dan Hortikultura", "Dinas Perkebunan dan Peternakan",
+    "Dinas Tenaga Kerja dan Transmigrasi", "Dinas Pengendalian Penduduk dan Keluarga Berencana",
+    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Pengelola Keuangan dan Aset Daerah", 
+    "Badan Pengelola Pajak dan Retribusi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia ", 
+    "Badan Penanggulangan Bencana Daerah", "Kesbangpol",
+    "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar",
+    "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh",
+    "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
+    "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo"
+]
 opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya"])
 unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
 
 st.write("---")
 
+# SEKSI II: DATA ADMIN
 st.subheader("II. Data Admin")
 status_pegawai = st.radio("Status Pegawai:", ["PNS", "PPPK"], horizontal=True)
 
@@ -169,26 +145,45 @@ with c2:
 
 st.write("---")
 
+# SEKSI III: DATA ATASAN
 st.subheader("III. Data Atasan")
 n_atasan = st.text_input("Nama Lengkap Atasan")
-j_atasan = st.text_input("Jabatan Atasan")
+j_atasan = st.text_input("Jabatan Atasan (Contoh: Kepala Bagian Organisasi)")
 
 c3, c4 = st.columns(2)
 with c3:
     p_atasan = st.text_input("Pangkat / Golongan Atasan")
 with c4:
     nip_atasan = st.text_input("NIP Atasan", max_chars=18)
+    st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
 st.write("---")
 
+# SEKSI IV: TANDA TANGAN
 st.subheader("IV. Tanda Tangan Atasan")
+
+# Box tanda tangan
 canvas_result = st_canvas(
-    stroke_width=3, stroke_color="#000000", background_color="#ffffff",
-    height=150, width=350, drawing_mode="freedraw", key="canvas_final", display_toolbar=True
+    stroke_width=3, 
+    stroke_color="#000000", 
+    background_color="#ffffff",
+    height=150, 
+    width=350, 
+    drawing_mode="freedraw", 
+    key="canvas_final",
+    display_toolbar=True # Menambahkan toolbar agar user bisa undo/hapus jika salah
 )
 
+# Keterangan di bawah tanda tangan
+st.markdown("""
+    <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
+        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
+    </p>
+    """, unsafe_allow_html=True)
+
 st.write("")
-if st.button("KIRIM DATA SEKARANG", type="primary", use_container_width=True):
+if st.button("KIRIM DATA", type="primary", use_container_width=True):
+    # Logika Validasi
     val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
     val_email = email.lower().endswith("@gmail.com")
 
@@ -197,22 +192,44 @@ if st.button("KIRIM DATA SEKARANG", type="primary", use_container_width=True):
     elif not val_email:
         st.error("❌ Email wajib menggunakan domain @gmail.com!")
     elif not nama_admin or not unit_kerja_final or not n_atasan:
-        st.warning("⚠️ Mohon lengkapi semua field!")
+        st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
     else:
         with st.spinner('Memproses data...'):
+            # Ambil Base64 TTD
             ttd_b64 = get_base64_signature(canvas_result.image_data)
             
-            if sheets_service:
-                try:
-                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    row = [[now, perihal_final, unit_kerja_final, f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, n_atasan, j_atasan, p_atasan, f"'{nip_atasan}", ttd_b64]]
-                    sheets_service.spreadsheets().values().append(
-                        spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1",
-                        valueInputOption="USER_ENTERED", body={'values': row}
-                    ).execute()
-                except Exception as e:
-                    st.error(f"Gagal Sheets: {e}")
+            # 2. Submit ke Google Sheets
+        if sheets_service:
+            try:
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # --- BAGIAN INI YANG DIPERBAIKI ---
+                # Susun semua data agar masuk ke kolom spreadsheet
+                row = [[
+                    now,                    # Kolom A: Waktu
+                    perihal_final,          # Kolom B: Perihal
+                    unit_kerja_final,       # Kolom C: Unit Kerja
+                    f"({status_pegawai}) {nama_admin}", # Kolom D: Nama Admin
+                    f"'{nip_admin}",        # Kolom E: NIP Admin
+                    email,                  # Kolom F: Email
+                    n_atasan,               # Kolom G: Nama Atasan
+                    j_atasan,               # Kolom H: Jabatan Atasan (BARU)
+                    p_atasan,               # Kolom I: Pangkat Atasan (BARU)
+                    f"'{nip_atasan}",       # Kolom J: NIP Atasan (BARU)
+                    ttd_b64                 # Kolom K: Base64 TTD
+                ]]
+                
+                sheets_service.spreadsheets().values().append(
+                    spreadsheetId=SPREADSHEET_ID, 
+                    range="Sheet1!A1",
+                    valueInputOption="USER_ENTERED", 
+                    body={'values': row}
+                ).execute()
+                
+            except Exception as e:
+                st.error(f"Gagal kirim ke Sheets: {e}")
 
+            # Generate Word
             data_spt = {
                 'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
                 'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
@@ -222,17 +239,17 @@ if st.button("KIRIM DATA SEKARANG", type="primary", use_container_width=True):
             docx_file = create_docx_final(data_spt, canvas_result.image_data)
             
             if docx_file:
-                st.success("✅ Data berhasil terkirim!")
-                st.download_button("📥 Download SPT", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.success("✅ Data berhasil masuk, Terima Kasih")
+                st.download_button("📥 Download SPT Sekarang (hanya experimental saja ya...", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
 
 # --- 6. FOOTER ---
+st.write("")
 st.write("---")
 st.markdown(
     """
-    <div class="footer-box" style='text-align: center;'>
-        <p style='margin: 0; color: white;'>Made with Love ❤️ oleh</p>
-        <p style='margin: 0; font-weight: bold; color: white;'>Tim Bagian Organisasi Setda Kab. Muaro Jambi</p>
-        <p style='margin: 5px 0 0 0; font-weight: bold; color: #D9E021;'>#SlavaUkraini 🇺🇦</p>
+    <div style='text-align: center; color: #808495; font-size: 0.9em;'>
+        Made with Love ❤️ oleh <br>
+        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi #SlavaUkraini</strong>
     </div>
     """, 
     unsafe_allow_html=True
