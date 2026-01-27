@@ -10,10 +10,55 @@ from docx.shared import Mm
 import os
 import base64
 
-# --- 1. SETTING HALAMAN ---
-st.set_page_config(page_title="Kirim Surat Tugas", layout="centered", page_icon="📝")
+# --- 1. SETTING HALAMAN & THEME UKRAINA ---
+st.set_page_config(page_title="Kirim Surat Tugas", layout="centered", page_icon="🇺🇦")
 
-# --- 2. KONEKSI GOOGLE SHEETS ---
+# Injeksi CSS untuk nuansa Ukraina
+st.markdown("""
+    <style>
+    /* Mengubah warna background sidebar jika ada */
+    .stApp {
+        border-top: 12px solid #0057B7;
+    }
+    
+    /* Warna Header & Subheader */
+    h1, h2, h3 {
+        color: #0057B7 !important;
+    }
+
+    /* Tombol Utama (Kirim Data) */
+    div.stButton > button:first-child {
+        background-color: #0057B7;
+        color: white;
+        border: 2px solid #FFD700;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #FFD700;
+        color: #0057B7;
+        border: 2px solid #0057B7;
+    }
+
+    /* Garis pemisah */
+    hr {
+        border: 0;
+        height: 3px;
+        background-image: linear-gradient(to right, #0057B7, #FFD700);
+    }
+
+    /* Styling Footer */
+    .footer-box {
+        background-color: #f0f2f6;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 5px solid #0057B7;
+        border-right: 5px solid #FFD700;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 2. KONEKSI GOOGLE SHEETS (Tetap sama) ---
 @st.cache_resource
 def get_sheets_service():
     try:
@@ -28,15 +73,13 @@ def get_sheets_service():
 sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
-# --- 3. FUNGSI KONVERSI TTD KE BASE64 (Untuk Spreadsheet) ---
+# --- 3. FUNGSI KONVERSI TTD KE BASE64 ---
 def get_base64_signature(signature_img):
     try:
         if signature_img is not None and signature_img.any():
             img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
-            # Tambahkan background putih agar tidak transparan di Base64
             white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
             final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
-            
             buffered = BytesIO()
             final_img.save(buffered, format="PNG")
             return base64.b64encode(buffered.getvalue()).decode()
@@ -44,7 +87,7 @@ def get_base64_signature(signature_img):
     except:
         return "Error TTD"
 
-# --- 4. FUNGSI GENERATE DOCX (Untuk Download) ---
+# --- 4. FUNGSI GENERATE DOCX ---
 def create_docx_final(data, signature_img):
     template_name = "template spt simona.docx" 
     if not os.path.exists(template_name):
@@ -97,7 +140,8 @@ def create_docx_final(data, signature_img):
         return None
 
 # --- 5. TAMPILAN UI ---
-st.markdown("<h2 style='text-align: center;'>📝 Kirim Surat Tugas</h2>", unsafe_allow_html=True)
+# Header dengan simbol bendera
+st.markdown("<h2 style='text-align: center;'>🔵 Kirim Surat Tugas 🟡</h2>", unsafe_allow_html=True)
 st.write("---")
 
 # SEKSI I: PERIHAL & OPD
@@ -155,14 +199,13 @@ with c3:
     p_atasan = st.text_input("Pangkat / Golongan Atasan")
 with c4:
     nip_atasan = st.text_input("NIP Atasan", max_chars=18)
-    st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
+    st.info(f"📅 Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
 st.write("---")
 
 # SEKSI IV: TANDA TANGAN
 st.subheader("IV. Tanda Tangan Atasan")
 
-# Box tanda tangan
 canvas_result = st_canvas(
     stroke_width=3, 
     stroke_color="#000000", 
@@ -171,19 +214,17 @@ canvas_result = st_canvas(
     width=350, 
     drawing_mode="freedraw", 
     key="canvas_final",
-    display_toolbar=True # Menambahkan toolbar agar user bisa undo/hapus jika salah
+    display_toolbar=True
 )
 
-# Keterangan di bawah tanda tangan
 st.markdown("""
-    <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
-        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
+    <p style='color: #0057B7; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
+        ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan!
     </p>
     """, unsafe_allow_html=True)
 
 st.write("")
-if st.button("KIRIM DATA", type="primary", use_container_width=True):
-    # Logika Validasi
+if st.button("KIRIM DATA SEKARANG", type="primary", use_container_width=True):
     val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
     val_email = email.lower().endswith("@gmail.com")
 
@@ -194,29 +235,16 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
     elif not nama_admin or not unit_kerja_final or not n_atasan:
         st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
     else:
-        with st.spinner('Memproses data...'):
-            # Ambil Base64 TTD
+        with st.spinner('Memproses data ke sistem...'):
             ttd_b64 = get_base64_signature(canvas_result.image_data)
             
-            # 2. Submit ke Google Sheets
         if sheets_service:
             try:
                 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                
-                # --- BAGIAN INI YANG DIPERBAIKI ---
-                # Susun semua data agar masuk ke kolom spreadsheet
                 row = [[
-                    now,                    # Kolom A: Waktu
-                    perihal_final,          # Kolom B: Perihal
-                    unit_kerja_final,       # Kolom C: Unit Kerja
-                    f"({status_pegawai}) {nama_admin}", # Kolom D: Nama Admin
-                    f"'{nip_admin}",        # Kolom E: NIP Admin
-                    email,                  # Kolom F: Email
-                    n_atasan,               # Kolom G: Nama Atasan
-                    j_atasan,               # Kolom H: Jabatan Atasan (BARU)
-                    p_atasan,               # Kolom I: Pangkat Atasan (BARU)
-                    f"'{nip_atasan}",       # Kolom J: NIP Atasan (BARU)
-                    ttd_b64                 # Kolom K: Base64 TTD
+                    now, perihal_final, unit_kerja_final, 
+                    f"({status_pegawai}) {nama_admin}", f"'{nip_admin}", email, 
+                    n_atasan, j_atasan, p_atasan, f"'{nip_atasan}", ttd_b64
                 ]]
                 
                 sheets_service.spreadsheets().values().append(
@@ -229,7 +257,6 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
             except Exception as e:
                 st.error(f"Gagal kirim ke Sheets: {e}")
 
-            # Generate Word
             data_spt = {
                 'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
                 'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
@@ -239,17 +266,23 @@ if st.button("KIRIM DATA", type="primary", use_container_width=True):
             docx_file = create_docx_final(data_spt, canvas_result.image_data)
             
             if docx_file:
-                st.success("✅ Data berhasil masuk, Terima Kasih")
-                st.download_button("📥 Download SPT Sekarang (hanya experimental saja ya...", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                st.success("✅ Data berhasil masuk, Terima Kasih!")
+                st.download_button(
+                    label="📥 Download SPT Sekarang", 
+                    data=docx_file, 
+                    file_name=f"SPT_{nama_admin.replace(' ','_')}.docx", 
+                    use_container_width=True
+                )
 
-# --- 6. FOOTER ---
+# --- 6. FOOTER UKRAINA ---
 st.write("")
 st.write("---")
 st.markdown(
     """
-    <div style='text-align: center; color: #808495; font-size: 0.9em;'>
-        Made with Love ❤️ oleh <br>
-        <strong>Tim Bagian Organisasi Setda Kab. Muaro Jambi #SlavaUkraini</strong>
+    <div class="footer-box" style='text-align: center;'>
+        <p style='color: #0057B7; font-size: 1.1em; margin-bottom: 5px;'>Made with Love ❤️ oleh</p>
+        <p style='color: #333; font-weight: bold;'>Tim Bagian Organisasi Setda Kab. Muaro Jambi</p>
+        <p style='color: #0057B7; font-weight: bold; font-size: 1.2em;'>#SlavaUkraini 🇺🇦</p>
     </div>
     """, 
     unsafe_allow_html=True
