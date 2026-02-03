@@ -108,7 +108,7 @@ perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainn
 list_opd = [
     "Sekretariat Daerah", "Sekretariat DPRD", "Inspektorat Daerah",
     "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang",
-    "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja dan Damkar",
+    "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja", "Dinas Pemadam Kebakaran dan Penyelamatan",
     "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", "Dinas Lingkungan Hidup",
     "Dinas Kependudukan dan Pencatatan Sipil", "Dinas Pemberdayaan Masyarakat dan Desa",
     "Dinas Perhubungan", "Dinas Komunikasi dan Informatika", "Dinas Koperasi, Perindustrian dan Perdagangan",
