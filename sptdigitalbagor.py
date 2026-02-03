@@ -122,7 +122,7 @@ list_opd = [
     "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar",
     "Kecamatan Sekernan", "Kecamatan Jaluko", "Kecamatan Maro Sebo", "Kecamatan Kumpeh",
     "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
-    "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo"
+    "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo", "Puskesmas Penyengat Olak", "Puskesmas Kemingking Dalam", "Puskesmas Puding", "Puskesmas Sungai Bahar IV", "Puskesmas Simpang Sungai Duren", "Puskesmas Tempino", "Puskesmas Tanjung", "Puskesmas Bahar VII", "Puskesmas Tantan", "Puskesmas Kasang Pudak", "Puskesmas Sengeti", "Puskesmas Pir II Bajubang", "Puskesmas Pondok Meja", "Puskesmas Markanding", "Puskesmas Tangkit", "Puskesmas Talang Bukit", "Puskesmas Sekernan Ilir", "Puskesmas Jambi Kecil", "Puskesmas Muara Kumpeh", "Puskesmas Sungai Bahar I", "Puskesmas Kebon IX", "Puskesmas Suko Awin", "Puskesmas Petaling Jaya"
 ]
 opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya"])
 unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
