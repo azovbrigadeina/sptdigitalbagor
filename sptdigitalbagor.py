@@ -97,19 +97,19 @@ def create_docx_final(data, signature_img):
         return None
 
 # --- 5. TAMPILAN UI ---
-# TAMBAHAN: MODAL PEMBERITAHUAN (FLYOUT)
+# TAMBAHAN: FUNGSI MODAL YANG LEBIH STABIL
 @st.dialog("PENGUMUMAN PENTING")
-def pemberitahuan_awal():
+def tampilkan_pengumuman():
     st.warning("⚠️ **Batas Pengiriman SPT:**")
-    st.write("Pengiriman SPT paling lambat sampai **Tanggal 6 Februari 2026**.")
-    st.info("💡 **Informasi Tambahan:**\n\nTidak perlu menyerahkan SPT Fisik ke Bagian Organisasi.")
+    st.markdown("Pengiriman SPT sampai **Tanggal 6 Februari 2026**.")
+    st.info("💡 **Informasi:**\n\nTidak perlu menyerahkan SPT Fisik ke Bagian Organisasi.")
     if st.button("Saya Mengerti", type="primary", use_container_width=True):
+        st.session_state["sudah_baca_info"] = True
         st.rerun()
 
-# Menampilkan modal secara otomatis jika belum diklik
-if "pengumuman_dibaca" not in st.session_state:
-    pemberitahuan_awal()
-    st.session_state["pengumuman_dibaca"] = True
+# Logika agar hanya muncul satu kali saat aplikasi pertama kali dimuat
+if "sudah_baca_info" not in st.session_state:
+    tampilkan_pengumuman()
 st.markdown("<h2 style='text-align: center;'>📝 Kirim Surat Tugas</h2>", unsafe_allow_html=True)
 st.write("---")
 
