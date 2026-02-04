@@ -106,7 +106,7 @@ opsi_perihal = st.selectbox("Pilih Perihal:", ["SPT Rekon TPP dan SIMONA", "Lain
 perihal_final = st.text_input("Ketik Perihal Manual:") if opsi_perihal == "Lainnya" else opsi_perihal
 
 list_opd = [
-    "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum", "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam", "Bagian Pengadaan Barang dan Jasa", "Bagian Umum", "Bagian Organisasi", "Bagian Protokol dan Komunikasi Pimpinan", "Bagian Perencanaan dan Keuangan" "Sekretariat DPRD", "Inspektorat Daerah",
+    "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum", "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam", "Bagian Pengadaan Barang dan Jasa", "Bagian Umum", "Bagian Organisasi", "Bagian Protokol dan Komunikasi Pimpinan", "Bagian Perencanaan dan Keuangan", "Sekretariat DPRD", "Inspektorat Daerah",
     "Dinas Pendidikan dan Kebudayaan", "Dinas Kesehatan", "Dinas Pekerjaan Umum dan Penataan Ruang",
     "Dinas Perumahan dan Kawasan Permukiman", "Satuan Polisi Pamong Praja", "Dinas Pemadam Kebakaran dan Penyelamatan",
     "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", "Dinas Lingkungan Hidup",
