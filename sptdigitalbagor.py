@@ -692,20 +692,21 @@ def show_admin_page():
             st.write("---")
             
             if total_spt > 0:
-                col_chart1, col_chart2 = st.columns(2)
-                
-                opd_counts = df_filtered["Unit Kerja"].value_counts().reset_index()
-                opd_counts.columns = ["Unit Kerja", "Jumlah"]
-                
-                keg_counts = df_filtered["Perihal"].value_counts().reset_index()
-                keg_counts.columns = ["Kegiatan", "Jumlah"]
-                
-                with col_chart1:
-                    st.subheader("Distribusi SPT per Unit Kerja / OPD")
-                    st.bar_chart(opd_counts.set_index("Unit Kerja"))
-                with col_chart2:
-                    st.subheader("Distribusi SPT berdasarkan Kegiatan")
-                    st.bar_chart(keg_counts.set_index("Kegiatan"))
+                with st.expander("📊 Lihat Detail Distribusi Pengiriman (Tabel)", expanded=True):
+                    col_chart1, col_chart2 = st.columns(2)
+                    
+                    opd_counts = df_filtered["Unit Kerja"].value_counts().reset_index()
+                    opd_counts.columns = ["Unit Kerja", "Jumlah"]
+                    
+                    keg_counts = df_filtered["Perihal"].value_counts().reset_index()
+                    keg_counts.columns = ["Kegiatan", "Jumlah"]
+                    
+                    with col_chart1:
+                        st.subheader("Distribusi SPT per Unit Kerja / OPD")
+                        st.dataframe(opd_counts, width="stretch")
+                    with col_chart2:
+                        st.subheader("Distribusi SPT berdasarkan Kegiatan")
+                        st.dataframe(keg_counts, width="stretch")
                     
             st.write("---")
             
