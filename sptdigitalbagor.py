@@ -9,7 +9,7 @@ from docx.shared import Mm
 from docx.oxml import parse_xml
 import os
 import base64
-import streamlit.components.v1 as components
+
 
 INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
 
@@ -383,90 +383,19 @@ def show_operator_form():
 
     # SEKSI IV: TANDA TANGAN
     st.subheader("IV. Tanda Tangan Atasan")
-
-    # Pure HTML5/JS Signature Pad - TANPA native C extension
-    SIGNATURE_HTML = """
-    <style>
-        .sig-container { text-align: center; }
-        #sig-canvas {
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            cursor: crosshair;
-            background: #ffffff;
-            touch-action: none;
-        }
-        .sig-buttons { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
-        .sig-btn {
-            padding: 6px 20px; border: 1px solid #ccc; border-radius: 6px;
-            background: #f8f9fa; cursor: pointer; font-size: 14px;
-        }
-        .sig-btn:hover { background: #e9ecef; }
-        .sig-btn.save { background: #0d6efd; color: white; border-color: #0d6efd; }
-        .sig-btn.save:hover { background: #0b5ed7; }
-        .sig-status { margin-top: 6px; font-size: 13px; color: #198754; font-weight: bold; }
-    </style>
-    <div class="sig-container">
-        <canvas id="sig-canvas" width="350" height="250"></canvas>
-        <div class="sig-buttons">
-            <button class="sig-btn" onclick="clearCanvas()">🗑️ Hapus</button>
-            <button class="sig-btn save" onclick="saveSignature()">💾 Simpan Tanda Tangan</button>
-        </div>
-        <div id="sig-status" class="sig-status"></div>
-    </div>
-    <script>
-    const canvas = document.getElementById('sig-canvas');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#000000';
-
-    function getPos(e) {
-        const r = canvas.getBoundingClientRect();
-        const t = e.touches ? e.touches[0] : e;
-        return { x: t.clientX - r.left, y: t.clientY - r.top };
-    }
-    function startDraw(e) { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
-    function draw(e) { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
-    function stopDraw(e) { e.preventDefault(); drawing = false; }
-
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDraw);
-    canvas.addEventListener('mouseleave', stopDraw);
-    canvas.addEventListener('touchstart', startDraw);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stopDraw);
-
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('sig-status').innerText = '';
-        // Clear saved data in Streamlit
-        window.parent.postMessage({type: 'streamlit:setComponentValue', value: ''}, '*');
-    }
-    function saveSignature() {
-        const dataUrl = canvas.toDataURL('image/png');
-        // Send to Streamlit via hidden mechanism
-        const input = window.parent.document.querySelector('input[aria-label="signature_data_hidden"]');
-        if (input) {
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-            nativeInputValueSetter.call(input, dataUrl);
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        document.getElementById('sig-status').innerText = '✅ Tanda tangan tersimpan!';
-    }
-    </script>
-    """
-    components.html(SIGNATURE_HTML, height=330)
+    st.info("📌 **Cara Upload Tanda Tangan:**\n\n"
+            "1. Tanda tangani di **kertas putih** polos, lalu foto menggunakan HP\n"
+            "2. Atau gunakan aplikasi gambar di HP/tablet (misal: Samsung Notes, Canva, dll), lalu simpan sebagai PNG\n"
+            "3. Upload file gambar tanda tangan di bawah ini (PNG/JPG)")
     
-    # Hidden input field to receive signature data from the JS canvas
-    signature_data = st.text_input("signature_data_hidden", value="", key="sig_data", label_visibility="collapsed")
+    ttd_file = st.file_uploader("Upload Gambar Tanda Tangan Atasan", type=["png", "jpg", "jpeg"], key="ttd_upload", disabled=is_disabled)
+    
+    if ttd_file is not None:
+        st.image(ttd_file, caption="Preview Tanda Tangan", width=200)
 
     st.markdown("""
         <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
-            ⚠️ Klik "💾 Simpan Tanda Tangan" sebelum mengirim data! Pastikan ditandatangani oleh Atasan yang bersangkutan!
+            ⚠️ Pastikan tanda tangan di atas adalah milik Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
         </p>
         """, unsafe_allow_html=True)
 
@@ -481,11 +410,14 @@ def show_operator_form():
             st.error("❌ Email wajib menggunakan domain @gmail.com!")
         elif not nama_admin or not unit_kerja_final or not n_atasan:
             st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
-        elif not signature_data or not signature_data.startswith("data:image"):
-            st.warning("⚠️ Mohon tanda tangani dan klik 💾 Simpan Tanda Tangan terlebih dahulu!")
+        elif ttd_file is None:
+            st.warning("⚠️ Mohon upload gambar tanda tangan terlebih dahulu!")
         else:
             with st.spinner('Memproses data...'):
-                ttd_b64 = get_base64_signature(signature_data)
+                ttd_bytes = ttd_file.getvalue()
+                ttd_b64 = base64.b64encode(ttd_bytes).decode()
+                # Buat data URI untuk fungsi create_docx_final
+                signature_data_uri = f"data:image/png;base64,{ttd_b64}"
                 
             sheets_service = get_sheets_service()
             if sheets_service:
@@ -525,7 +457,7 @@ def show_operator_form():
                     'nip_atasan': nip_atasan, 'p_atasan': p_atasan, 'perihal': perihal_final,
                     'dasar_spt': dasar_final
                 }
-                docx_file = create_docx_final(data_spt, signature_data)
+                docx_file = create_docx_final(data_spt, signature_data_uri)
                 
                 if docx_file:
                     st.success("✅ Data berhasil masuk, Terima Kasih")
