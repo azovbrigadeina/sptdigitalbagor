@@ -22,22 +22,24 @@ def format_indo_date(date_obj):
 st.set_page_config(page_title="Kirim Surat Tugas", layout="wide", page_icon="📝")
 
 # --- 2. KONEKSI GOOGLE SHEETS ---
-@st.cache_resource
 def get_sheets_service():
-    try:
-        if "gcp_service_account" in st.secrets:
-            cred_info = st.secrets["gcp_service_account"]
-            creds = service_account.Credentials.from_service_account_info(cred_info)
-            return build('sheets', 'v4', credentials=creds)
-        return None
-    except:
-        return None
+    if "sheets_service" not in st.session_state:
+        try:
+            if "gcp_service_account" in st.secrets:
+                cred_info = st.secrets["gcp_service_account"]
+                creds = service_account.Credentials.from_service_account_info(cred_info)
+                st.session_state["sheets_service"] = build('sheets', 'v4', credentials=creds, cache_discovery=False)
+            else:
+                st.session_state["sheets_service"] = None
+        except:
+            st.session_state["sheets_service"] = None
+    return st.session_state["sheets_service"]
 
-sheets_service = get_sheets_service()
 SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 
 # --- 2B. FUNGSI DATABASE (KEGIATAN & SUBMISI) ---
 def get_kegiatan_list():
+    sheets_service = get_sheets_service()
     if not sheets_service:
         return [
             {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
@@ -102,6 +104,7 @@ def get_kegiatan_list():
         ]
 
 def save_kegiatan_list(kegiatan_list):
+    sheets_service = get_sheets_service()
     if not sheets_service:
         return False
     try:
@@ -129,6 +132,7 @@ def save_kegiatan_list(kegiatan_list):
 
 
 def get_submissions_data():
+    sheets_service = get_sheets_service()
     if not sheets_service:
         return []
     try:
@@ -361,6 +365,7 @@ def show_operator_form():
             with st.spinner('Memproses data...'):
                 ttd_b64 = get_base64_signature(canvas_result.image_data)
                 
+            sheets_service = get_sheets_service()
             if sheets_service:
                 try:
                     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -735,7 +740,7 @@ def show_admin_page():
         st.subheader("Manajemen Daftar Kegiatan / Perihal")
         kegiatan_list = get_kegiatan_list()
         
-        with st.form("tambah_kegiatan_form"):
+        with st.container():
             st.write("**Tambah Kegiatan Baru**")
             nama_baru = st.text_input("Nama Kegiatan (Contoh: Rekon TPP)")
             tipe_deadline = st.radio("Tipe Batas Tanggal:", ["Tanpa Batas", "Pilih Tanggal Kalender"], horizontal=True)
@@ -747,7 +752,7 @@ def show_admin_page():
             integrasi_baru = st.selectbox("Target Integrasi:", ["None", "SITPP", "Lainnya"])
             kustom_integrasi = st.text_input("Nama Integrasi Kustom (Jika memilih Lainnya):")
             
-            submit_keg = st.form_submit_button("Tambah Kegiatan", type="primary")
+            submit_keg = st.button("Tambah Kegiatan", type="primary", width="stretch")
             if submit_keg:
                 if not nama_baru.strip():
                     st.error("Nama kegiatan tidak boleh kosong!")
