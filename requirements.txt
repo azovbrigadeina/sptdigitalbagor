@@ -1,10 +1,7 @@
-streamlit
-streamlit-drawable-canvas
+streamlit>=1.45,<2.0
+streamlit-drawable-canvas-fix
 google-api-python-client
 google-auth-httplib2
-google-auth-oauthlib
 pandas
 Pillow
-reportlab
-docxtpl
-pypdf
+python-docx

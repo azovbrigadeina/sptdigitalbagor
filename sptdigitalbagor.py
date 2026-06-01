@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_drawable_canvas import st_canvas
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import datetime
@@ -333,6 +332,7 @@ def show_operator_form():
     # SEKSI IV: TANDA TANGAN
     st.subheader("IV. Tanda Tangan Atasan")
 
+    from streamlit_drawable_canvas import st_canvas
     canvas_result = st_canvas(
         stroke_width=3, 
         stroke_color="#000000", 
