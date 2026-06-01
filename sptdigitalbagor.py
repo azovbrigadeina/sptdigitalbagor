@@ -220,7 +220,7 @@ def show_operator_form():
             st.markdown("- Tidak ada kegiatan aktif saat ini.")
             
         st.info("💡 **Informasi:**\n\nTidak perlu menyerahkan SPT Fisik ke Bagian Organisasi.")
-        if st.button("Saya Mengerti", type="primary", use_container_width=True):
+        if st.button("Saya Mengerti", type="primary", width="stretch"):
             st.session_state["sudah_baca_info"] = True
             st.rerun()
 
@@ -339,7 +339,7 @@ def show_operator_form():
         """, unsafe_allow_html=True)
 
     st.write("")
-    if st.button("KIRIM DATA", type="primary", use_container_width=True, disabled=is_disabled):
+    if st.button("KIRIM DATA", type="primary", width="stretch", disabled=is_disabled):
         val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
         val_email = email.lower().endswith("@gmail.com")
 
@@ -393,7 +393,7 @@ def show_operator_form():
                 
                 if docx_file:
                     st.success("✅ Data berhasil masuk, Terima Kasih")
-                    st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", use_container_width=True)
+                    st.download_button("📥 Download SPT Sekarang", docx_file, f"SPT_{nama_admin.replace(' ','_')}.docx", width="stretch")
 
 # --- 5B. TAMPILAN ADMIN DASHBOARD ---
 def show_admin_page():
@@ -407,7 +407,7 @@ def show_admin_page():
         
     if not st.session_state["admin_authenticated"]:
         passwd = st.text_input("Masukkan Password Admin:", type="password")
-        if st.button("LOG IN", type="primary", use_container_width=True):
+        if st.button("LOG IN", type="primary", width="stretch"):
             if passwd == correct_password:
                 st.session_state["admin_authenticated"] = True
                 st.success("Login Berhasil!")
@@ -568,15 +568,9 @@ def show_admin_page():
                 for u in units:
                     all_master_units.add(u)
                     
-            unit_sudah_input = set()
-            unit_anomali = set()
-            
-            for _, row_data in df_unique.iterrows():
-                opd = str(row_data["Unit Kerja"]).strip()
-                if opd in all_master_units:
-                    unit_sudah_input.add(opd)
-                elif opd != "":
-                    unit_anomali.add(opd)
+            reported_units = set(df_unique["Unit Kerja"].astype(str).str.strip().unique())
+            unit_sudah_input = reported_units & all_master_units
+            unit_anomali = reported_units - all_master_units - {""}
                     
             cols_prog = st.columns(len(masterUnit) + (1 if len(unit_anomali) > 0 else 0))
             idx_col = 0
@@ -718,7 +712,7 @@ def show_admin_page():
                 
             preview_cols = [c for c in df_display.columns if c not in ["Base64 TTD", "ttd_b64", "ttd", "TTD"]]
             
-            st.dataframe(df_display[preview_cols], use_container_width=True)
+            st.dataframe(df_display[preview_cols], width="stretch")
             
             csv = df_display.to_csv(index=False).encode('utf-8')
             st.download_button(
@@ -726,7 +720,7 @@ def show_admin_page():
                 data=csv,
                 file_name=f"Rekap_SPT_{selected_year}.csv",
                 mime="text/csv",
-                use_container_width=True
+                width="stretch"
             )
             
     with tab2:
