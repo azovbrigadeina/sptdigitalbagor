@@ -391,7 +391,7 @@ def show_operator_form():
         stroke_width=3, 
         stroke_color="#000000", 
         background_color="#ffffff",
-        height=150, 
+        height=250, 
         width=350, 
         drawing_mode="freedraw", 
         key="canvas_final",
