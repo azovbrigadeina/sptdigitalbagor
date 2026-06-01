@@ -9,6 +9,7 @@ from docx.shared import Mm
 from docx.oxml import parse_xml
 import os
 import base64
+import streamlit.components.v1 as components
 
 INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
 
@@ -147,23 +148,19 @@ def get_submissions_data():
 
 
 # --- 3. FUNGSI KONVERSI TTD KE BASE64 (Untuk Spreadsheet) ---
-def get_base64_signature(signature_img):
+def get_base64_signature(signature_b64):
+    """Menerima base64 PNG string dari HTML canvas, mengembalikan base64 untuk spreadsheet."""
     try:
-        if signature_img is not None and signature_img.any():
-            img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
-            # Tambahkan background putih agar tidak transparan di Base64
-            white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
-            final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
-            
-            buffered = BytesIO()
-            final_img.save(buffered, format="PNG")
-            return base64.b64encode(buffered.getvalue()).decode()
+        if signature_b64 and signature_b64.startswith("data:image"):
+            # Buang header "data:image/png;base64,"
+            return signature_b64.split(",", 1)[1]
         return "Tidak ada TTD"
     except:
         return "Error TTD"
 
 # --- 4. FUNGSI GENERATE DOCX (Untuk Download) ---
-def create_docx_final(data, signature_img):
+def create_docx_final(data, signature_b64):
+    """Menerima data dict dan signature base64 PNG string."""
     template_name = "template spt simona.docx" 
     if not os.path.exists(template_name):
         st.error("File template tidak ditemukan!")
@@ -205,17 +202,18 @@ def create_docx_final(data, signature_img):
                 for run in paragraph.runs:
                     if '{{ttd}}' in run.text:
                         run.text = run.text.replace('{{ttd}}', "")
-                if signature_img is not None:
-                    # Keep transparency
-                    img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
+                if signature_b64 and signature_b64.startswith("data:image"):
+                    # Decode base64 PNG dari HTML canvas
+                    img_data = base64.b64decode(signature_b64.split(",", 1)[1])
+                    img = Image.open(BytesIO(img_data)).convert("RGBA")
                     
-                    # Crop to non-transparent bounding box to avoid extra margins
-                    bbox = img_rgba.getbbox()
+                    # Crop to non-transparent bounding box
+                    bbox = img.getbbox()
                     if bbox:
-                        img_rgba = img_rgba.crop(bbox)
+                        img = img.crop(bbox)
                         
                     img_io = BytesIO()
-                    img_rgba.save(img_io, format='PNG')
+                    img.save(img_io, format='PNG')
                     img_io.seek(0)
                     
                     new_run = paragraph.add_run()
@@ -386,21 +384,89 @@ def show_operator_form():
     # SEKSI IV: TANDA TANGAN
     st.subheader("IV. Tanda Tangan Atasan")
 
-    from streamlit_drawable_canvas import st_canvas
-    canvas_result = st_canvas(
-        stroke_width=3, 
-        stroke_color="#000000", 
-        background_color="#ffffff",
-        height=250, 
-        width=350, 
-        drawing_mode="freedraw", 
-        key="canvas_final",
-        display_toolbar=True
-    )
+    # Pure HTML5/JS Signature Pad - TANPA native C extension
+    SIGNATURE_HTML = """
+    <style>
+        .sig-container { text-align: center; }
+        #sig-canvas {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: #ffffff;
+            touch-action: none;
+        }
+        .sig-buttons { margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
+        .sig-btn {
+            padding: 6px 20px; border: 1px solid #ccc; border-radius: 6px;
+            background: #f8f9fa; cursor: pointer; font-size: 14px;
+        }
+        .sig-btn:hover { background: #e9ecef; }
+        .sig-btn.save { background: #0d6efd; color: white; border-color: #0d6efd; }
+        .sig-btn.save:hover { background: #0b5ed7; }
+        .sig-status { margin-top: 6px; font-size: 13px; color: #198754; font-weight: bold; }
+    </style>
+    <div class="sig-container">
+        <canvas id="sig-canvas" width="350" height="250"></canvas>
+        <div class="sig-buttons">
+            <button class="sig-btn" onclick="clearCanvas()">🗑️ Hapus</button>
+            <button class="sig-btn save" onclick="saveSignature()">💾 Simpan Tanda Tangan</button>
+        </div>
+        <div id="sig-status" class="sig-status"></div>
+    </div>
+    <script>
+    const canvas = document.getElementById('sig-canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000000';
+
+    function getPos(e) {
+        const r = canvas.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        return { x: t.clientX - r.left, y: t.clientY - r.top };
+    }
+    function startDraw(e) { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
+    function draw(e) { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+    function stopDraw(e) { e.preventDefault(); drawing = false; }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDraw);
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('sig-status').innerText = '';
+        // Clear saved data in Streamlit
+        window.parent.postMessage({type: 'streamlit:setComponentValue', value: ''}, '*');
+    }
+    function saveSignature() {
+        const dataUrl = canvas.toDataURL('image/png');
+        // Send to Streamlit via hidden mechanism
+        const input = window.parent.document.querySelector('input[aria-label="signature_data_hidden"]');
+        if (input) {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            nativeInputValueSetter.call(input, dataUrl);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        document.getElementById('sig-status').innerText = '✅ Tanda tangan tersimpan!';
+    }
+    </script>
+    """
+    components.html(SIGNATURE_HTML, height=330)
+    
+    # Hidden input field to receive signature data from the JS canvas
+    signature_data = st.text_input("signature_data_hidden", value="", key="sig_data", label_visibility="collapsed")
 
     st.markdown("""
         <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
-            ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
+            ⚠️ Klik "💾 Simpan Tanda Tangan" sebelum mengirim data! Pastikan ditandatangani oleh Atasan yang bersangkutan!
         </p>
         """, unsafe_allow_html=True)
 
@@ -415,9 +481,11 @@ def show_operator_form():
             st.error("❌ Email wajib menggunakan domain @gmail.com!")
         elif not nama_admin or not unit_kerja_final or not n_atasan:
             st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
+        elif not signature_data or not signature_data.startswith("data:image"):
+            st.warning("⚠️ Mohon tanda tangani dan klik 💾 Simpan Tanda Tangan terlebih dahulu!")
         else:
             with st.spinner('Memproses data...'):
-                ttd_b64 = get_base64_signature(canvas_result.image_data)
+                ttd_b64 = get_base64_signature(signature_data)
                 
             sheets_service = get_sheets_service()
             if sheets_service:
@@ -457,7 +525,7 @@ def show_operator_form():
                     'nip_atasan': nip_atasan, 'p_atasan': p_atasan, 'perihal': perihal_final,
                     'dasar_spt': dasar_final
                 }
-                docx_file = create_docx_final(data_spt, canvas_result.image_data)
+                docx_file = create_docx_final(data_spt, signature_data)
                 
                 if docx_file:
                     st.success("✅ Data berhasil masuk, Terima Kasih")
