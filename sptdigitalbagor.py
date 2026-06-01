@@ -10,6 +10,14 @@ from docx.shared import Mm
 import os
 import base64
 
+INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+
+def format_indo_date(date_obj):
+    day = date_obj.day
+    month = INDO_MONTHS[date_obj.month - 1]
+    year = date_obj.year
+    return f"{day} {month} {year}"
+
 # --- 1. SETTING HALAMAN ---
 st.set_page_config(page_title="Kirim Surat Tugas", layout="wide", page_icon="📝")
 
@@ -730,7 +738,12 @@ def show_admin_page():
         with st.form("tambah_kegiatan_form"):
             st.write("**Tambah Kegiatan Baru**")
             nama_baru = st.text_input("Nama Kegiatan (Contoh: Rekon TPP)")
-            deadline_baru = st.text_input("Batas Tanggal / Deadline (Contoh: 6 Februari 2026 atau Tanpa Batas):", value="Tanpa Batas")
+            tipe_deadline = st.radio("Tipe Batas Tanggal:", ["Tanpa Batas", "Pilih Tanggal Kalender"], horizontal=True)
+            if tipe_deadline == "Pilih Tanggal Kalender":
+                tgl_deadline = st.date_input("Pilih Tanggal:", value=datetime.date.today())
+                deadline_baru = format_indo_date(tgl_deadline)
+            else:
+                deadline_baru = "Tanpa Batas"
             integrasi_baru = st.selectbox("Target Integrasi:", ["None", "SITPP", "Lainnya"])
             kustom_integrasi = st.text_input("Nama Integrasi Kustom (Jika memilih Lainnya):")
             
