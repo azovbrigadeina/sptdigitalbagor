@@ -404,49 +404,44 @@ def show_admin_page():
         if not rows or len(rows) <= 1:
             st.info("Belum ada data submisi SPT.")
         else:
-            headers = rows[0]
             data_rows = rows[1:]
             
             import pandas as pd
             
-            max_cols = max(len(headers), max(len(r) for r in data_rows) if data_rows else 0)
+            # Tentukan jumlah kolom maksimum dari data
+            max_cols = max(len(rows[0]), max(len(r) for r in data_rows) if data_rows else 0)
             
-            padded_headers = list(headers)
-            while len(padded_headers) < max_cols:
-                padded_headers.append(f"Kolom_{len(padded_headers)+1}")
+            # Definisikan nama kolom standar berdasarkan posisi index kolom di Google Sheet
+            standard_headers = [
+                "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin", 
+                "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan", 
+                "NIP Atasan", "TTD", "Integrasi", "Tahun"
+            ]
+            
+            final_headers = []
+            for idx in range(max_cols):
+                if idx < len(standard_headers):
+                    final_headers.append(standard_headers[idx])
+                else:
+                    final_headers.append(f"Kolom_{idx+1}")
             
             padded_data = []
             for r in data_rows:
                 padded_r = r + [""] * (max_cols - len(r))
                 padded_data.append(padded_r)
                 
-            df = pd.DataFrame(padded_data, columns=padded_headers)
+            df = pd.DataFrame(padded_data, columns=final_headers)
             
-            column_mapping = {}
-            if len(df.columns) > 0: column_mapping[df.columns[0]] = "Waktu"
-            if len(df.columns) > 1: column_mapping[df.columns[1]] = "Perihal"
-            if len(df.columns) > 2: column_mapping[df.columns[2]] = "Unit Kerja"
-            if len(df.columns) > 3: column_mapping[df.columns[3]] = "Nama Admin"
-            if len(df.columns) > 4: column_mapping[df.columns[4]] = "NIP Admin"
-            if len(df.columns) > 5: column_mapping[df.columns[5]] = "Email"
-            
-            df.rename(columns=column_mapping, inplace=True)
-            
+            # Pastikan kolom Integrasi dan Tahun selalu ada (terutama untuk data lama)
             if "Integrasi" not in df.columns:
-                if len(df.columns) > 11:
-                    df.rename(columns={df.columns[11]: "Integrasi"}, inplace=True)
-                else:
-                    df["Integrasi"] = "None"
+                df["Integrasi"] = "None"
             if "Tahun" not in df.columns:
-                if len(df.columns) > 12:
-                    df.rename(columns={df.columns[12]: "Tahun"}, inplace=True)
-                else:
-                    def get_year_from_time(t):
-                        try:
-                            return str(t).split("-")[0].strip()
-                        except:
-                            return str(datetime.datetime.now().year)
-                    df["Tahun"] = df["Waktu"].apply(get_year_from_time)
+                def get_year_from_time(t):
+                    try:
+                        return str(t).split("-")[0].strip()
+                    except:
+                        return str(datetime.datetime.now().year)
+                df["Tahun"] = df["Waktu"].apply(get_year_from_time)
             
             df["Tahun"] = df["Tahun"].apply(lambda x: str(x).strip() if x else str(datetime.datetime.now().year))
             df["Integrasi"] = df["Integrasi"].apply(lambda x: str(x).strip() if x else "None")
@@ -505,7 +500,7 @@ def show_admin_page():
             else:
                 df_display = df_filtered
                 
-            preview_cols = [c for c in df_display.columns if c not in ["Base64 TTD", "ttd_b64", "ttd"]]
+            preview_cols = [c for c in df_display.columns if c not in ["Base64 TTD", "ttd_b64", "ttd", "TTD"]]
             
             st.dataframe(df_display[preview_cols], use_container_width=True)
             
