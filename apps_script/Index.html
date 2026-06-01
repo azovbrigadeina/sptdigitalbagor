@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Kirim Surat Tugas Digital</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS & Google Fonts Outfit -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 for beautiful alerts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(243, 244, 246, 1) 0%, rgba(229, 231, 235, 1) 90%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    #sig-canvas {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      cursor: crosshair;
+      background: #ffffff;
+      touch-action: none;
+      transition: all 0.2s;
+    }
+    #sig-canvas:hover {
+      border-color: #94a3b8;
+    }
+  </style>
+</head>
+<body class="py-6 px-4 md:px-8">
+
+  <!-- ==================== HEADER / NAVBAR ==================== -->
+  <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">KIRIM SPT DIGITAL</h1>
+        <p class="text-sm text-slate-500 font-medium">Bagian Organisasi Kabupaten Muaro Jambi</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="switchTab('operator-tab')" id="btn-operator-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white">
+        📝 Form Operator
+      </button>
+      <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50">
+        🔒 Panel Admin
+      </button>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto">
+    <!-- ========================================================= -->
+    <!-- TAB 1: FORM OPERATOR                                      -->
+    <!-- ========================================================= -->
+    <div id="operator-tab" class="tab-content">
+      <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl">
+        <h2 class="text-xl font-bold text-slate-800 mb-6 pb-2 border-b border-slate-200">I. Unit Kerja & Perihal Kegiatan</h2>
+        
+        <form id="sptForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Unit Kerja / OPD -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Unit Kerja / OPD</label>
+              <select name="unit_kerja" id="opd-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700">
+                <option value="">-- Pilih Unit Kerja --</option>
+                <!-- Master unit dropdown list -->
+                <optgroup label="Dinas / Badan">
+                  <option value="Sekretariat Dewan Perwakilan Rakyat Daerah">Sekretariat Dewan Perwakilan Rakyat Daerah</option>
+                  <option value="Inspektorat Daerah">Inspektorat Daerah</option>
+                  <option value="Dinas Pendidikan dan Kebudayaan">Dinas Pendidikan dan Kebudayaan</option>
+                  <option value="Dinas Pariwisata, Kepemudaan dan Olahraga">Dinas Pariwisata, Kepemudaan dan Olahraga</option>
+                  <option value="Dinas Kesehatan">Dinas Kesehatan</option>
+                  <option value="Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak">Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak</option>
+                  <option value="Dinas Pengendalian Penduduk dan Keluarga Berencana">Dinas Pengendalian Penduduk dan Keluarga Berencana</option>
+                  <option value="Dinas Kependudukan dan Pencatatan Sipil">Dinas Kependudukan dan Pencatatan Sipil</option>
+                  <option value="Dinas Pemberdayaan Masyarakat dan Desa">Dinas Pemberdayaan Masyarakat dan Desa</option>
+                  <option value="Satuan Polisi Pamong Praja">Satuan Polisi Pamong Praja</option>
+                  <option value="Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu">Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu</option>
+                  <option value="Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan">Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan</option>
+                  <option value="Dinas Tenaga Kerja dan Transmigrasi">Dinas Tenaga Kerja dan Transmigrasi</option>
+                  <option value="Dinas Komunikasi dan Informatika">Dinas Komunikasi dan Informatika</option>
+                  <option value="Dinas Perumahan Dan Kawasan Permukiman">Dinas Perumahan Dan Kawasan Permukiman</option>
+                  <option value="Dinas Pekerjaan Umum dan Penataan Ruang">Dinas Pekerjaan Umum dan Penataan Ruang</option>
+                  <option value="Dinas Perhubungan">Dinas Perhubungan</option>
+                  <option value="Dinas Lingkungan Hidup">Dinas Lingkungan Hidup</option>
+                  <option value="Dinas Tanaman Pangan dan Hortikultura">Dinas Tanaman Pangan dan Hortikultura</option>
+                  <option value="Dinas Ketahanan Pangan">Dinas Ketahanan Pangan</option>
+                  <option value="Dinas Perkebunan dan Peternakan">Dinas Perkebunan dan Peternakan</option>
+                  <option value="Dinas Perikanan">Dinas Perikanan</option>
+                  <option value="Dinas Perpustakaan dan Arsip Daerah">Dinas Perpustakaan dan Arsip Daerah</option>
+                  <option value="Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah">Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah</option>
+                  <option value="Badan Kepegawaian dan Pengembangan Sumber Daya Manusia">Badan Kepegawaian dan Pengembangan Sumber Daya Manusia</option>
+                  <option value="Badan Pengelola Keuangan dan Aset Daerah">Badan Pengelola Keuangan dan Aset Daerah</option>
+                  <option value="Badan Pengelola Pajak dan Retribusi Daerah">Badan Pengelola Pajak dan Retribusi Daerah</option>
+                  <option value="Badan Penanggulangan Bencana Daerah">Badan Penanggulangan Bencana Daerah</option>
+                  <option value="Dinas Pemadam Kebakaran dan Penyelamatan">Dinas Pemadam Kebakaran dan Penyelamatan</option>
+                  <option value="Kesbangpol">Kesbangpol</option>
+                </optgroup>
+                <optgroup label="Bagian (Setda)">
+                  <option value="Bagian Tata Pemerintahan">Bagian Tata Pemerintahan</option>
+                  <option value="Bagian Kesejahteraan Rakyat">Bagian Kesejahteraan Rakyat</option>
+                  <option value="Bagian Hukum">Bagian Hukum</option>
+                  <option value="Bagian Kerjasama">Bagian Kerjasama</option>
+                  <option value="Bagian Perekonomian">Bagian Perekonomian</option>
+                  <option value="Bagian Pembangunan dan Sumber Daya Alam">Bagian Pembangunan dan Sumber Daya Alam</option>
+                  <option value="Bagian Pengadaan Barang dan Jasa">Bagian Pengadaan Barang dan Jasa</option>
+                  <option value="Bagian Umum">Bagian Umum</option>
+                  <option value="Bagian Organisasi">Bagian Organisasi</option>
+                  <option value="Bagian Protokol dan Komunikasi Pimpinan">Bagian Protokol dan Komunikasi Pimpinan</option>
+                  <option value="Bagian Perencanaan dan Keuangan">Bagian Perencanaan dan Keuangan</option>
+                </optgroup>
+                <optgroup label="Kecamatan">
+                  <option value="Kecamatan Bahar Selatan">Kecamatan Bahar Selatan</option>
+                  <option value="Kecamatan Bahar Utara">Kecamatan Bahar Utara</option>
+                  <option value="Kecamatan Jambi Luar Kota">Kecamatan Jambi Luar Kota</option>
+                  <option value="Kecamatan Taman Rajo">Kecamatan Taman Rajo</option>
+                  <option value="Kecamatan Kumpeh">Kecamatan Kumpeh</option>
+                  <option value="Kecamatan Kumpeh Ulu">Kecamatan Kumpeh Ulu</option>
+                  <option value="Kecamatan Maro Sebo">Kecamatan Maro Sebo</option>
+                  <option value="Kecamatan Mestong">Kecamatan Mestong</option>
+                  <option value="Kecamatan Sekernan">Kecamatan Sekernan</option>
+                  <option value="Kecamatan Sungai Bahar">Kecamatan Sungai Bahar</option>
+                  <option value="Kecamatan Sungai Gelam">Kecamatan Sungai Gelam</option>
+                </optgroup>
+                <optgroup label="Rumah Sakit">
+                  <option value="RSUD Ahmad Ripin">RSUD Ahmad Ripin</option>
+                  <option value="RSUD Sungai Gelam">RSUD Sungai Gelam</option>
+                  <option value="RSUD Sungai Bahar">RSUD Sungai Bahar</option>
+                </optgroup>
+                <optgroup label="Puskesmas">
+                  <option value="Puskesmas Penyengat Olak">Puskesmas Penyengat Olak</option>
+                  <option value="Puskesmas Kemingking Dalam">Puskesmas Kemingking Dalam</option>
+                  <option value="Puskesmas Puding">Puskesmas Puding</option>
+                  <option value="Puskesmas Sungai Bahar IV">Puskesmas Sungai Bahar IV</option>
+                  <option value="Puskesmas Simpang Sungai Duren">Puskesmas Simpang Sungai Duren</option>
+                  <option value="Puskesmas Tempino">Puskesmas Tempino</option>
+                  <option value="Puskesmas Tanjung">Puskesmas Tanjung</option>
+                  <option value="Puskesmas Bahar VII">Puskesmas Bahar VII</option>
+                  <option value="Puskesmas Tantan">Puskesmas Tantan</option>
+                  <option value="Puskesmas Kasang Pudak">Puskesmas Kasang Pudak</option>
+                  <option value="Puskesmas Sengeti">Puskesmas Sengeti</option>
+                  <option value="Puskesmas Pir II Bajubang">Puskesmas Pir II Bajubang</option>
+                  <option value="Puskesmas Pondok Meja">Puskesmas Pondok Meja</option>
+                  <option value="Puskesmas Markanding">Puskesmas Markanding</option>
+                  <option value="Puskesmas Tangkit">Puskesmas Tangkit</option>
+                  <option value="Puskesmas Talang Bukit">Puskesmas Talang Bukit</option>
+                  <option value="Puskesmas Sekernan Ilir">Puskesmas Sekernan Ilir</option>
+                  <option value="Puskesmas Jambi Kecil">Puskesmas Jambi Kecil</option>
+                  <option value="Puskesmas Muara Kumpeh">Puskesmas Muara Kumpeh</option>
+                  <option value="Puskesmas Sungai Bahar I">Puskesmas Sungai Bahar I</option>
+                  <option value="Puskesmas Kebon IX">Puskesmas Kebon IX</option>
+                  <option value="Puskesmas Suko Awin">Puskesmas Suko Awin</option>
+                  <option value="Puskesmas Petaling Jaya">Puskesmas Petaling Jaya</option>
+                </optgroup>
+              </select>
+            </div>
+            
+            <!-- Kegiatan / Perihal -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Kegiatan / Perihal</label>
+              <select name="perihal" id="kegiatan-select" required onchange="handleKegiatanChange()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700">
+                <option value="">-- Memuat kegiatan... --</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Dasar SPT Preview / Manual -->
+          <div class="mt-4">
+            <label class="block text-sm font-bold text-slate-700 mb-2">Dasar Surat Perintah Tugas (SPT)</label>
+            <textarea name="dasar_spt" id="dasar-textarea" rows="3" readonly placeholder="Dasar SPT akan muncul otomatis berdasarkan kegiatan yang dipilih" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 outline-none resize-none"></textarea>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-800 mt-8 mb-6 pb-2 border-b border-slate-200">II. Profil Admin Pengirim</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Status Pegawai -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Status Kepegawaian</label>
+              <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="status_pegawai" value="PNS" checked class="w-4 h-4 text-indigo-600">
+                  <span class="text-sm font-semibold text-slate-700">PNS</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="status_pegawai" value="PPPK" class="w-4 h-4 text-indigo-600">
+                  <span class="text-sm font-semibold text-slate-700">PPPK</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Nama Admin -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Lengkap Admin</label>
+              <input type="text" name="nama" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Budi Santoso, S.Kom">
+            </div>
+
+            <!-- NIP Admin -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">NIP Admin (18 digit angka)</label>
+              <input type="text" name="nip" required maxlength="18" minlength="18" pattern="[0-9]{18}" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: 199012312015031001">
+            </div>
+
+            <!-- Pangkat / Golongan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Ruang</label>
+              <input type="text" name="pangkat" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Penata / III.c">
+            </div>
+
+            <!-- Jabatan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Jabatan</label>
+              <input type="text" name="jabatan" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Analis Organisasi">
+            </div>
+
+            <!-- No HP -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp / HP</label>
+              <input type="text" name="no_hp" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: 081234567890">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Email (@gmail.com)</label>
+              <input type="email" name="email" required pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: budi.organisasi@gmail.com">
+            </div>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-800 mt-8 mb-6 pb-2 border-b border-slate-200">III. Profil Atasan (Penandatangan SPT)</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nama Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Atasan</label>
+              <input type="text" name="n_atasan" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Nama lengkap beserta gelar">
+            </div>
+
+            <!-- NIP Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">NIP Atasan (18 digit angka)</label>
+              <input type="text" name="nip_atasan" required maxlength="18" minlength="18" pattern="[0-9]{18}" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: 198012312005031001">
+            </div>
+
+            <!-- Jabatan Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Jabatan Atasan</label>
+              <input type="text" name="j_atasan" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Kepala Dinas Pendidikan">
+            </div>
+
+            <!-- Pangkat Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Atasan</label>
+              <input type="text" name="p_atasan" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Pembina Utama Muda / IV.c">
+            </div>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-800 mt-8 mb-6 pb-2 border-b border-slate-200">IV. Tanda Tangan Atasan</h2>
+          
+          <div class="flex flex-col items-center">
+            <p class="text-sm text-slate-500 mb-4 text-center">Silakan tandatangani langsung di kotak putih di bawah ini:</p>
+            <canvas id="sig-canvas" width="350" height="250"></canvas>
+            
+            <div class="flex gap-3 mt-4">
+              <button type="button" onclick="clearCanvas()" class="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition-all">
+                🗑️ Bersihkan
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-6 border-t border-slate-200">
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-base shadow-lg shadow-indigo-100 transition-all duration-200 hover:translate-y-[-1px]">
+              🚀 KIRIM DATA DAN GENERATE SPT
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: PANEL ADMIN                                        -->
+    <!-- ========================================================= -->
+    <div id="admin-tab" class="tab-content hidden">
+      <!-- 2A. LOGIN BOX -->
+      <div id="admin-login" class="max-w-md mx-auto glass-card rounded-3xl p-6 md:p-8 shadow-xl mt-12">
+        <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Panel Keamanan</h2>
+        <p class="text-sm text-slate-500 mb-6 text-center">Masukkan password untuk mengelola database</p>
+        
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">Password Admin</label>
+            <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-sm transition-all">
+            🔓 MASUK PANEL
+          </button>
+        </form>
+      </div>
+
+      <!-- 2B. MAIN ADMIN PANEL LAYOUT -->
+      <div id="admin-panel" class="hidden space-y-8">
+        
+        <!-- Tab bar inside admin panel -->
+        <div class="flex border-b border-slate-200">
+          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600">
+            📊 Submisi & Statistik
+          </button>
+          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700">
+            ⚙️ Manajemen Kegiatan
+          </button>
+        </div>
+
+        <!-- ==================== SUB-TAB 1: SUBMISI PANEL ==================== -->
+        <div id="submisi-panel" class="admin-sub-tab space-y-6">
+          
+          <!-- KPI Stats grid -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">PNS Terlapor</p>
+              <h3 id="stat-pns" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">PPPK Terlapor</p>
+              <h3 id="stat-pppk" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">Total Pengirim Unik</p>
+              <h3 id="stat-unik" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">Total SPT Masuk</p>
+              <h3 id="stat-total" class="text-3xl font-extrabold text-indigo-600 mt-2">0</h3>
+            </div>
+          </div>
+
+          <!-- Progress bar / Compliance cards -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <h3 class="font-bold text-slate-800 text-lg mb-6">🏛️ Progress Unit Terlapor</h3>
+            <div id="progress-group-container" class="grid grid-cols-1 md:grid-cols-5 gap-6">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Compliance Status Grid (Nice cards of all units) -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <h3 class="font-bold text-slate-800 text-lg mb-4">🚩 Status Kehadiran Unit Kerja</h3>
+            <p class="text-xs text-slate-500 mb-6">✅ Sudah Input | ❌ Belum Ada Input</p>
+            
+            <div id="status-unit-grid" class="space-y-6">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Submission Data Table -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100">
+              <h3 class="font-bold text-slate-800 text-lg">Detail Submisi Data SPT</h3>
+              <div class="flex gap-2 w-full md:w-auto">
+                <input type="text" id="table-search" oninput="filterTable()" placeholder="Cari NIP, nama, OPD..." class="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm w-full md:w-64 focus:ring-2 focus:ring-indigo-500">
+                <button onclick="exportToCsv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap">
+                  📥 Unduh CSV
+                </button>
+              </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                    <th class="px-6 py-4">Waktu</th>
+                    <th class="px-6 py-4">Nama / NIP Admin</th>
+                    <th class="px-6 py-4">Unit Kerja</th>
+                    <th class="px-6 py-4">Perihal</th>
+                    <th class="px-6 py-4">Atasan</th>
+                    <th class="px-6 py-4 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="submission-tbody" class="text-sm text-slate-600">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SUB-TAB 2: CONFIG KEGIATAN PANEL ==================== -->
+        <div id="kegiatan-panel" class="admin-sub-tab hidden space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Add New Kegiatan Form -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit">
+              <h3 class="font-bold text-slate-800 text-lg mb-6">➕ Tambah Perihal Baru</h3>
+              <form onsubmit="handleNewKegiatan(event)" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Kegiatan</label>
+                  <input type="text" id="keg-nama" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Contoh: SPT Rekon TPP">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Integrasi Sistem</label>
+                  <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <option value="None">None (Tanpa Integrasi)</option>
+                    <option value="SITPP">SITPP</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Batas Tanggal / Deadline</label>
+                  <input type="text" id="keg-deadline" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Contoh: 15 Maret 2026 / Tanpa Batas">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Status</label>
+                  <select id="keg-status" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <option value="Aktif">Aktif</option>
+                    <option value="Nonaktif">Nonaktif</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Dasar SPT (Multi-line)</label>
+                  <textarea id="keg-dasar" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Masukkan Dasar SPT..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition-all">
+                  💾 Simpan Kegiatan
+                </button>
+              </form>
+            </div>
+
+            <!-- Kegiatan Table list -->
+            <div class="col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+              <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 text-lg">Daftar Kegiatan Terdaftar</h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                      <th class="px-6 py-4">Kegiatan</th>
+                      <th class="px-6 py-4">Batas Tanggal</th>
+                      <th class="px-6 py-4 text-center">Status</th>
+                      <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kegiatan-tbody" class="text-sm text-slate-600">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- CLIENT JS SCRIPT LOGIC                                    -->
+  <!-- ========================================================= -->
+  <script>
+    // Master Unit Data List
+    const masterUnit = {
+      "Dinas / Badan": [
+        "Sekretariat Dewan Perwakilan Rakyat Daerah", "Inspektorat Daerah", "Dinas Pendidikan dan Kebudayaan", 
+        "Dinas Pariwisata, Kepemudaan dan Olahraga", "Dinas Kesehatan", "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", 
+        "Dinas Pengendalian Penduduk dan Keluarga Berencana", "Dinas Kependudukan dan Pencatatan Sipil", 
+        "Dinas Pemberdayaan Masyarakat dan Desa", "Satuan Polisi Pamong Praja", "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", 
+        "Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan", "Dinas Tenaga Kerja dan Transmigrasi", 
+        "Dinas Komunikasi dan Informatika", "Dinas Perumahan Dan Kawasan Permukiman", "Dinas Pekerjaan Umum dan Penataan Ruang", 
+        "Dinas Perhubungan", "Dinas Lingkungan Hidup", "Dinas Tanaman Pangan dan Hortikultura", "Dinas Ketahanan Pangan", 
+        "Dinas Perkebunan dan Peternakan", "Dinas Perikanan", "Dinas Perpustakaan dan Arsip Daerah", 
+        "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia", 
+        "Badan Pengelola Keuangan dan Aset Daerah", "Badan Pengelola Pajak dan Retribusi Daerah", 
+        "Badan Penanggulangan Bencana Daerah", "Dinas Pemadam Kebakaran dan Penyelamatan", "Kesbangpol"
+      ],
+      "Bagian (Setda)": [
+        "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum", "Bagian Kerjasama", 
+        "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam", "Bagian Pengadaan Barang dan Jasa", 
+        "Bagian Umum", "Bagian Organisasi", "Bagian Protokol dan Komunikasi Pimpinan", "Bagian Perencanaan dan Keuangan"
+      ],
+      "Kecamatan": [
+        "Kecamatan Bahar Selatan", "Kecamatan Bahar Utara", "Kecamatan Jambi Luar Kota", "Kecamatan Taman Rajo", 
+        "Kecamatan Kumpeh", "Kecamatan Kumpeh Ulu", "Kecamatan Maro Sebo", "Kecamatan Mestong", "Kecamatan Sekernan", 
+        "Kecamatan Sungai Bahar", "Kecamatan Sungai Gelam"
+      ],
+      "Rumah Sakit": [
+        "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar"
+      ],
+      "Puskesmas": [
+        "Puskesmas Penyengat Olak", "Puskesmas Kemingking Dalam", "Puskesmas Puding", "Puskesmas Sungai Bahar IV", 
+        "Puskesmas Simpang Sungai Duren", "Puskesmas Tempino", "Puskesmas Tanjung", "Puskesmas Bahar VII", 
+        "Puskesmas Tantan", "Puskesmas Kasang Pudak", "Puskesmas Sengeti", "Puskesmas Pir II Bajubang", 
+        "Puskesmas Pondok Meja", "Puskesmas Markanding", "Puskesmas Tangkit", "Puskesmas Talang Bukit", 
+        "Puskesmas Sekernan Ilir", "Puskesmas Jambi Kecil", "Puskesmas Muara Kumpeh", "Puskesmas Sungai Bahar I", 
+        "Puskesmas Kebon IX", "Puskesmas Suko Awin", "Puskesmas Petaling Jaya"
+      ]
+    };
+
+    let kegiatanDb = [];
+    let submissionsDb = [];
+    let authenticated = false;
+
+    // --- Tab Switch Logic ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      
+      const btnOp = document.getElementById('btn-operator-tab');
+      const btnAd = document.getElementById('btn-admin-tab');
+      
+      if (tabId === 'operator-tab') {
+        btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white";
+        btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+      } else {
+        btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white";
+        btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+        if (authenticated) {
+          loadAdminDashboard();
+        }
+      }
+    }
+
+    function switchAdminTab(subTabId) {
+      document.querySelectorAll('.admin-sub-tab').forEach(el => el.classList.add('hidden'));
+      document.getElementById(subTabId).classList.remove('hidden');
+      
+      const btnSub = document.getElementById('btn-submisi-panel');
+      const btnKeg = document.getElementById('btn-kegiatan-panel');
+      
+      if (subTabId === 'submisi-panel') {
+        btnSub.className = "px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600";
+        btnKeg.className = "px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+      } else {
+        btnKeg.className = "px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600";
+        btnSub.className = "px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+      }
+    }
+
+    // --- Page Load Initializer ---
+    window.onload = function() {
+      // 1. Fetch kegiatan list for the form dropdown
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          renderKegiatanDropdown();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat daftar kegiatan", err);
+        })
+        .getKegiatanList();
+
+      // 2. Setup Signature Canvas
+      initCanvas();
+    };
+
+    function renderKegiatanDropdown() {
+      const select = document.getElementById('kegiatan-select');
+      select.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+      kegiatanDb.forEach(keg => {
+        if (keg.status === 'Aktif') {
+          const opt = document.createElement('option');
+          opt.value = keg.nama;
+          opt.innerText = keg.nama;
+          select.appendChild(opt);
+        }
+      });
+    }
+
+    function handleKegiatanChange() {
+      const selectedNama = document.getElementById('kegiatan-select').value;
+      const text = document.getElementById('dasar-textarea');
+      const selected = kegiatanDb.find(k => k.nama === selectedNama);
+      
+      if (selected) {
+        text.value = selected.dasar || "";
+        if (selected.nama === "Lainnya") {
+          text.removeAttribute("readonly");
+          text.classList.remove("bg-slate-50", "text-slate-600");
+          text.classList.add("bg-white", "text-slate-700");
+        } else {
+          text.setAttribute("readonly", true);
+          text.classList.add("bg-slate-50", "text-slate-600");
+          text.classList.remove("bg-white", "text-slate-700");
+        }
+      } else {
+        text.value = "";
+      }
+    }
+
+    // --- HTML5 Signature Canvas Drawing Logic ---
+    const canvas = document.getElementById('sig-canvas');
+    let ctx, drawing = false, hasDrawn = false;
+
+    function initCanvas() {
+      ctx = canvas.getContext('2d');
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#000000';
+
+      function getPos(e) {
+        const r = canvas.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        return { x: t.clientX - r.left, y: t.clientY - r.top };
+      }
+      function start(e) { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
+      function move(e) { e.preventDefault(); if (!drawing) return; hasDrawn = true; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+      function stop(e) { e.preventDefault(); drawing = false; }
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      canvas.addEventListener('mouseup', stop);
+      canvas.addEventListener('mouseleave', stop);
+      canvas.addEventListener('touchstart', start);
+      canvas.addEventListener('touchmove', move);
+      canvas.addEventListener('touchend', stop);
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawn = false;
+    }
+
+    // --- Form Submission Logic ---
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const form = document.getElementById('sptForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Signature checks
+      if (!hasDrawn) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Tanda Tangan Kosong',
+          text: 'Harap tanda tangani pada kolom yang disediakan terlebih dahulu!'
+        });
+        return;
+      }
+      
+      data.signature_data = canvas.toDataURL('image/png');
+      
+      // Add integration info from selected kegiatan status
+      const selectKeg = kegiatanDb.find(k => k.nama === data.perihal);
+      data.integrasi = selectKeg ? selectKeg.integrasi : "None";
+      
+      Swal.fire({
+        title: 'Memproses Data...',
+        text: 'Mengirim data ke database dan membuat file dokumen...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          Swal.close();
+          if (response.status === "success") {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil Terkirim!',
+              text: 'SPT Anda berhasil digenerate.',
+              confirmButtonText: 'Download SPT'
+            }).then(() => {
+              downloadFile(response.fileContent, response.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            });
+            form.reset();
+            clearCanvas();
+          } else if (response.status === "warning") {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Data Tersimpan!',
+              text: response.message
+            });
+            form.reset();
+            clearCanvas();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.message || 'Gagal membuat dokumen.'
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          Swal.close();
+          Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: err.toString()
+          });
+        })
+        .submitSptData(data);
+    }
+
+    function downloadFile(base64Content, filename, mimeType) {
+      const raw = window.atob(base64Content);
+      const rawLength = raw.length;
+      const array = new Uint8Array(new ArrayBuffer(rawLength));
+      
+      for(let i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+      }
+      
+      const blob = new Blob([array], {type: mimeType});
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    }
+
+    // --- Admin Authentication Logic ---
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('admin-pass-input').value;
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res) {
+            authenticated = true;
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAdminDashboard();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: 'Password yang Anda masukkan salah!'
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error(err);
+        })
+        .checkAdminAuth(pass);
+    }
+
+    // --- Admin Dashboard Loading & Calculation ---
+    function loadAdminDashboard() {
+      google.script.run
+        .withSuccessHandler(function(submissions) {
+          submissionsDb = submissions;
+          calculateStats();
+          renderSubmissionTable();
+          renderComplianceReport();
+          renderAdminKegiatanTable();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat rekap admin", err);
+        })
+        .getSubmissionsData();
+    }
+
+    function calculateStats() {
+      if (submissionsDb.length <= 1) {
+        document.getElementById('stat-pns').innerText = '0';
+        document.getElementById('stat-pppk').innerText = '0';
+        document.getElementById('stat-unik').innerText = '0';
+        document.getElementById('stat-total').innerText = '0';
+        return;
+      }
+      
+      const dataRows = submissionsDb.slice(1);
+      
+      // Hitung unik NIP
+      const uniqNip = new Set();
+      let pnsCount = 0;
+      let pppkCount = 0;
+      
+      dataRows.forEach(row => {
+        const nip = String(row[4]).trim();
+        const nama = String(row[3]).toUpperCase();
+        if (nip && !uniqNip.has(nip)) {
+          uniqNip.add(nip);
+          if (nama.includes("PNS")) pnsCount++;
+          if (nama.includes("PPPK")) pppkCount++;
+        }
+      });
+      
+      document.getElementById('stat-pns').innerText = pnsCount;
+      document.getElementById('stat-pppk').innerText = pppkCount;
+      document.getElementById('stat-unik').innerText = uniqNip.size;
+      document.getElementById('stat-total').innerText = dataRows.length;
+    }
+
+    // Render reported unit status progress
+    function renderComplianceReport() {
+      if (submissionsDb.length <= 1) return;
+      const dataRows = submissionsDb.slice(1);
+      
+      const reportedUnits = new Set();
+      dataRows.forEach(row => {
+        reportedUnits.add(String(row[2]).trim());
+      });
+      
+      const progressContainer = document.getElementById('progress-group-container');
+      const gridContainer = document.getElementById('status-unit-grid');
+      
+      progressContainer.innerHTML = '';
+      gridContainer.innerHTML = '';
+      
+      let index = 0;
+      for (const [groupName, units] of Object.entries(masterUnit)) {
+        // Calculate progress percentage
+        let sudahInput = 0;
+        units.forEach(u => {
+          if (reportedUnits.has(u)) sudahInput++;
+        });
+        const percent = units.length > 0 ? Math.round((sudahInput / units.length) * 100) : 0;
+        
+        // Progress metric cards
+        progressContainer.innerHTML += `
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p class="text-xs font-bold text-slate-500 uppercase truncate">${groupName}</p>
+            <h4 class="text-xl font-extrabold text-slate-800 mt-1">${sudahInput} / ${units.length}</h4>
+            <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+              <div class="bg-indigo-600 h-2 rounded-full" style="width: ${percent}%"></div>
+            </div>
+            <p class="text-right text-xs font-semibold text-slate-500 mt-1">${percent}%</p>
+          </div>
+        `;
+        
+        // Grid status cards
+        const unitCards = units.map(u => {
+          const done = reportedUnits.has(u);
+          const icon = done ? '✅' : '❌';
+          const bg = done ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100 opacity-60';
+          return `<span class="px-3 py-1.5 rounded-lg border text-xs font-bold inline-block ${bg}">${icon} ${u}</span>`;
+        }).join('');
+        
+        gridContainer.innerHTML += `
+          <div class="border border-slate-100 rounded-2xl p-5 bg-slate-50">
+            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-indigo-600 pl-2 uppercase">${groupName}</h4>
+            <div class="flex flex-wrap gap-2">${unitCards}</div>
+          </div>
+        `;
+      }
+    }
+
+    // Render Data table
+    function renderSubmissionTable() {
+      const tbody = document.getElementById('submission-tbody');
+      tbody.innerHTML = '';
+      
+      if (submissionsDb.length <= 1) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">Belum ada data submisi.</td></tr>';
+        return;
+      }
+      
+      const dataRows = submissionsDb.slice(1);
+      dataRows.forEach((row, idx) => {
+        // Adjust for index + 1 in backend deletor
+        const actualIdx = idx + 1;
+        tbody.innerHTML += `
+          <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
+            <td class="px-6 py-4 font-semibold text-slate-700">${row[0]}</td>
+            <td class="px-6 py-4">
+              <div class="font-semibold text-slate-800">${row[3]}</div>
+              <div class="text-xs text-slate-400">NIP: ${row[4]}</div>
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-600">${row[2]}</td>
+            <td class="px-6 py-4 font-medium text-slate-600">${row[1]}</td>
+            <td class="px-6 py-4">
+              <div class="font-medium text-slate-700">${row[6]}</div>
+              <div class="text-xs text-slate-400">NIP: ${row[9]}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterTable() {
+      const q = document.getElementById('table-search').value.toLowerCase();
+      const rows = document.querySelectorAll('#submission-tbody tr');
+      
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(q)) {
+          row.classList.remove('hidden');
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+    }
+
+    function deleteSubmissionData(rowIdx) {
+      Swal.fire({
+        title: 'Hapus Data?',
+        text: "Data ini akan dihapus secara permanen dari Google Sheets!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+              loadAdminDashboard();
+            })
+            .deleteSubmission(rowIdx);
+        }
+      });
+    }
+
+    function exportToCsv() {
+      if (submissionsDb.length <= 1) return;
+      
+      let csvContent = "data:text/csv;charset=utf-8,";
+      submissionsDb.forEach(row => {
+        const escaped = row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+        csvContent += escaped + "\r\n";
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Rekap_SPT_${new Date().getFullYear()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // --- Admin Config Kegiatan Crud Logic ---
+    function renderAdminKegiatanTable() {
+      const tbody = document.getElementById('kegiatan-tbody');
+      tbody.innerHTML = '';
+      
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-400 font-medium">Belum ada kegiatan.</td></tr>';
+            return;
+          }
+          
+          list.forEach(keg => {
+            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-55 text-slate-500 border-slate-200';
+            tbody.innerHTML += `
+              <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
+                <td class="px-6 py-4">
+                  <div class="font-bold text-slate-800">${keg.nama}</div>
+                  <div class="text-xs text-slate-400">Integrasi: ${keg.integrasi}</div>
+                </td>
+                <td class="px-6 py-4 font-medium text-slate-600">${keg.deadline}</td>
+                <td class="px-6 py-4 text-center">
+                  <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${keg.status}</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button onclick="deleteKegiatanData('${keg.nama}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        })
+        .getKegiatanList();
+    }
+
+    function handleNewKegiatan(e) {
+      e.preventDefault();
+      
+      const newKeg = {
+        nama: document.getElementById('keg-nama').value,
+        integrasi: document.getElementById('keg-integrasi').value,
+        status: document.getElementById('keg-status').value,
+        deadline: document.getElementById('keg-deadline').value,
+        dasar: document.getElementById('keg-dasar').value
+      };
+      
+      Swal.fire({
+        title: 'Menyimpan...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      
+      google.script.run
+        .withSuccessHandler(function() {
+          Swal.fire('Berhasil!', 'Kegiatan baru berhasil disimpan.', 'success');
+          document.getElementById('keg-nama').value = '';
+          document.getElementById('keg-deadline').value = '';
+          document.getElementById('keg-dasar').value = '';
+          loadAdminDashboard();
+        })
+        .saveKegiatan(newKeg);
+    }
+
+    function deleteKegiatanData(nama) {
+      if (nama === "Lainnya") {
+        Swal.fire('Aksi Ditolak', 'Kegiatan default "Lainnya" tidak boleh dihapus!', 'warning');
+        return;
+      }
+      
+      Swal.fire({
+        title: 'Hapus Kegiatan?',
+        text: `Anda akan menghapus perihal "${nama}" dari sistem!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire('Terhapus!', 'Kegiatan berhasil dihapus.', 'success');
+              loadAdminDashboard();
+              // Update operator dropdown as well
+              renderKegiatanDropdown();
+            })
+            .deleteKegiatan(nama);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
