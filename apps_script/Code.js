@@ -5,7 +5,7 @@ var SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798";
 
 // Gantilah TEMPLATE_DOC_ID dengan ID Google Doc Template SPT Anda yang sudah diupload ke Google Drive
 // Contoh: var TEMPLATE_DOC_ID = "1aBcDeFgHiJkLmNoPqRsTuVwXyZ";
-var TEMPLATE_DOC_ID = ""; 
+var TEMPLATE_DOC_ID = "1v4wm_94T3TAzeUBrxdnoW2OXLLXe5KCKRRnx6CjcIxw"; 
 
 // Password untuk masuk ke Panel Admin
 var ADMIN_PASSWORD = "adminbagor123";
