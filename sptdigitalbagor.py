@@ -234,22 +234,32 @@ def show_operator_form():
     st.subheader("I. Perihal & Unit Kerja")
     
     kegiatan_list = get_kegiatan_list()
-    nama_kegiatan_active = [k["nama"] for k in kegiatan_list if k["status"] == "Aktif"]
+    # Hanya cari kegiatan yang statusnya Aktif (selain "Lainnya" yang mungkin dimasukkan admin)
+    nama_kegiatan_active = [k["nama"] for k in kegiatan_list if k["status"] == "Aktif" and k["nama"] != "Lainnya"]
+    
+    is_disabled = False
     if not nama_kegiatan_active:
-        nama_kegiatan_active = ["Lainnya"]
-    elif "Lainnya" not in nama_kegiatan_active:
-        nama_kegiatan_active.append("Lainnya")
+        nama_kegiatan_active = ["Tidak ada kegiatan aktif saat ini"]
+        is_disabled = True
+        st.warning("⚠️ **Pengiriman SPT Dinonaktifkan**: Tidak ada kegiatan yang di-input atau aktif di sistem saat ini.")
+    else:
+        if "Lainnya" not in nama_kegiatan_active:
+            nama_kegiatan_active.append("Lainnya")
         
-    opsi_perihal = st.selectbox("Pilih Perihal / Kegiatan:", nama_kegiatan_active)
-    perihal_final = st.text_input("Ketik Perihal Manual (Jika Lainnya):") if opsi_perihal == "Lainnya" else opsi_perihal
+    opsi_perihal = st.selectbox("Pilih Perihal / Kegiatan:", nama_kegiatan_active, disabled=is_disabled)
+    
+    if is_disabled:
+        perihal_final = ""
+    else:
+        perihal_final = st.text_input("Ketik Perihal Manual (Jika Lainnya):") if opsi_perihal == "Lainnya" else opsi_perihal
     
     selected_kegiatan = next((k for k in kegiatan_list if k["nama"] == opsi_perihal), None)
     integrasi_val = selected_kegiatan["integrasi"] if selected_kegiatan else "None"
-    if opsi_perihal == "Lainnya":
+    if opsi_perihal == "Lainnya" or is_disabled:
         integrasi_val = "None"
         
     current_year_int = datetime.datetime.now().year
-    target_tahun = st.selectbox("Tahun Kegiatan:", [str(y) for y in range(current_year_int - 1, current_year_int + 5)], index=1)
+    target_tahun = st.selectbox("Tahun Kegiatan:", [str(y) for y in range(current_year_int - 1, current_year_int + 5)], index=1, disabled=is_disabled)
 
     list_opd = [
         "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum", "Bagian Kerjasama", "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam", "Bagian Pengadaan Barang dan Jasa", "Bagian Umum", "Bagian Organisasi", "Bagian Protokol dan Komunikasi Pimpinan", "Bagian Perencanaan dan Keuangan", "Sekretariat DPRD", "Inspektorat Daerah",
@@ -270,37 +280,40 @@ def show_operator_form():
         "Kecamatan Kumpeh Ulu", "Kecamatan Mestong", "Kecamatan Sungai Gelam", "Kecamatan Sungai Bahar",
         "Kecamatan Bahar Utara", "Kecamatan Bahar Selatan", "Kecamatan Taman Rajo", "Puskesmas Penyengat Olak", "Puskesmas Kemingking Dalam", "Puskesmas Puding", "Puskesmas Sungai Bahar IV", "Puskesmas Simpang Sungai Duren", "Puskesmas Tempino", "Puskesmas Tanjung", "Puskesmas Bahar VII", "Puskesmas Tantan", "Puskesmas Kasang Pudak", "Puskesmas Sengeti", "Puskesmas Pir II Bajubang", "Puskesmas Pondok Meja", "Puskesmas Markanding", "Puskesmas Tangkit", "Puskesmas Talang Bukit", "Puskesmas Sekernan Ilir", "Puskesmas Jambi Kecil", "Puskesmas Muara Kumpeh", "Puskesmas Sungai Bahar I", "Puskesmas Kebon IX", "Puskesmas Suko Awin", "Puskesmas Petaling Jaya"
     ]
-    opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya"])
-    unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
+    opsi_opd = st.selectbox("Pilih Unit Kerja / OPD:", [""] + sorted(list_opd) + ["Lainnya"], disabled=is_disabled)
+    if is_disabled:
+        unit_kerja_final = ""
+    else:
+        unit_kerja_final = st.text_input("Ketik Nama OPD (Jika Lainnya):") if opsi_opd == "Lainnya" else opsi_opd
 
     st.write("---")
 
     # SEKSI II: DATA ADMIN
     st.subheader("II. Data Admin")
-    status_pegawai = st.radio("Status Pegawai:", ["PNS", "PPPK"], horizontal=True)
+    status_pegawai = st.radio("Status Pegawai:", ["PNS", "PPPK"], horizontal=True, disabled=is_disabled)
 
     c1, c2 = st.columns(2)
     with c1:
-        nama_admin = st.text_input("Nama Lengkap")
-        nip_admin = st.text_input(f"NIP / NI {status_pegawai}", max_chars=18, placeholder="18 Digit Angka")
-        no_hp = st.text_input("Nomor WhatsApp")
+        nama_admin = st.text_input("Nama Lengkap", disabled=is_disabled)
+        nip_admin = st.text_input(f"NIP / NI {status_pegawai}", max_chars=18, placeholder="18 Digit Angka", disabled=is_disabled)
+        no_hp = st.text_input("Nomor WhatsApp", disabled=is_disabled)
     with c2:
-        pangkat_admin = st.text_input("Pangkat / Golongan")
-        jabatan_admin = st.text_input("Jabatan")
-        email = st.text_input("Email", placeholder="harus @gmail.com")
+        pangkat_admin = st.text_input("Pangkat / Golongan", disabled=is_disabled)
+        jabatan_admin = st.text_input("Jabatan", disabled=is_disabled)
+        email = st.text_input("Email", placeholder="harus @gmail.com", disabled=is_disabled)
 
     st.write("---")
 
     # SEKSI III: DATA ATASAN
     st.subheader("III. Data Atasan")
-    n_atasan = st.text_input("Nama Lengkap Atasan")
-    j_atasan = st.text_input("Jabatan Atasan (Contoh: Kepala Bagian Organisasi)")
+    n_atasan = st.text_input("Nama Lengkap Atasan", disabled=is_disabled)
+    j_atasan = st.text_input("Jabatan Atasan (Contoh: Kepala Bagian Organisasi)", disabled=is_disabled)
 
     c3, c4 = st.columns(2)
     with c3:
-        p_atasan = st.text_input("Pangkat / Golongan Atasan")
+        p_atasan = st.text_input("Pangkat / Golongan Atasan", disabled=is_disabled)
     with c4:
-        nip_atasan = st.text_input("NIP Atasan", max_chars=18)
+        nip_atasan = st.text_input("NIP Atasan", max_chars=18, disabled=is_disabled)
         st.info(f"Tanggal Surat: {datetime.datetime.now().strftime('%d %B %Y')}")
 
     st.write("---")
@@ -326,7 +339,7 @@ def show_operator_form():
         """, unsafe_allow_html=True)
 
     st.write("")
-    if st.button("KIRIM DATA", type="primary", use_container_width=True):
+    if st.button("KIRIM DATA", type="primary", use_container_width=True, disabled=is_disabled):
         val_nip = nip_admin.isdigit() and len(nip_admin) == 18 and nip_atasan.isdigit() and len(nip_atasan) == 18
         val_email = email.lower().endswith("@gmail.com")
 
@@ -465,6 +478,15 @@ def show_admin_page():
             selected_year = st.selectbox("Pilih Tahun Kegiatan:", available_years, index=len(available_years)-1)
             
             df_filtered = df[df["Tahun"] == selected_year]
+            
+            # --- Tambahan Filter Nama Kegiatan ---
+            kegiatan_db_names = [k["nama"] for k in get_kegiatan_list()]
+            kegiatan_data_names = list(df_filtered["Perihal"].unique()) if not df_filtered.empty else []
+            available_kegiatan = ["Semua Kegiatan"] + sorted(list(set(kegiatan_db_names + kegiatan_data_names)))
+            
+            selected_kegiatan = st.selectbox("Pilih Nama Kegiatan:", available_kegiatan, index=0)
+            if selected_kegiatan != "Semua Kegiatan":
+                df_filtered = df_filtered[df_filtered["Perihal"] == selected_kegiatan]
             
             # --- Perhitungan compliance & stats ---
             masterUnit = {
