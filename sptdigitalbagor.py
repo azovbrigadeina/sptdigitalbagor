@@ -6,6 +6,7 @@ from io import BytesIO
 from PIL import Image
 from docx import Document
 from docx.shared import Mm
+from docx.oxml import parse_xml
 import os
 import base64
 
@@ -41,8 +42,8 @@ def get_kegiatan_list():
     sheets_service = get_sheets_service()
     if not sheets_service:
         return [
-            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
-            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
+            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026", "dasar": "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA"},
+            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas", "dasar": ""}
         ]
     try:
         meta = sheets_service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
@@ -63,9 +64,9 @@ def get_kegiatan_list():
             
             # Tulis data default
             default_rows = [
-                ["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal"],
-                ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026"],
-                ["Lainnya", "None", "Aktif", "Tanpa Batas"]
+                ["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal", "Dasar SPT"],
+                ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026", "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA"],
+                ["Lainnya", "None", "Aktif", "Tanpa Batas", ""]
             ]
             sheets_service.spreadsheets().values().update(
                 spreadsheetId=SPREADSHEET_ID,
@@ -74,13 +75,13 @@ def get_kegiatan_list():
                 body={'values': default_rows}
             ).execute()
             return [
-                {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
-                {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
+                {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026", "dasar": "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA"},
+                {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas", "dasar": ""}
             ]
         
         result = sheets_service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range="Config_Kegiatan!A2:D100"
+            range="Config_Kegiatan!A2:E100"
         ).execute()
         rows = result.get('values', [])
         if not rows:
@@ -93,13 +94,14 @@ def get_kegiatan_list():
                     "nama": r[0],
                     "integrasi": r[1] if len(r) > 1 else "None",
                     "status": r[2] if len(r) > 2 else "Aktif",
-                    "deadline": r[3] if len(r) > 3 else "Tanpa Batas"
+                    "deadline": r[3] if len(r) > 3 else "Tanpa Batas",
+                    "dasar": r[4] if len(r) > 4 else ""
                 })
         return kegiatan
     except Exception as e:
         return [
-            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
-            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
+            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026", "dasar": "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA"},
+            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas", "dasar": ""}
         ]
 
 def save_kegiatan_list(kegiatan_list):
@@ -107,14 +109,14 @@ def save_kegiatan_list(kegiatan_list):
     if not sheets_service:
         return False
     try:
-        rows = [["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal"]]
+        rows = [["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal", "Dasar SPT"]]
         for k in kegiatan_list:
-            rows.append([k["nama"], k["integrasi"], k["status"], k.get("deadline", "Tanpa Batas")])
+            rows.append([k["nama"], k["integrasi"], k["status"], k.get("deadline", "Tanpa Batas"), k.get("dasar", "")])
         
         # Bersihkan data lama
         sheets_service.spreadsheets().values().clear(
             spreadsheetId=SPREADSHEET_ID,
-            range="Config_Kegiatan!A1:D100"
+            range="Config_Kegiatan!A1:E100"
         ).execute()
         
         # Tulis data baru
@@ -181,7 +183,8 @@ def create_docx_final(data, signature_img):
             '{{NIP_ATASAN}}': str(data['nip_atasan']),
             '{{PANGKAT_GOL_ATASAN}}': str(data['p_atasan']),
             '{{perihal}}': str(data['perihal']),
-            '{{TTL}}': datetime.datetime.now().strftime('%d %B %Y')
+            '{{TTL}}': datetime.datetime.now().strftime('%d %B %Y'),
+            '{{dasar_spt}}': str(data.get('dasar_spt', ''))
         }
 
         for paragraph in doc.paragraphs:
@@ -189,21 +192,63 @@ def create_docx_final(data, signature_img):
                 if key in paragraph.text:
                     for run in paragraph.runs:
                         if key in run.text:
-                            run.text = run.text.replace(key, value)
+                            if key == '{{dasar_spt}}' and '\n' in value:
+                                parts = value.split('\n')
+                                run.text = run.text.replace(key, parts[0])
+                                for part in parts[1:]:
+                                    run.add_break()
+                                    run.add_text(part)
+                            else:
+                                run.text = run.text.replace(key, value)
             
             if '{{ttd}}' in paragraph.text:
                 for run in paragraph.runs:
                     if '{{ttd}}' in run.text:
                         run.text = run.text.replace('{{ttd}}', "")
                 if signature_img is not None:
+                    # Keep transparency
                     img_rgba = Image.fromarray(signature_img.astype('uint8'), 'RGBA')
-                    white_bg = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
-                    final_img = Image.alpha_composite(white_bg, img_rgba).convert("RGB")
+                    
+                    # Crop to non-transparent bounding box to avoid extra margins
+                    bbox = img_rgba.getbbox()
+                    if bbox:
+                        img_rgba = img_rgba.crop(bbox)
+                        
                     img_io = BytesIO()
-                    final_img.save(img_io, format='PNG')
+                    img_rgba.save(img_io, format='PNG')
                     img_io.seek(0)
+                    
                     new_run = paragraph.add_run()
-                    new_run.add_picture(img_io, width=Mm(45))
+                    inline_shape = new_run.add_picture(img_io, width=Mm(45))
+                    
+                    # Convert to floating behind-text anchor
+                    inline_element = inline_shape._inline
+                    parent = inline_element.getparent()
+                    
+                    extent = inline_element[0]
+                    docPr = inline_element[1]
+                    cNvGraphicFramePr = inline_element[2]
+                    graphic = inline_element[3]
+                    
+                    anchor_xml = (
+                        '<wp:anchor xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+                        'distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251658240" '
+                        'behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">'
+                        '<wp:simplePos x="0" y="0"/>'
+                        '<wp:positionH relativeFrom="character"><wp:posOffset>0</wp:posOffset></wp:positionH>'
+                        '<wp:positionV relativeFrom="line"><wp:posOffset>-180000</wp:posOffset></wp:positionV>'
+                        '<wp:effectExtent l="0" t="0" r="0" b="0"/>'
+                        '<wp:wrapNone/>'
+                        '</wp:anchor>'
+                    )
+                    anchor_element = parse_xml(anchor_xml)
+                    
+                    anchor_element.append(extent)
+                    anchor_element.append(docPr)
+                    anchor_element.append(cNvGraphicFramePr)
+                    anchor_element.append(graphic)
+                    
+                    parent.replace(inline_element, anchor_element)
 
         target_stream = BytesIO()
         doc.save(target_stream)
@@ -259,12 +304,21 @@ def show_operator_form():
         
     opsi_perihal = st.selectbox("Pilih Perihal / Kegiatan:", nama_kegiatan_active, disabled=is_disabled)
     
+    selected_kegiatan = next((k for k in kegiatan_list if k["nama"] == opsi_perihal), None)
+    
     if is_disabled:
         perihal_final = ""
+        dasar_final = ""
     else:
-        perihal_final = st.text_input("Ketik Perihal Manual (Jika Lainnya):") if opsi_perihal == "Lainnya" else opsi_perihal
-    
-    selected_kegiatan = next((k for k in kegiatan_list if k["nama"] == opsi_perihal), None)
+        if opsi_perihal == "Lainnya":
+            perihal_final = st.text_input("Ketik Perihal Manual (Jika Lainnya):")
+            dasar_final = st.text_area("Ketik Dasar SPT Manual (Jika Lainnya):", value="", help="Dapat dimasukkan beberapa baris/poin dasar SPT.")
+        else:
+            perihal_final = opsi_perihal
+            dasar_final = selected_kegiatan.get("dasar", "") if selected_kegiatan else ""
+            if dasar_final:
+                st.info(f"📋 **Dasar SPT:**\n\n{dasar_final}")
+                
     integrasi_val = selected_kegiatan["integrasi"] if selected_kegiatan else "None"
     if opsi_perihal == "Lainnya" or is_disabled:
         integrasi_val = "None"
@@ -400,7 +454,8 @@ def show_operator_form():
                     'unit_kerja': unit_kerja_final, 'nama': nama_admin, 'nip': nip_admin,
                     'pangkat': pangkat_admin, 'jabatan': jabatan_admin, 'no_hp': no_hp,
                     'email': email, 'j_atasan': j_atasan, 'n_atasan': n_atasan,
-                    'nip_atasan': nip_atasan, 'p_atasan': p_atasan, 'perihal': perihal_final
+                    'nip_atasan': nip_atasan, 'p_atasan': p_atasan, 'perihal': perihal_final,
+                    'dasar_spt': dasar_final
                 }
                 docx_file = create_docx_final(data_spt, canvas_result.image_data)
                 
@@ -744,6 +799,7 @@ def show_admin_page():
         with st.container():
             st.write("**Tambah Kegiatan Baru**")
             nama_baru = st.text_input("Nama Kegiatan (Contoh: Rekon TPP)")
+            dasar_baru = st.text_area("Dasar SPT (Hukum / Pelaksanaan):", value="", help="Dapat dimasukkan beberapa baris/poin dasar SPT.")
             tipe_deadline = st.radio("Tipe Batas Tanggal:", ["Tanpa Batas", "Pilih Tanggal Kalender"], horizontal=True)
             if tipe_deadline == "Pilih Tanggal Kalender":
                 tgl_deadline = st.date_input("Pilih Tanggal:", value=datetime.date.today())
@@ -763,7 +819,8 @@ def show_admin_page():
                         "nama": nama_baru.strip(),
                         "integrasi": final_integrasi,
                         "status": "Aktif",
-                        "deadline": deadline_baru.strip()
+                        "deadline": deadline_baru.strip(),
+                        "dasar": dasar_baru.strip()
                     }
                     kegiatan_list.append(new_item)
                     if save_kegiatan_list(kegiatan_list):
@@ -780,6 +837,8 @@ def show_admin_page():
                 col_name, col_int, col_deadline, col_action = st.columns([3, 2, 3, 2])
                 with col_name:
                     st.write(f"**{k['nama']}**")
+                    if k.get("dasar"):
+                        st.caption(f"*Dasar:* {k['dasar']}")
                 with col_int:
                     st.code(k["integrasi"])
                 with col_deadline:
