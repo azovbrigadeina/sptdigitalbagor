@@ -466,17 +466,199 @@ def show_admin_page():
             
             df_filtered = df[df["Tahun"] == selected_year]
             
-            c1, c2, c3 = st.columns(3)
+            # --- Perhitungan compliance & stats ---
+            masterUnit = {
+                "Dinas/Badan": [
+                    "Sekretariat Dewan Perwakilan Rakyat Daerah", "Inspektorat Daerah", "Dinas Pendidikan dan Kebudayaan", 
+                    "Dinas Pariwisata, Kepemudaan dan Olahraga", "Dinas Kesehatan", "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak", 
+                    "Dinas Pengendalian Penduduk dan Keluarga Berencana", "Dinas Kependudukan dan Pencatatan Sipil", 
+                    "Dinas Pemberdayaan Masyarakat dan Desa", "Satuan Polisi Pamong Praja", "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu", 
+                    "Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan", "Dinas Tenaga Kerja dan Transmigrasi", 
+                    "Dinas Komunikasi dan Informatika", "Dinas Perumahan Dan Kawasan Permukiman", "Dinas Pekerjaan Umum dan Penataan Ruang", 
+                    "Dinas Perhubungan", "Dinas Lingkungan Hidup", "Dinas Tanaman Pangan dan Hortikultura", "Dinas Ketahanan Pangan", 
+                    "Dinas Perkebunan dan Peternakan", "Dinas Perikanan", "Dinas Perpustakaan dan Arsip Daerah", 
+                    "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah", "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia", 
+                    "Badan Pengelola Keuangan dan Aset Daerah", "Badan Pengelola Pajak dan Retribusi Daerah", 
+                    "Badan Penanggulangan Bencana Daerah", "Dinas Pemadam Kebakaran dan Penyelamatan", "Kesbangpol"
+                ],
+                "Bagian (Setda)": [
+                    "Bagian Tata Pemerintahan", "Bagian Kesejahteraan Rakyat", "Bagian Hukum", "Bagian Kerjasama", 
+                    "Bagian Perekonomian", "Bagian Pembangunan dan Sumber Daya Alam", "Bagian Pengadaan Barang dan Jasa", 
+                    "Bagian Umum", "Bagian Organisasi", "Bagian Protokol dan Komunikasi Pimpinan", "Bagian Perencanaan dan Keuangan"
+                ],
+                "Kecamatan": [
+                    "Kecamatan Bahar Selatan", "Kecamatan Bahar Utara", "Kecamatan Jambi Luar Kota", "Kecamatan Taman Rajo", 
+                    "Kecamatan Kumpeh", "Kecamatan Kumpeh Ulu", "Kecamatan Maro Sebo", "Kecamatan Mestong", "Kecamatan Sekernan", 
+                    "Kecamatan Sungai Bahar", "Kecamatan Sungai Gelam"
+                ],
+                "Rumah Sakit": [
+                    "RSUD Ahmad Ripin", "RSUD Sungai Gelam", "RSUD Sungai Bahar"
+                ],
+                "Puskesmas": [
+                    "Puskesmas Penyengat Olak", "Puskesmas Kemingking Dalam", "Puskesmas Puding", "Puskesmas Sungai Bahar IV", 
+                    "Puskesmas Simpang Sungai Duren", "Puskesmas Tempino", "Puskesmas Tanjung", "Puskesmas Bahar VII", 
+                    "Puskesmas Tantan", "Puskesmas Kasang Pudak", "Puskesmas Sengeti", "Puskesmas Pir II Bajubang", 
+                    "Puskesmas Pondok Meja", "Puskesmas Markanding", "Puskesmas Tangkit", "Puskesmas Talang Bukit", 
+                    "Puskesmas Sekernan Ilir", "Puskesmas Jambi Kecil", "Puskesmas Muara Kumpeh", "Puskesmas Sungai Bahar I", 
+                    "Puskesmas Kebon IX", "Puskesmas Suko Awin", "Puskesmas Petaling Jaya"
+                ]
+            }
+
+            df_unique = df_filtered.copy()
+            df_unique["NIP_Clean"] = df_unique["NIP Admin"].astype(str).str.strip()
+            df_unique = df_unique[df_unique["NIP_Clean"] != ""]
+            df_unique = df_unique.drop_duplicates(subset=["NIP_Clean"], keep="last")
+            
+            pns_count = int(df_unique["Nama Admin"].astype(str).str.upper().str.contains("PNS").sum())
+            pppk_count = int(df_unique["Nama Admin"].astype(str).str.upper().str.contains("PPPK").sum())
+            total_unique = len(df_unique)
+            
             total_spt = len(df_filtered)
             sitpp_spt = len(df_filtered[df_filtered["Integrasi"] == "SITPP"])
             other_spt = total_spt - sitpp_spt
             
+            # --- Render Statistik KPI ---
+            st.write("#### 📊 Statistik Kepegawaian (NIP Unik)")
+            c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("Total SPT Dikirim", total_spt)
+                st.metric("Total PNS", pns_count)
             with c2:
-                st.metric("Integrasi SiTPP", sitpp_spt)
+                st.metric("Total PPPK", pppk_count)
             with c3:
+                st.metric("Total Admin Pengirim", total_unique)
+                
+            st.write("#### 📝 Statistik Pengiriman Dokumen")
+            c4, c5, c6 = st.columns(3)
+            with c4:
+                st.metric("Total SPT Masuk", total_spt)
+            with c5:
+                st.metric("Integrasi SiTPP", sitpp_spt)
+            with c6:
                 st.metric("SPT Lainnya / Tanpa Integrasi", other_spt)
+                
+            st.write("---")
+            
+            # --- Render Progress Kategori ---
+            st.write("### 🏛️ Progress Unit Terlapor")
+            
+            all_master_units = set()
+            for kat, units in masterUnit.items():
+                for u in units:
+                    all_master_units.add(u)
+                    
+            unit_sudah_input = set()
+            unit_anomali = set()
+            
+            for _, row_data in df_unique.iterrows():
+                opd = str(row_data["Unit Kerja"]).strip()
+                if opd in all_master_units:
+                    unit_sudah_input.add(opd)
+                elif opd != "":
+                    unit_anomali.add(opd)
+                    
+            cols_prog = st.columns(len(masterUnit) + (1 if len(unit_anomali) > 0 else 0))
+            idx_col = 0
+            for kat, units in masterUnit.items():
+                total_units = len(units)
+                sudah_count = sum(1 for u in units if u in unit_sudah_input)
+                persen = int((sudah_count / total_units) * 100) if total_units > 0 else 0
+                with cols_prog[idx_col]:
+                    st.metric(label=kat, value=f"{sudah_count} / {total_units}", delta=f"{persen}%")
+                    st.progress(persen / 100.0)
+                idx_col += 1
+                
+            if len(unit_anomali) > 0:
+                with cols_prog[idx_col]:
+                    st.metric(label="Anomali (Salah Ketik)", value=f"{len(unit_anomali)}", delta="Perlu Cek", delta_color="inverse")
+                    st.progress(1.0)
+                    
+            st.write("---")
+            
+            # --- Render Status Kehadiran Data (Grid Box) ---
+            st.write("### 🚩 Status Kehadiran Data")
+            st.caption("✅ Sudah Input | ❌ Belum Ada Input | ⚠️ Nama Unit Tidak Sesuai Master")
+            
+            st.markdown("""
+                <style>
+                .unit-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-bottom: 15px;
+                }
+                .unit-card {
+                    font-size: 0.75rem;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    display: inline-block;
+                }
+                .sudah {
+                    background-color: #d1e7dd;
+                    color: #0f5132;
+                    border: 1px solid #badbcc;
+                }
+                .belum {
+                    background-color: #f8d7da;
+                    color: #842029;
+                    border: 1px solid #f5c2c7;
+                    opacity: 0.7;
+                }
+                .anomali {
+                    background-color: #fff3cd;
+                    color: #856404;
+                    border: 1px solid #ffeeba;
+                }
+                .category-section {
+                    background-color: #ffffff;
+                    padding: 12px 18px;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
+                    border: 1px solid #e9ecef;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+                }
+                .category-title {
+                    font-weight: bold;
+                    font-size: 0.95em;
+                    margin-bottom: 8px;
+                    color: #333333;
+                    border-left: 4px solid #0d6efd;
+                    padding-left: 8px;
+                    text-transform: uppercase;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            for kat, units in masterUnit.items():
+                card_html = []
+                for u in units:
+                    is_done = u in unit_sudah_input
+                    class_name = "sudah" if is_done else "belum"
+                    icon = "✅" if is_done else "❌"
+                    card_html.append(f'<span class="unit-card {class_name}">{icon} {u}</span>')
+                    
+                st.markdown(f"""
+                    <div class="category-section">
+                        <div class="category-title">{kat}</div>
+                        <div class="unit-grid">
+                            {"".join(card_html)}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+            if len(unit_anomali) > 0:
+                card_html = []
+                for u in unit_anomali:
+                    card_html.append(f'<span class="unit-card anomali">⚠️ {u}</span>')
+                    
+                st.markdown(f"""
+                    <div class="category-section" style="border: 1px solid #ffeeba; background-color: #fffdf5;">
+                        <div class="category-title" style="color: #856404; border-left-color: #ffc107;">Anomali (Perlu Cek)</div>
+                        <div class="unit-grid">
+                            {"".join(card_html)}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
                 
             st.write("---")
             
