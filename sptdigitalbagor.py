@@ -32,8 +32,8 @@ SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798"
 def get_kegiatan_list():
     if not sheets_service:
         return [
-            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif"},
-            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif"}
+            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
+            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
         ]
     try:
         meta = sheets_service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
@@ -54,9 +54,9 @@ def get_kegiatan_list():
             
             # Tulis data default
             default_rows = [
-                ["Nama Kegiatan", "Integrasi", "Status"],
-                ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif"],
-                ["Lainnya", "None", "Aktif"]
+                ["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal"],
+                ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026"],
+                ["Lainnya", "None", "Aktif", "Tanpa Batas"]
             ]
             sheets_service.spreadsheets().values().update(
                 spreadsheetId=SPREADSHEET_ID,
@@ -65,13 +65,13 @@ def get_kegiatan_list():
                 body={'values': default_rows}
             ).execute()
             return [
-                {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif"},
-                {"nama": "Lainnya", "integrasi": "None", "status": "Aktif"}
+                {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
+                {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
             ]
         
         result = sheets_service.spreadsheets().values().get(
             spreadsheetId=SPREADSHEET_ID,
-            range="Config_Kegiatan!A2:C100"
+            range="Config_Kegiatan!A2:D100"
         ).execute()
         rows = result.get('values', [])
         if not rows:
@@ -83,27 +83,28 @@ def get_kegiatan_list():
                 kegiatan.append({
                     "nama": r[0],
                     "integrasi": r[1] if len(r) > 1 else "None",
-                    "status": r[2] if len(r) > 2 else "Aktif"
+                    "status": r[2] if len(r) > 2 else "Aktif",
+                    "deadline": r[3] if len(r) > 3 else "Tanpa Batas"
                 })
         return kegiatan
     except Exception as e:
         return [
-            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif"},
-            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif"}
+            {"nama": "SPT Rekon TPP dan SIMONA", "integrasi": "SITPP", "status": "Aktif", "deadline": "6 Februari 2026"},
+            {"nama": "Lainnya", "integrasi": "None", "status": "Aktif", "deadline": "Tanpa Batas"}
         ]
 
 def save_kegiatan_list(kegiatan_list):
     if not sheets_service:
         return False
     try:
-        rows = [["Nama Kegiatan", "Integrasi", "Status"]]
+        rows = [["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal"]]
         for k in kegiatan_list:
-            rows.append([k["nama"], k["integrasi"], k["status"]])
+            rows.append([k["nama"], k["integrasi"], k["status"], k.get("deadline", "Tanpa Batas")])
         
         # Bersihkan data lama
         sheets_service.spreadsheets().values().clear(
             spreadsheetId=SPREADSHEET_ID,
-            range="Config_Kegiatan!A1:C100"
+            range="Config_Kegiatan!A1:D100"
         ).execute()
         
         # Tulis data baru
@@ -117,6 +118,7 @@ def save_kegiatan_list(kegiatan_list):
     except Exception as e:
         st.error(f"Gagal menyimpan konfigurasi kegiatan: {e}")
         return False
+
 
 def get_submissions_data():
     if not sheets_service:
@@ -206,7 +208,17 @@ def show_operator_form():
     @st.dialog("PENGUMUMAN PENTING")
     def tampilkan_pengumuman():
         st.warning("⚠️ **Batas Pengiriman SPT:**")
-        st.markdown("Pengiriman SPT sampai **Tanggal 6 Februari 2026**.")
+        
+        keg_list = get_kegiatan_list()
+        active_kegs = [k for k in keg_list if k.get("status") == "Aktif"]
+        
+        if active_kegs:
+            for k in active_kegs:
+                dl = k.get("deadline", "Tanpa Batas")
+                st.markdown(f"- **{k['nama']}**: batas tanggal **{dl}**")
+        else:
+            st.markdown("- Tidak ada kegiatan aktif saat ini.")
+            
         st.info("💡 **Informasi:**\n\nTidak perlu menyerahkan SPT Fisik ke Bagian Organisasi.")
         if st.button("Saya Mengerti", type="primary", use_container_width=True):
             st.session_state["sudah_baca_info"] = True
@@ -520,6 +532,7 @@ def show_admin_page():
         with st.form("tambah_kegiatan_form"):
             st.write("**Tambah Kegiatan Baru**")
             nama_baru = st.text_input("Nama Kegiatan (Contoh: Rekon TPP)")
+            deadline_baru = st.text_input("Batas Tanggal / Deadline (Contoh: 6 Februari 2026 atau Tanpa Batas):", value="Tanpa Batas")
             integrasi_baru = st.selectbox("Target Integrasi:", ["None", "SITPP", "Lainnya"])
             kustom_integrasi = st.text_input("Nama Integrasi Kustom (Jika memilih Lainnya):")
             
@@ -529,7 +542,12 @@ def show_admin_page():
                     st.error("Nama kegiatan tidak boleh kosong!")
                 else:
                     final_integrasi = kustom_integrasi.strip() if integrasi_baru == "Lainnya" else integrasi_baru
-                    new_item = {"nama": nama_baru.strip(), "integrasi": final_integrasi, "status": "Aktif"}
+                    new_item = {
+                        "nama": nama_baru.strip(),
+                        "integrasi": final_integrasi,
+                        "status": "Aktif",
+                        "deadline": deadline_baru.strip()
+                    }
                     kegiatan_list.append(new_item)
                     if save_kegiatan_list(kegiatan_list):
                         st.success(f"Kegiatan '{nama_baru}' berhasil ditambahkan!")
@@ -542,13 +560,13 @@ def show_admin_page():
             st.info("Belum ada kegiatan terdaftar.")
         else:
             for idx, k in enumerate(kegiatan_list):
-                col_name, col_int, col_status, col_action = st.columns([4, 2, 2, 2])
+                col_name, col_int, col_deadline, col_action = st.columns([3, 2, 3, 2])
                 with col_name:
                     st.write(f"**{k['nama']}**")
                 with col_int:
                     st.code(k["integrasi"])
-                with col_status:
-                    st.write(k["status"])
+                with col_deadline:
+                    st.write(f"Batas: {k.get('deadline', 'Tanpa Batas')}")
                 with col_action:
                     if st.button("Hapus", key=f"del_{idx}", type="secondary"):
                         kegiatan_list.pop(idx)
