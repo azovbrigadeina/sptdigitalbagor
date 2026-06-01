@@ -9,6 +9,13 @@ from docx.shared import Mm
 from docx.oxml import parse_xml
 import os
 import base64
+import streamlit.components.v1 as components
+
+# Declare custom signature pad component
+PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
+SIG_PAD_PATH = os.path.join(PARENT_DIR, "signature_pad")
+signature_pad = components.declare_component("signature_pad", path=SIG_PAD_PATH)
+
 
 
 INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
@@ -383,19 +390,12 @@ def show_operator_form():
 
     # SEKSI IV: TANDA TANGAN
     st.subheader("IV. Tanda Tangan Atasan")
-    st.info("📌 **Cara Upload Tanda Tangan:**\n\n"
-            "1. Tanda tangani di **kertas putih** polos, lalu foto menggunakan HP\n"
-            "2. Atau gunakan aplikasi gambar di HP/tablet (misal: Samsung Notes, Canva, dll), lalu simpan sebagai PNG\n"
-            "3. Upload file gambar tanda tangan di bawah ini (PNG/JPG)")
     
-    ttd_file = st.file_uploader("Upload Gambar Tanda Tangan Atasan", type=["png", "jpg", "jpeg"], key="ttd_upload", disabled=is_disabled)
-    
-    if ttd_file is not None:
-        st.image(ttd_file, caption="Preview Tanda Tangan", width=200)
+    signature_data = signature_pad(key="canvas_final")
 
     st.markdown("""
         <p style='color: #ff4b4b; font-size: 0.85rem; font-weight: bold; margin-top: -10px;'>
-            ⚠️ Pastikan tanda tangan di atas adalah milik Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
+            ⚠️ Pastikan kolom di atas ditandatangani oleh Atasan yang bersangkutan! (Contoh: kepala dinas/badan)
         </p>
         """, unsafe_allow_html=True)
 
@@ -410,14 +410,12 @@ def show_operator_form():
             st.error("❌ Email wajib menggunakan domain @gmail.com!")
         elif not nama_admin or not unit_kerja_final or not n_atasan:
             st.warning("⚠️ Mohon lengkapi semua field yang tersedia!")
-        elif ttd_file is None:
-            st.warning("⚠️ Mohon upload gambar tanda tangan terlebih dahulu!")
+        elif not signature_data or signature_data == "":
+            st.warning("⚠️ Mohon tanda tangani pada kolom di atas terlebih dahulu!")
         else:
             with st.spinner('Memproses data...'):
-                ttd_bytes = ttd_file.getvalue()
-                ttd_b64 = base64.b64encode(ttd_bytes).decode()
-                # Buat data URI untuk fungsi create_docx_final
-                signature_data_uri = f"data:image/png;base64,{ttd_b64}"
+                ttd_b64 = get_base64_signature(signature_data)
+
                 
             sheets_service = get_sheets_service()
             if sheets_service:
@@ -457,7 +455,7 @@ def show_operator_form():
                     'nip_atasan': nip_atasan, 'p_atasan': p_atasan, 'perihal': perihal_final,
                     'dasar_spt': dasar_final
                 }
-                docx_file = create_docx_final(data_spt, signature_data_uri)
+                docx_file = create_docx_final(data_spt, signature_data)
                 
                 if docx_file:
                     st.success("✅ Data berhasil masuk, Terima Kasih")
