@@ -29,15 +29,95 @@
       background: #ffffff;
       touch-action: none;
       transition: all 0.2s;
+      max-width: 100%;
     }
     #sig-canvas:hover {
       border-color: #94a3b8;
     }
+    
+    /* Autocomplete Combobox Styling */
+    .autocomplete-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .autocomplete-icon {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      transition: transform 0.2s;
+    }
+    .autocomplete-wrapper.open .autocomplete-icon {
+      transform: translateY(-50%) rotate(180deg);
+    }
+    .autocomplete-menu {
+      position: absolute;
+      z-index: 9999;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      max-height: 250px;
+      overflow-y: auto;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .autocomplete-menu::-webkit-scrollbar {
+      width: 6px;
+    }
+    .autocomplete-menu::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .autocomplete-menu::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .autocomplete-menu::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .autocomplete-group-label {
+      padding: 8px 12px 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      background-color: #f8fafc;
+      letter-spacing: 0.05em;
+      border-top: 1px solid #f1f5f9;
+    }
+    .autocomplete-group-label:first-child {
+      border-top: none;
+    }
+    .autocomplete-item {
+      padding: 10px 16px;
+      font-size: 0.875rem;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .autocomplete-item:hover, .autocomplete-item.highlighted {
+      background-color: #e0e7ff;
+      color: #4338ca;
+    }
+    .autocomplete-item.selected {
+      background-color: #4f46e5;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .autocomplete-no-results {
+      padding: 12px 16px;
+      font-size: 0.875rem;
+      color: #64748b;
+      text-align: center;
+      font-style: italic;
+    }
   </style>
 </head>
 <body class="py-6 px-4 md:px-8">
-
-  <!-- ==================== HEADER / NAVBAR ==================== -->
+  <div id="main-app-container">
+    <!-- ==================== HEADER / NAVBAR ==================== -->
   <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
     <div class="flex items-center gap-3">
       <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-200">
@@ -215,7 +295,47 @@
             <!-- Pangkat / Golongan -->
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Ruang</label>
-              <input type="text" name="pangkat" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Penata / III.c">
+              <select name="pangkat" id="pangkat-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700">
+                <option value="">-- Pilih Pangkat / Golongan --</option>
+                <optgroup label="PNS (Pangkat / Golongan Ruang)">
+                  <option value="Juru Muda / I.a">Juru Muda - I/a</option>
+                  <option value="Juru Muda Tingkat I / I.b">Juru Muda Tingkat I - I/b</option>
+                  <option value="Juru / I.c">Juru - I/c</option>
+                  <option value="Juru Tingkat I / I.d">Juru Tingkat I - I/d</option>
+                  <option value="Pengatur Muda / II.a">Pengatur Muda - II/a</option>
+                  <option value="Pengatur Muda Tingkat I / II.b">Pengatur Muda Tingkat I - II/b</option>
+                  <option value="Pengatur / II.c">Pengatur - II/c</option>
+                  <option value="Pengatur Tingkat I / II.d">Pengatur Tingkat I - II/d</option>
+                  <option value="Penata Muda / III.a">Penata Muda - III/a</option>
+                  <option value="Penata Muda Tingkat I / III.b">Penata Muda Tingkat I - III/b</option>
+                  <option value="Penata / III.c">Penata - III/c</option>
+                  <option value="Penata Tingkat I / III.d">Penata Tingkat I - III/d</option>
+                  <option value="Pembina / IV.a">Pembina - IV/a</option>
+                  <option value="Pembina Tingkat I / IV.b">Pembina Tingkat I - IV/b</option>
+                  <option value="Pembina Utama Muda / IV.c">Pembina Utama Muda - IV/c</option>
+                  <option value="Pembina Utama Madya / IV.d">Pembina Utama Madya - IV/d</option>
+                  <option value="Pembina Utama / IV.e">Pembina Utama - IV/e</option>
+                </optgroup>
+                <optgroup label="PPPK (Golongan)">
+                  <option value="Golongan I">Golongan I</option>
+                  <option value="Golongan II">Golongan II</option>
+                  <option value="Golongan III">Golongan III</option>
+                  <option value="Golongan IV">Golongan IV</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
+                  <option value="Golongan X">Golongan X</option>
+                  <option value="Golongan XI">Golongan XI</option>
+                  <option value="Golongan XII">Golongan XII</option>
+                  <option value="Golongan XIII">Golongan XIII</option>
+                  <option value="Golongan XIV">Golongan XIV</option>
+                  <option value="Golongan XV">Golongan XV</option>
+                  <option value="Golongan XVI">Golongan XVI</option>
+                  <option value="Golongan XVII">Golongan XVII</option>
+                </optgroup>
+              </select>
             </div>
 
             <!-- Jabatan -->
@@ -261,7 +381,47 @@
             <!-- Pangkat Atasan -->
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Atasan</label>
-              <input type="text" name="p_atasan" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700" placeholder="Contoh: Pembina Utama Muda / IV.c">
+              <select name="p_atasan" id="pangkat-atasan-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700">
+                <option value="">-- Pilih Pangkat / Golongan --</option>
+                <optgroup label="PNS (Pangkat / Golongan Ruang)">
+                  <option value="Juru Muda / I.a">Juru Muda - I/a</option>
+                  <option value="Juru Muda Tingkat I / I.b">Juru Muda Tingkat I - I/b</option>
+                  <option value="Juru / I.c">Juru - I/c</option>
+                  <option value="Juru Tingkat I / I.d">Juru Tingkat I - I/d</option>
+                  <option value="Pengatur Muda / II.a">Pengatur Muda - II/a</option>
+                  <option value="Pengatur Muda Tingkat I / II.b">Pengatur Muda Tingkat I - II/b</option>
+                  <option value="Pengatur / II.c">Pengatur - II/c</option>
+                  <option value="Pengatur Tingkat I / II.d">Pengatur Tingkat I - II/d</option>
+                  <option value="Penata Muda / III.a">Penata Muda - III/a</option>
+                  <option value="Penata Muda Tingkat I / III.b">Penata Muda Tingkat I - III/b</option>
+                  <option value="Penata / III.c">Penata - III/c</option>
+                  <option value="Penata Tingkat I / III.d">Penata Tingkat I - III/d</option>
+                  <option value="Pembina / IV.a">Pembina - IV/a</option>
+                  <option value="Pembina Tingkat I / IV.b">Pembina Tingkat I - IV/b</option>
+                  <option value="Pembina Utama Muda / IV.c">Pembina Utama Muda - IV/c</option>
+                  <option value="Pembina Utama Madya / IV.d">Pembina Utama Madya - IV/d</option>
+                  <option value="Pembina Utama / IV.e">Pembina Utama - IV/e</option>
+                </optgroup>
+                <optgroup label="PPPK (Golongan)">
+                  <option value="Golongan I">Golongan I</option>
+                  <option value="Golongan II">Golongan II</option>
+                  <option value="Golongan III">Golongan III</option>
+                  <option value="Golongan IV">Golongan IV</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
+                  <option value="Golongan X">Golongan X</option>
+                  <option value="Golongan XI">Golongan XI</option>
+                  <option value="Golongan XII">Golongan XII</option>
+                  <option value="Golongan XIII">Golongan XIII</option>
+                  <option value="Golongan XIV">Golongan XIV</option>
+                  <option value="Golongan XV">Golongan XV</option>
+                  <option value="Golongan XVI">Golongan XVI</option>
+                  <option value="Golongan XVII">Golongan XVII</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 
@@ -274,6 +434,9 @@
             <div class="flex gap-3 mt-4">
               <button type="button" onclick="clearCanvas()" class="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition-all">
                 🗑️ Bersihkan
+              </button>
+              <button type="button" onclick="generateSrikandi()" class="px-5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 text-sm font-semibold transition-all flex items-center gap-2">
+                ✨ TTD Srikandi (BSrE)
               </button>
             </div>
           </div>
@@ -322,6 +485,19 @@
 
         <!-- ==================== SUB-TAB 1: SUBMISI PANEL ==================== -->
         <div id="submisi-panel" class="admin-sub-tab space-y-6">
+          
+          <!-- Filter Perihal / Kegiatan -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Filter Kegiatan</h4>
+              <p class="text-xs text-slate-400">Tampilkan statistik dan rekap berdasarkan kegiatan tertentu</p>
+            </div>
+            <div class="w-full md:w-80">
+              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                <option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>
+              </select>
+            </div>
+          </div>
           
           <!-- KPI Stats grid -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -409,11 +585,25 @@
                   <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
                     <option value="None">None (Tanpa Integrasi)</option>
                     <option value="SITPP">SITPP</option>
+                    <option value="SIANJAB">SIANJAB</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Batas Tanggal / Deadline</label>
-                  <input type="text" id="keg-deadline" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Contoh: 15 Maret 2026 / Tanpa Batas">
+                  <div class="flex flex-col gap-2">
+                    <div class="flex gap-4 mb-1">
+                      <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                        <input type="radio" name="tipe_deadline" value="Tanpa Batas" checked onchange="toggleDeadlineInput()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <span>Tanpa Batas</span>
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                        <input type="radio" name="tipe_deadline" value="Pilih Tanggal" onchange="toggleDeadlineInput()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <span>Pilih Tanggal</span>
+                      </label>
+                    </div>
+                    <input type="date" id="keg-deadline-date" onchange="updateDeadlineValue()" class="hidden w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <input type="hidden" id="keg-deadline" value="Tanpa Batas">
+                  </div>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Status</label>
@@ -457,6 +647,64 @@
         </div>
 
       </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ==================== VERIFICATION CONTAINER ==================== -->
+  <div id="verification-container" class="hidden max-w-2xl mx-auto mt-12 p-6 md:p-8 glass-card rounded-3xl shadow-2xl border border-emerald-200">
+    <div class="flex flex-col items-center text-center">
+      <!-- Animated pulsing checkmark circle -->
+      <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 border-4 border-emerald-500 animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      
+      <h2 class="text-2xl font-extrabold text-slate-800 mb-1">DOKUMEN ASLI TERVERIFIKASI</h2>
+      <p class="text-sm font-bold text-emerald-600 tracking-wider uppercase mb-8">Aplikasi Srikandi - BSrE BSSN</p>
+      
+      <div class="w-full bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm mb-6 text-left">
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Penandatangan</td>
+              <td id="v-nama" class="px-6 py-4 font-bold text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">NIP Atasan</td>
+              <td id="v-nip" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Jabatan</td>
+              <td id="v-jabatan" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Perihal SPT</td>
+              <td id="v-perihal" class="px-6 py-4 text-slate-800 italic"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal TTE</td>
+              <td id="v-tanggal" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-semibold text-slate-500">Status Sertifikasi</td>
+              <td class="px-6 py-4 text-emerald-600 font-bold flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block animate-ping"></span>
+                <span>VALID & AKTIF</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <p class="text-xs text-slate-400 mb-8 leading-relaxed max-w-md">
+        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), BSSN.
+      </p>
+      
+      <button onclick="exitVerification()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md">
+        🏡 Masuk ke Aplikasi Utama
+      </button>
     </div>
   </div>
 
@@ -504,6 +752,7 @@
 
     let kegiatanDb = [];
     let submissionsDb = [];
+    let filteredSubmissions = [];
     let authenticated = false;
 
     // --- Tab Switch Logic ---
@@ -544,6 +793,20 @@
 
     // --- Page Load Initializer ---
     window.onload = function() {
+      // Check for verification token in query parameters
+      let verifyToken = "";
+      try {
+        verifyToken = "<?= verifyToken ?>";
+      } catch(e) {
+        const params = new URLSearchParams(window.location.search);
+        verifyToken = params.get('v') || "";
+      }
+      if (verifyToken && !verifyToken.startsWith("<" + "?")) {
+        showVerificationPage(verifyToken);
+        return;
+      }
+
+      // Normal initialization
       // 1. Fetch kegiatan list for the form dropdown
       google.script.run
         .withSuccessHandler(function(list) {
@@ -557,7 +820,111 @@
 
       // 2. Setup Signature Canvas
       initCanvas();
+
+      // 3. Load dynamic OPD list from Sianjab database
+      loadOpdFromSianjab();
+
+      // 4. Initialize Autocompletes
+      createAutocomplete(document.getElementById('opd-select'));
+      createAutocomplete(document.getElementById('kegiatan-select'));
+      createAutocomplete(document.getElementById('pangkat-select'));
+      createAutocomplete(document.getElementById('pangkat-atasan-select'));
     };
+
+    function loadOpdFromSianjab() {
+      const selectEl = document.getElementById('opd-select');
+      const sianjabApiUrl = 'https://script.google.com/macros/s/AKfycbycp3NZVvZ4n1X_OmkCVtQVNrja-n7x-TYh1Fx1o4nIkCKakWf_to5AXOiBB8horXMPhg/exec?action=readAll&entity=unitKerja';
+      
+      fetch(sianjabApiUrl)
+        .then(res => res.json())
+        .then(resJson => {
+          if (resJson.success && Array.isArray(resJson.data)) {
+            const opds = resJson.data;
+            const parents = opds.filter(o => !o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+            const children = opds.filter(o => o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+            
+            let html = '<option value="">-- Pilih Unit Kerja (Sianjab) --</option>';
+            
+            html += '<optgroup label="Dinas / Badan / Kecamatan">';
+            parents.forEach(o => {
+              html += `<option value="${o.nama}">${o.nama}</option>`;
+            });
+            html += '</optgroup>';
+            
+            if (children.length > 0) {
+              html += '<optgroup label="── Sub Unit (Puskesmas / Rumah Sakit / Bagian) ──">';
+              children.forEach(o => {
+                html += `<option value="${o.nama}">${o.nama}</option>`;
+              });
+              html += '</optgroup>';
+            }
+            
+            selectEl.innerHTML = html;
+            console.log("Daftar OPD berhasil disinkronkan langsung dari Sianjab.");
+          }
+        })
+        .catch(err => {
+          console.error("Gagal mengambil daftar OPD dari Sianjab, menggunakan default:", err);
+        });
+    }
+
+    function showVerificationPage(token) {
+      try {
+        let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) {
+          base64 += '=';
+        }
+        const jsonStr = decodeURIComponent(escape(window.atob(base64)));
+        const data = JSON.parse(jsonStr);
+        
+        document.getElementById('v-nama').innerText = data.n || "-";
+        document.getElementById('v-nip').innerText = data.nip || "-";
+        document.getElementById('v-jabatan').innerText = data.j || "-";
+        document.getElementById('v-perihal').innerText = data.p || "-";
+        document.getElementById('v-tanggal').innerText = data.d || "-";
+        
+        document.getElementById('main-app-container').classList.add('hidden');
+        document.getElementById('verification-container').classList.remove('hidden');
+      } catch(e) {
+        console.error(e);
+        Swal.fire({
+          icon: 'error',
+          title: 'Token Tidak Valid',
+          text: 'Token verifikasi TTE Srikandi tidak valid atau rusak!'
+        });
+      }
+    }
+    
+    function exitVerification() {
+      if (history.pushState) {
+        const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({path:newurl},'',newurl);
+      }
+      document.getElementById('verification-container').classList.add('hidden');
+      document.getElementById('main-app-container').classList.remove('hidden');
+      
+      // Initialize normally
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          renderKegiatanDropdown();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat daftar kegiatan", err);
+        })
+        .getKegiatanList();
+
+      initCanvas();
+    }
+
+    function generateSrikandi() {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Srikandi Belum Terhubung',
+        text: 'Aplikasi Srikandi belum terhubung dengan sistem ini. Silakan hubungi admin instansi Anda.',
+        confirmButtonColor: '#0d9488'
+      });
+    }
 
     function renderKegiatanDropdown() {
       const select = document.getElementById('kegiatan-select');
@@ -607,7 +974,10 @@
       function getPos(e) {
         const r = canvas.getBoundingClientRect();
         const t = e.touches ? e.touches[0] : e;
-        return { x: t.clientX - r.left, y: t.clientY - r.top };
+        return { 
+          x: (t.clientX - r.left) * (canvas.width / r.width), 
+          y: (t.clientY - r.top) * (canvas.height / r.height) 
+        };
       }
       function start(e) { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
       function move(e) { e.preventDefault(); if (!drawing) return; hasDrawn = true; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
@@ -664,10 +1034,26 @@
         .withSuccessHandler(function(response) {
           Swal.close();
           if (response.status === "success") {
+            let successHtml = 'SPT Anda berhasil digenerate.';
+            if (response.sianjabCreated) {
+              if (response.sianjabStatus === "created") {
+                successHtml += '<br><br><div style="text-align: left; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; color: #166534; font-size: 0.9rem;">' +
+                  '🎉 <strong>Akun SIANJAB Dibuat Otomatis!</strong><br>' +
+                  'Silakan login ke SIANJAB dengan:<br>' +
+                  '• <strong>Username</strong>: NIP Anda (' + data.nip + ')<br>' +
+                  '• <strong>Password Default</strong>: <code style="background: #dcfce7; padding: 2px 4px; border-radius: 4px; font-weight: bold;">sianjabmj2026</code>' +
+                  '</div>';
+              } else if (response.sianjabStatus === "updated") {
+                successHtml += '<br><br><div style="text-align: left; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; color: #1e40af; font-size: 0.9rem;">' +
+                  '🔄 <strong>Sinkronisasi Sianjab Sukses!</strong><br>' +
+                  'Akun NIP Anda sudah terdaftar sebelumnya di SIANJAB. Data profil dan OPD Anda telah diperbarui.' +
+                  '</div>';
+              }
+            }
             Swal.fire({
               icon: 'success',
               title: 'Berhasil Terkirim!',
-              text: 'SPT Anda berhasil digenerate.',
+              html: successHtml,
               confirmButtonText: 'Download SPT'
             }).then(() => {
               downloadFile(response.fileContent, response.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
@@ -745,22 +1131,92 @@
 
     // --- Admin Dashboard Loading & Calculation ---
     function loadAdminDashboard() {
+      // 1. Load kegiatan table independently so it doesn't get blocked by submissions data loading issues
+      renderAdminKegiatanTable();
+
+      // 2. Load submissions data for stats and charts
       google.script.run
         .withSuccessHandler(function(submissions) {
           submissionsDb = submissions;
-          calculateStats();
-          renderSubmissionTable();
-          renderComplianceReport();
-          renderAdminKegiatanTable();
+          populateFilterKegiatanDropdown();
+          applyFilters();
         })
         .withFailureHandler(function(err) {
           console.error("Gagal memuat rekap admin", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Memuat Submisi',
+            text: 'Gagal memuat data rekap admin/statistik. Error: ' + err.toString()
+          });
         })
         .getSubmissionsData();
     }
 
+    function populateFilterKegiatanDropdown() {
+      const select = document.getElementById('filter-kegiatan');
+      if (!select) return;
+      
+      const currentSelected = select.value || "Semua Kegiatan";
+      select.innerHTML = '<option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>';
+      
+      const names = new Set();
+      if (kegiatanDb && Array.isArray(kegiatanDb)) {
+        kegiatanDb.forEach(k => {
+          if (k.nama) names.add(k.nama);
+        });
+      }
+      if (submissionsDb && Array.isArray(submissionsDb) && submissionsDb.length > 1) {
+        submissionsDb.slice(1).forEach(row => {
+          if (row[1]) names.add(row[1]);
+        });
+      }
+      
+      const sortedNames = Array.from(names).sort();
+      sortedNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+      });
+      
+      if (names.has(currentSelected)) {
+        select.value = currentSelected;
+      } else {
+        select.value = "Semua Kegiatan";
+      }
+    }
+
+    function applyFilters() {
+      const selectedKeg = document.getElementById('filter-kegiatan').value;
+      
+      if (!submissionsDb || submissionsDb.length === 0) {
+        filteredSubmissions = [];
+        calculateStats();
+        renderSubmissionTable();
+        renderComplianceReport();
+        return;
+      }
+      
+      const dataRows = submissionsDb.slice(1);
+      
+      let filteredData = [];
+      if (selectedKeg === "Semua Kegiatan") {
+        filteredData = dataRows.map((row, idx) => ({ row, index: idx + 1 }));
+      } else {
+        filteredData = dataRows
+          .map((row, idx) => ({ row, index: idx + 1 }))
+          .filter(item => item.row[1] === selectedKeg);
+      }
+      
+      filteredSubmissions = filteredData;
+      
+      calculateStats();
+      renderSubmissionTable();
+      renderComplianceReport();
+    }
+
     function calculateStats() {
-      if (submissionsDb.length <= 1) {
+      if (filteredSubmissions.length === 0) {
         document.getElementById('stat-pns').innerText = '0';
         document.getElementById('stat-pppk').innerText = '0';
         document.getElementById('stat-unik').innerText = '0';
@@ -768,14 +1224,12 @@
         return;
       }
       
-      const dataRows = submissionsDb.slice(1);
-      
-      // Hitung unik NIP
       const uniqNip = new Set();
       let pnsCount = 0;
       let pppkCount = 0;
       
-      dataRows.forEach(row => {
+      filteredSubmissions.forEach(item => {
+        const row = item.row;
         const nip = String(row[4]).trim();
         const nama = String(row[3]).toUpperCase();
         if (nip && !uniqNip.has(nip)) {
@@ -788,35 +1242,28 @@
       document.getElementById('stat-pns').innerText = pnsCount;
       document.getElementById('stat-pppk').innerText = pppkCount;
       document.getElementById('stat-unik').innerText = uniqNip.size;
-      document.getElementById('stat-total').innerText = dataRows.length;
+      document.getElementById('stat-total').innerText = filteredSubmissions.length;
     }
 
-    // Render reported unit status progress
     function renderComplianceReport() {
-      if (submissionsDb.length <= 1) return;
-      const dataRows = submissionsDb.slice(1);
-      
-      const reportedUnits = new Set();
-      dataRows.forEach(row => {
-        reportedUnits.add(String(row[2]).trim());
-      });
-      
       const progressContainer = document.getElementById('progress-group-container');
       const gridContainer = document.getElementById('status-unit-grid');
       
       progressContainer.innerHTML = '';
       gridContainer.innerHTML = '';
       
-      let index = 0;
+      const reportedUnits = new Set();
+      filteredSubmissions.forEach(item => {
+        reportedUnits.add(String(item.row[2]).trim());
+      });
+      
       for (const [groupName, units] of Object.entries(masterUnit)) {
-        // Calculate progress percentage
         let sudahInput = 0;
         units.forEach(u => {
           if (reportedUnits.has(u)) sudahInput++;
         });
         const percent = units.length > 0 ? Math.round((sudahInput / units.length) * 100) : 0;
         
-        // Progress metric cards
         progressContainer.innerHTML += `
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
             <p class="text-xs font-bold text-slate-500 uppercase truncate">${groupName}</p>
@@ -828,7 +1275,6 @@
           </div>
         `;
         
-        // Grid status cards
         const unitCards = units.map(u => {
           const done = reportedUnits.has(u);
           const icon = done ? '✅' : '❌';
@@ -845,20 +1291,18 @@
       }
     }
 
-    // Render Data table
     function renderSubmissionTable() {
       const tbody = document.getElementById('submission-tbody');
       tbody.innerHTML = '';
       
-      if (submissionsDb.length <= 1) {
+      if (filteredSubmissions.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">Belum ada data submisi.</td></tr>';
         return;
       }
       
-      const dataRows = submissionsDb.slice(1);
-      dataRows.forEach((row, idx) => {
-        // Adjust for index + 1 in backend deletor
-        const actualIdx = idx + 1;
+      filteredSubmissions.forEach((item) => {
+        const row = item.row;
+        const actualIdx = item.index;
         tbody.innerHTML += `
           <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
             <td class="px-6 py-4 font-semibold text-slate-700">${row[0]}</td>
@@ -920,11 +1364,16 @@
     }
 
     function exportToCsv() {
-      if (submissionsDb.length <= 1) return;
+      if (!submissionsDb || submissionsDb.length <= 1) return;
       
       let csvContent = "data:text/csv;charset=utf-8,";
-      submissionsDb.forEach(row => {
-        const escaped = row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+      // Export header
+      const headerEscaped = submissionsDb[0].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+      csvContent += headerEscaped + "\r\n";
+      
+      // Export filtered rows
+      filteredSubmissions.forEach(item => {
+        const escaped = item.row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
         csvContent += escaped + "\r\n";
       });
       
@@ -937,33 +1386,34 @@
       document.body.removeChild(link);
     }
 
-    // --- Admin Config Kegiatan Crud Logic ---
     function renderAdminKegiatanTable() {
       const tbody = document.getElementById('kegiatan-tbody');
-      tbody.innerHTML = '';
+      tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-500 font-medium">⏳ Memuat daftar kegiatan...</td></tr>';
       
       google.script.run
         .withSuccessHandler(function(list) {
           kegiatanDb = list;
+          populateFilterKegiatanDropdown();
           if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-400 font-medium">Belum ada kegiatan.</td></tr>';
             return;
           }
           
+          tbody.innerHTML = '';
           list.forEach(keg => {
-            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-55 text-slate-500 border-slate-200';
+            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200';
             tbody.innerHTML += `
               <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
                 <td class="px-6 py-4">
                   <div class="font-bold text-slate-800">${keg.nama}</div>
                   <div class="text-xs text-slate-400">Integrasi: ${keg.integrasi}</div>
                 </td>
-                <td class="px-6 py-4 font-medium text-slate-600">${keg.deadline}</td>
+                <td class="px-6 py-4 font-medium text-slate-600">${keg.deadline || 'Tanpa Batas'}</td>
                 <td class="px-6 py-4 text-center">
                   <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${keg.status}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <button onclick="deleteKegiatanData('${keg.nama}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                  <button onclick="deleteKegiatanData('${keg.nama.replace(/'/g, "\\'")}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -973,7 +1423,48 @@
             `;
           });
         })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat kegiatan", err);
+          tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-6 text-center text-red-500 font-medium">❌ Gagal memuat daftar kegiatan: ${err.toString()}</td></tr>`;
+        })
         .getKegiatanList();
+    }
+
+    const INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    function formatIndoDate(dateStr) {
+      if (!dateStr) return "";
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return "";
+      const year = parts[0];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return `${day} ${INDO_MONTHS[monthIdx]} ${year}`;
+    }
+
+    function toggleDeadlineInput() {
+      const type = document.querySelector('input[name="tipe_deadline"]:checked').value;
+      const dateInput = document.getElementById('keg-deadline-date');
+      const hiddenInput = document.getElementById('keg-deadline');
+      
+      if (type === "Pilih Tanggal") {
+        dateInput.classList.remove('hidden');
+        dateInput.required = true;
+        if (!dateInput.value) {
+          const today = new Date().toISOString().split('T')[0];
+          dateInput.value = today;
+        }
+        updateDeadlineValue();
+      } else {
+        dateInput.classList.add('hidden');
+        dateInput.required = false;
+        hiddenInput.value = "Tanpa Batas";
+      }
+    }
+
+    function updateDeadlineValue() {
+      const dateInput = document.getElementById('keg-deadline-date');
+      const hiddenInput = document.getElementById('keg-deadline');
+      hiddenInput.value = formatIndoDate(dateInput.value);
     }
 
     function handleNewKegiatan(e) {
@@ -997,8 +1488,13 @@
         .withSuccessHandler(function() {
           Swal.fire('Berhasil!', 'Kegiatan baru berhasil disimpan.', 'success');
           document.getElementById('keg-nama').value = '';
-          document.getElementById('keg-deadline').value = '';
           document.getElementById('keg-dasar').value = '';
+          // Reset deadline selection
+          document.querySelector('input[name="tipe_deadline"][value="Tanpa Batas"]').checked = true;
+          document.getElementById('keg-deadline-date').value = '';
+          document.getElementById('keg-deadline-date').classList.add('hidden');
+          document.getElementById('keg-deadline-date').required = false;
+          document.getElementById('keg-deadline').value = 'Tanpa Batas';
           loadAdminDashboard();
         })
         .saveKegiatan(newKeg);
@@ -1030,6 +1526,290 @@
             .deleteKegiatan(nama);
         }
       });
+    }
+
+    // --- Custom Autocomplete Dropdown Creator ---
+    function createAutocomplete(selectEl) {
+      if (!selectEl) return;
+      
+      // Prevent duplicate creation
+      if (selectEl.dataset.autocompleteInitialized) return;
+      selectEl.dataset.autocompleteInitialized = "true";
+
+      // Hide original select visually but keep it focusable for accessibility and native HTML5 form features
+      selectEl.style.position = 'absolute';
+      selectEl.style.opacity = '0';
+      selectEl.style.pointerEvents = 'none';
+      selectEl.style.width = '1px';
+      selectEl.style.height = '1px';
+      selectEl.style.overflow = 'hidden';
+      
+      // Create wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'autocomplete-wrapper';
+      selectEl.parentNode.insertBefore(wrapper, selectEl);
+      wrapper.appendChild(selectEl); // move select element inside wrapper
+      
+      // Create input element
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700 bg-white cursor-pointer transition-all';
+      input.placeholder = selectEl.options[0]?.text || '-- Pilih --';
+      input.required = selectEl.required;
+      input.autocomplete = 'off';
+      
+      // Sync input value with the select element
+      const updateInputFromSelect = () => {
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        if (selectedOpt && selectedOpt.value !== '') {
+          input.value = selectedOpt.text;
+        } else {
+          input.value = '';
+        }
+      };
+      updateInputFromSelect();
+      
+      wrapper.appendChild(input);
+      
+      // Create chevron icon
+      const icon = document.createElement('div');
+      icon.className = 'autocomplete-icon';
+      icon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      `;
+      wrapper.appendChild(icon);
+      
+      // Create menu dropdown
+      const menu = document.createElement('div');
+      menu.className = 'autocomplete-menu hidden';
+      wrapper.appendChild(menu);
+      
+      let highlightedIndex = -1;
+      let items = []; // flat list of item objects for keyboard nav
+      
+      // Build options list inside dropdown
+      const buildOptionsList = () => {
+        menu.innerHTML = '';
+        items = [];
+        
+        const children = Array.from(selectEl.children);
+        children.forEach(child => {
+          if (child.tagName === 'OPTGROUP') {
+            const groupLabel = document.createElement('div');
+            groupLabel.className = 'autocomplete-group-label';
+            groupLabel.innerText = child.label;
+            menu.appendChild(groupLabel);
+            
+            const options = Array.from(child.children);
+            options.forEach(opt => {
+              createItem(opt);
+            });
+          } else if (child.tagName === 'OPTION') {
+            createItem(child);
+          }
+        });
+        
+        if (items.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.className = 'autocomplete-no-results';
+          emptyMsg.innerText = 'Tidak ada hasil';
+          menu.appendChild(emptyMsg);
+        }
+      };
+      
+      const createItem = (optionEl) => {
+        // Skip default placeholder options (e.g. empty value) if we have other options
+        if (optionEl.value === '' && selectEl.options.length > 1) return;
+        
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        if (optionEl.selected && optionEl.value !== '') {
+          item.classList.add('selected');
+        }
+        item.innerText = optionEl.text;
+        item.dataset.value = optionEl.value;
+        
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectOption(optionEl.value, optionEl.text);
+        });
+        
+        menu.appendChild(item);
+        items.push({
+          element: item,
+          value: optionEl.value,
+          text: optionEl.text
+        });
+      };
+      
+      const selectOption = (val, text) => {
+        selectEl.value = val;
+        input.value = (val === '') ? '' : text;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        closeDropdown();
+      };
+      
+      const filterOptions = (query) => {
+        const q = query.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        let currentGroupHeader = null;
+        let groupHasVisibleItems = false;
+        
+        Array.from(menu.children).forEach(child => {
+          if (child.classList.contains('autocomplete-group-label')) {
+            if (currentGroupHeader && !groupHasVisibleItems) {
+              currentGroupHeader.style.display = 'none';
+            }
+            currentGroupHeader = child;
+            child.style.display = '';
+            groupHasVisibleItems = false;
+          } else if (child.classList.contains('autocomplete-item')) {
+            const itemText = child.innerText.toLowerCase();
+            
+            if (q === '' || itemText.includes(q)) {
+              child.style.display = '';
+              visibleCount++;
+              groupHasVisibleItems = true;
+            } else {
+              child.style.display = 'none';
+            }
+            child.classList.remove('highlighted');
+          }
+        });
+        
+        if (currentGroupHeader && !groupHasVisibleItems) {
+          currentGroupHeader.style.display = 'none';
+        }
+        
+        let emptyMsg = menu.querySelector('.autocomplete-no-results');
+        if (visibleCount === 0) {
+          if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.className = 'autocomplete-no-results';
+            emptyMsg.innerText = 'Tidak ada hasil';
+            menu.appendChild(emptyMsg);
+          }
+          emptyMsg.style.display = '';
+        } else if (emptyMsg) {
+          emptyMsg.style.display = 'none';
+        }
+        
+        highlightedIndex = -1;
+      };
+      
+      const openDropdown = () => {
+        if (menu.classList.contains('hidden')) {
+          menu.classList.remove('hidden');
+          wrapper.classList.add('open');
+          buildOptionsList();
+          highlightedIndex = -1;
+          
+          const currentSelectedOpt = selectEl.options[selectEl.selectedIndex];
+          if (input.value === (currentSelectedOpt ? currentSelectedOpt.text : '')) {
+            filterOptions('');
+          } else {
+            filterOptions(input.value);
+          }
+          
+          // Position detection: flip upward if screen boundaries require it
+          const rect = input.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          if (rect.bottom + 250 > viewportHeight && rect.top > 250) {
+            menu.style.bottom = '100%';
+            menu.style.top = 'auto';
+            menu.style.marginTop = '0px';
+            menu.style.marginBottom = '4px';
+          } else {
+            menu.style.bottom = 'auto';
+            menu.style.top = '100%';
+            menu.style.marginTop = '4px';
+            menu.style.marginBottom = '0px';
+          }
+        }
+      };
+      
+      const closeDropdown = () => {
+        if (!menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+          wrapper.classList.remove('open');
+          updateInputFromSelect();
+        }
+      };
+      
+      input.addEventListener('focus', () => {
+        openDropdown();
+        input.select();
+      });
+      
+      input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDropdown();
+      });
+      
+      input.addEventListener('input', () => {
+        openDropdown();
+        filterOptions(input.value);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        const visibleItems = items.filter(item => item.element.style.display !== 'none');
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          openDropdown();
+          if (visibleItems.length > 0) {
+            if (highlightedIndex >= 0) {
+              visibleItems[highlightedIndex].element.classList.remove('highlighted');
+            }
+            highlightedIndex = (highlightedIndex + 1) % visibleItems.length;
+            visibleItems[highlightedIndex].element.classList.add('highlighted');
+            visibleItems[highlightedIndex].element.scrollIntoView({ block: 'nearest' });
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          openDropdown();
+          if (visibleItems.length > 0) {
+            if (highlightedIndex >= 0) {
+              visibleItems[highlightedIndex].element.classList.remove('highlighted');
+            }
+            highlightedIndex = (highlightedIndex - 1 + visibleItems.length) % visibleItems.length;
+            visibleItems[highlightedIndex].element.classList.add('highlighted');
+            visibleItems[highlightedIndex].element.scrollIntoView({ block: 'nearest' });
+          }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (visibleItems.length > 0 && highlightedIndex >= 0) {
+            const item = visibleItems[highlightedIndex];
+            selectOption(item.value, item.text);
+          } else if (visibleItems.length === 1) {
+            const item = visibleItems[0];
+            selectOption(item.value, item.text);
+          } else {
+            closeDropdown();
+          }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDropdown();
+          input.blur();
+        }
+      });
+      
+      const observer = new MutationObserver(() => {
+        updateInputFromSelect();
+        if (!menu.classList.contains('hidden')) {
+          buildOptionsList();
+        }
+      });
+      observer.observe(selectEl, { childList: true, subtree: true });
     }
   </script>
 </body>

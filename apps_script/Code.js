@@ -10,11 +10,114 @@ var TEMPLATE_DOC_ID = "1v4wm_94T3TAzeUBrxdnoW2OXLLXe5KCKRRnx6CjcIxw";
 // Password untuk masuk ke Panel Admin
 var ADMIN_PASSWORD = "adminbagor123";
 
+// Function to force prompt the OAuth authorization dialog in the online editor
+function triggerAuthorization() {
+  Logger.log("Triggering auth dialog...");
+  var doc = DocumentApp.create("Dummy Doc for Auth");
+  DocumentApp.openById(doc.getId());
+  DriveApp.getFileById(doc.getId());
+  SpreadsheetApp.getActiveSpreadsheet();
+  UrlFetchApp.fetch("https://www.google.com");
+  // Clean up
+  DriveApp.getFileById(doc.getId()).setTrashed(true);
+  Logger.log("Auth success!");
+}
+
 // ==========================================
 // CORE WEB SERVER
 // ==========================================
-function doGet() {
+function doGet(e) {
+  // Check if it's an API request to verify SPT status
+  if (e && e.parameter && e.parameter.action === "checkSpt") {
+    var token = e.parameter.token;
+    var nip = e.parameter.nip;
+    var email = e.parameter.email;
+    var opd = e.parameter.opd;
+    var integrasi = e.parameter.integrasi || "SIANJAB";
+    
+    // Security check - pre-shared secret token
+    var EXPECTED_TOKEN = "sianjab_secure_token_abc123";
+    if (token !== EXPECTED_TOKEN) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Invalid token"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (!nip && !email && !opd) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Parameter 'nip', 'email', or 'opd' is required"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var ss = getDb();
+    var sheet = ss.getSheetByName("Sheet1");
+    var values = sheet.getDataRange().getValues();
+    var hasSubmitted = false;
+    var submissionData = null;
+    
+    // Helper to normalize OPD name
+    function normalize(str) {
+      if (!str) return "";
+      return String(str)
+        .toLowerCase()
+        .replace(/[\s\r\n\t]+/g, "")
+        .replace(/[^a-z0-9]/g, "")
+        .replace(/rumahsakitumumdaerah/g, "rs")
+        .replace(/rumahsakit/g, "rs")
+        .replace(/rsud/g, "rs")
+        .replace(/dan/g, "");
+    }
+    
+    var targetNorm = opd ? normalize(opd) : "";
+    
+    for (var i = 1; i < values.length; i++) {
+      var rowNip = String(values[i][4]).trim();
+      var rowEmail = String(values[i][5]).trim();
+      var rowOpd = String(values[i][2]).trim();
+      var rowIntegrasi = String(values[i][11]).trim();
+      
+      var match = false;
+      if (rowIntegrasi.toUpperCase() === integrasi.toUpperCase()) {
+        if (opd) {
+          var rowNorm = normalize(rowOpd);
+          match = (rowNorm === targetNorm || rowNorm.indexOf(targetNorm) !== -1 || targetNorm.indexOf(rowNorm) !== -1);
+        } else if (email) {
+          match = (rowEmail.toLowerCase() === email.toLowerCase());
+        } else if (nip) {
+          match = (rowNip === nip);
+        }
+      }
+      
+      if (match) {
+        hasSubmitted = true;
+        submissionData = {
+          waktu: values[i][0] instanceof Date ? Utilities.formatDate(values[i][0], "GMT+7", "yyyy-MM-dd HH:mm:ss") : values[i][0],
+          perihal: values[i][1],
+          unitKerja: values[i][2],
+          namaAdmin: values[i][3],
+          nipAdmin: values[i][4],
+          email: values[i][5]
+        };
+        break; // Found the record, stop searching
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      hasSubmitted: hasSubmitted,
+      data: submissionData
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   var template = HtmlService.createTemplateFromFile('Index');
+  template.verifyToken = (e && e.parameter && e.parameter.v) ? e.parameter.v : "";
+  try {
+    template.webAppUrl = ScriptApp.getService().getUrl();
+  } catch(err) {
+    template.webAppUrl = "";
+  }
   return template.evaluate()
     .setTitle('📝 Kirim Surat Tugas Digital')
     .setSandboxMode(HtmlService.SandboxMode.IFRAME)
@@ -187,8 +290,40 @@ function submitSptData(data) {
     currentYear
   ]);
   
+  // If integration is SIANJAB, register user in SIANJAB automatically
+  var registerResult = null;
+  if (data.integrasi && data.integrasi.toUpperCase() === "SIANJAB") {
+    var sianjabUrl = "https://script.google.com/macros/s/AKfycbycp3NZVvZ4n1X_OmkCVtQVNrja-n7x-TYh1Fx1o4nIkCKakWf_to5AXOiBB8horXMPhg/exec?action=autoRegisterOperator";
+    var payload = {
+      nip: data.nip,
+      nama: data.nama,
+      email: data.email,
+      opdName: data.unit_kerja,
+      token: "sianjab_secure_token_abc123"
+    };
+    
+    try {
+      var response = UrlFetchApp.fetch(sianjabUrl, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      });
+      var responseText = response.getContentText();
+      registerResult = JSON.parse(responseText);
+      Logger.log("SIANJAB Auto-Register Result: " + responseText);
+    } catch (e) {
+      Logger.log("Failed to register in SIANJAB: " + e.toString());
+    }
+  }
+
   // Handle DOCX document generation
-  return generateDocxBlob(data);
+  var resBlob = generateDocxBlob(data);
+  if (registerResult && registerResult.success) {
+    resBlob.sianjabCreated = true;
+    resBlob.sianjabStatus = registerResult.data.status; // "created" or "updated"
+  }
+  return resBlob;
 }
 
 // Document Generation Handler
