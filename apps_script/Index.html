@@ -221,32 +221,34 @@
     }
   </style>
 </head>
-<body class="py-6 px-4 md:px-8">
+<body class="min-h-screen">
   <div id="main-app-container" class="pb-28 md:pb-8">
     <!-- ==================== HEADER / NAVBAR ==================== -->
-  <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-    <div class="flex items-center gap-3">
-      <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-blue-100 shadow-sm mb-6 px-4 py-3">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="bg-[#0057B7] text-white p-2.5 md:p-3 rounded-2xl shadow-md shadow-blue-200 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight">KIRIM SPT DIGITAL</h1>
+            <p class="text-xs md:text-sm text-slate-500 font-medium">Bagian Organisasi Kabupaten Muaro Jambi</p>
+          </div>
+        </div>
+        <div class="hidden md:flex gap-2">
+          <button onclick="switchTab('operator-tab')" id="btn-operator-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white">
+            📝 Form Operator
+          </button>
+          <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50">
+            🔒 Panel Admin
+          </button>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">KIRIM SPT DIGITAL</h1>
-        <p class="text-sm text-slate-500 font-medium">Bagian Organisasi Kabupaten Muaro Jambi</p>
-      </div>
-    </div>
-    <div class="flex gap-2">
-      <button onclick="switchTab('operator-tab')" id="btn-operator-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white">
-        📝 Form Operator
-      </button>
-      <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50">
-        🔒 Panel Admin
-      </button>
-    </div>
-  </div>
+    </header>
 
-  <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
     <!-- ========================================================= -->
     <!-- TAB 1: FORM OPERATOR                                      -->
     <!-- ========================================================= -->
@@ -675,10 +677,28 @@
       </div>
     </div>
   </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-6 py-2 flex items-center justify-around shadow-lg" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));">
+    <button id="mobile-nav-operator" type="button" onclick="switchTab('operator-tab')" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <span class="text-xs mt-1">Form SPT</span>
+      <span id="nav-indicator-operator" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1"></span>
+    </button>
+    <button id="mobile-nav-admin" type="button" onclick="switchTab('admin-tab')" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <span class="text-xs mt-1">Panel Admin</span>
+      <span id="nav-indicator-admin" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1 invisible"></span>
+    </button>
+  </nav>
   </div>
 
   <!-- ==================== VERIFICATION CONTAINER ==================== -->
-  <div id="verification-container" class="hidden max-w-2xl mx-auto mt-12 p-6 md:p-8 glass-card rounded-3xl shadow-2xl border border-emerald-200">
+  <div id="verification-container" class="hidden max-w-2xl mx-4 md:mx-auto mt-12 p-6 md:p-8 glass-card rounded-3xl shadow-2xl border border-emerald-200">
     <div class="flex flex-col items-center text-center">
       <!-- Animated pulsing checkmark circle -->
       <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 border-4 border-emerald-500 animate-pulse">
@@ -749,17 +769,30 @@
     // --- Tab Switch Logic ---
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById(tabId).classList.remove('hidden');
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) targetTab.classList.remove('hidden');
       
       const btnOp = document.getElementById('btn-operator-tab');
       const btnAd = document.getElementById('btn-admin-tab');
+      const navOp = document.getElementById('mobile-nav-operator');
+      const navAd = document.getElementById('mobile-nav-admin');
+      const indOp = document.getElementById('nav-indicator-operator');
+      const indAd = document.getElementById('nav-indicator-admin');
       
       if (tabId === 'operator-tab') {
-        btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white";
-        btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+        if (btnOp) btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
+        if (btnAd) btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+        if (navOp) navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+        if (navAd) navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+        if (indOp) indOp.classList.remove('invisible');
+        if (indAd) indAd.classList.add('invisible');
       } else {
-        btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-indigo-600 text-white";
-        btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+        if (btnAd) btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
+        if (btnOp) btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+        if (navAd) navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+        if (navOp) navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+        if (indAd) indAd.classList.remove('invisible');
+        if (indOp) indOp.classList.add('invisible');
         if (authenticated) {
           loadAdminDashboard();
         }
