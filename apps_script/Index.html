@@ -5,7 +5,6 @@
   <title>Kirim Surat Tugas Digital</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Tailwind CSS & Google Fonts Outfit -->
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -33,6 +32,7 @@
       }
     };
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- SweetAlert2 for beautiful alerts -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -228,7 +228,7 @@
       <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="bg-[#0057B7] text-white p-2.5 md:p-3 rounded-2xl shadow-md shadow-blue-200 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
@@ -237,8 +237,8 @@
             <p class="text-xs md:text-sm text-slate-500 font-medium">Bagian Organisasi Kabupaten Muaro Jambi</p>
           </div>
         </div>
-        <div class="hidden md:flex gap-2">
-          <button onclick="switchTab('operator-tab')" id="btn-operator-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white">
+        <div class="hidden md:flex gap-2" role="tablist">
+          <button onclick="switchTab('operator-tab')" id="btn-operator-tab" aria-current="page" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white">
             📝 Form Operator
           </button>
           <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50">
@@ -484,8 +484,8 @@
           </div>
 
           <div class="pt-6 border-t border-blue-100">
-            <button id="btn-submit-spt" type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] active:scale-[0.99] text-white py-4 px-6 rounded-2xl font-bold text-base shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button id="btn-submit-spt" type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] active:scale-[0.99] text-white py-4 px-6 rounded-2xl font-bold text-base shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 focus:ring-2 focus:ring-amber-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
               <span>Kirim SPT</span>
@@ -704,20 +704,20 @@
   </div>
 
   <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
-  <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-6 py-2 flex items-center justify-around shadow-lg" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));">
-    <button id="mobile-nav-operator" type="button" onclick="switchTab('operator-tab')" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-6 py-2 flex items-center justify-around shadow-lg" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));" aria-label="Navigasi Utama">
+    <button id="mobile-nav-operator" type="button" onclick="switchTab('operator-tab')" aria-current="page" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       <span class="text-xs mt-1">Form SPT</span>
-      <span id="nav-indicator-operator" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1"></span>
+      <span id="nav-indicator-operator" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1" aria-hidden="true"></span>
     </button>
     <button id="mobile-nav-admin" type="button" onclick="switchTab('admin-tab')" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
       </svg>
       <span class="text-xs mt-1">Panel Admin</span>
-      <span id="nav-indicator-admin" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1 invisible"></span>
+      <span id="nav-indicator-admin" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1 invisible" aria-hidden="true"></span>
     </button>
   </nav>
   </div>
@@ -727,7 +727,7 @@
     <div class="flex flex-col items-center text-center">
       <!-- Animated pulsing checkmark circle -->
       <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 border-4 border-emerald-500 animate-pulse">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
         </svg>
       </div>
@@ -805,17 +805,41 @@
       const indAd = document.getElementById('nav-indicator-admin');
       
       if (tabId === 'operator-tab') {
-        if (btnOp) btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
-        if (btnAd) btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
-        if (navOp) navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
-        if (navAd) navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+        if (btnOp) {
+          btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
+          btnOp.setAttribute('aria-current', 'page');
+        }
+        if (btnAd) {
+          btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+          btnAd.removeAttribute('aria-current');
+        }
+        if (navOp) {
+          navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+          navOp.setAttribute('aria-current', 'page');
+        }
+        if (navAd) {
+          navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+          navAd.removeAttribute('aria-current');
+        }
         if (indOp) indOp.classList.remove('invisible');
         if (indAd) indAd.classList.add('invisible');
       } else {
-        if (btnAd) btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
-        if (btnOp) btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
-        if (navAd) navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
-        if (navOp) navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+        if (btnAd) {
+          btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-[#0057B7] text-white";
+          btnAd.setAttribute('aria-current', 'page');
+        }
+        if (btnOp) {
+          btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-50";
+          btnOp.removeAttribute('aria-current');
+        }
+        if (navAd) {
+          navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+          navAd.setAttribute('aria-current', 'page');
+        }
+        if (navOp) {
+          navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+          navOp.removeAttribute('aria-current');
+        }
         if (indAd) indAd.classList.remove('invisible');
         if (indOp) indOp.classList.add('invisible');
         if (authenticated) {
@@ -1497,6 +1521,8 @@
         dynamicGroups["Sub Unit Kerja (Bagian / Puskesmas / RSUD)"] = children;
       }
 
+      let progressHtml = '';
+      let gridHtml = '';
       for (const [groupName, units] of Object.entries(dynamicGroups)) {
         let sudahInput = 0;
         units.forEach(u => {
@@ -1504,9 +1530,9 @@
         });
         const percent = units.length > 0 ? Math.round((sudahInput / units.length) * 100) : 0;
         
-        progressContainer.innerHTML += `
+        progressHtml += `
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <p class="text-xs font-bold text-slate-500 uppercase truncate">${groupName}</p>
+            <p class="text-xs font-bold text-slate-500 uppercase truncate">${escapeHtml(groupName)}</p>
             <h4 class="text-xl font-extrabold text-slate-800 mt-1">${sudahInput} / ${units.length}</h4>
             <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
               <div class="bg-[#0057B7] h-2 rounded-full" style="width: ${percent}%"></div>
@@ -1519,21 +1545,35 @@
           const done = reportedUnits.has(u);
           const icon = done ? '✅' : '❌';
           const bg = done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
-          return `<span class="px-3 py-1.5 rounded-lg border text-xs font-bold inline-block ${bg}">${icon} ${u}</span>`;
+          return `<span class="px-3 py-1.5 rounded-lg border text-xs font-bold inline-block ${bg}">${icon} ${escapeHtml(u)}</span>`;
         }).join('');
         
-        gridContainer.innerHTML += `
+        gridHtml += `
           <div class="border border-slate-100 rounded-2xl p-5 bg-slate-50">
-            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-[#0057B7] pl-2 uppercase">${groupName}</h4>
+            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-[#0057B7] pl-2 uppercase">${escapeHtml(groupName)}</h4>
             <div class="flex flex-wrap gap-2">${unitCards}</div>
           </div>
         `;
       }
+      progressContainer.innerHTML = progressHtml;
+      gridContainer.innerHTML = gridHtml;
+    }
+
+    // --- HTML Sanitization Helper ---
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function renderSubmissionTable() {
       const tbody = document.getElementById('submission-tbody');
       const cardList = document.getElementById('submission-card-list');
+      if (!tbody) return;
       tbody.innerHTML = '';
       if (cardList) cardList.innerHTML = '';
       
@@ -1545,29 +1585,40 @@
         return;
       }
       
+      let tbodyHtml = '';
+      let cardsHtml = '';
+
       filteredSubmissions.forEach((item) => {
         const row = item.row;
         const actualIdx = item.index;
 
+        const waktu = escapeHtml(row[0]);
+        const perihal = escapeHtml(row[1]);
+        const unitKerja = escapeHtml(row[2]);
+        const namaPengirim = escapeHtml(row[3]);
+        const nipPengirim = escapeHtml(row[4]);
+        const namaAtasan = escapeHtml(row[6]);
+        const nipAtasan = row[9] ? escapeHtml(row[9]) : '';
+
         // Desktop table row
-        tbody.innerHTML += `
+        tbodyHtml += `
           <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
-            <td class="px-6 py-4 font-semibold text-slate-700">${row[0]}</td>
+            <td class="px-6 py-4 font-semibold text-slate-700">${waktu}</td>
             <td class="px-6 py-4">
-              <div class="font-semibold text-slate-800">${row[3]}</div>
-              <div class="text-xs text-slate-400">NIP: ${row[4]}</div>
+              <div class="font-semibold text-slate-800">${namaPengirim}</div>
+              <div class="text-xs text-slate-400">NIP: ${nipPengirim}</div>
             </td>
-            <td class="px-6 py-4 font-medium text-slate-600">${row[2]}</td>
+            <td class="px-6 py-4 font-medium text-slate-600">${unitKerja}</td>
             <td class="px-6 py-4 font-medium text-slate-600">
-              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200 inline-block">${row[1]}</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200 inline-block">${perihal}</span>
             </td>
             <td class="px-6 py-4">
-              <div class="font-medium text-slate-700">${row[6]}</div>
-              <div class="text-xs text-slate-400">NIP: ${row[9] || '-'}</div>
+              <div class="font-medium text-slate-700">${namaAtasan}</div>
+              <div class="text-xs text-slate-400">NIP: ${nipAtasan || '-'}</div>
             </td>
             <td class="px-6 py-4 text-center">
               <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
@@ -1577,33 +1628,33 @@
 
         // Mobile card view
         if (cardList) {
-          cardList.innerHTML += `
+          cardsHtml += `
             <div class="submission-card bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
               <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
                 <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  ${row[0]}
+                  ${waktu}
                 </span>
-                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200 max-w-[180px] truncate">${row[1]}</span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200 max-w-[180px] truncate">${perihal}</span>
               </div>
               <div>
-                <div class="font-bold text-slate-800 text-sm">${row[3]}</div>
-                <div class="text-xs text-slate-500 font-mono">NIP: ${row[4]}</div>
+                <div class="font-bold text-slate-800 text-sm">${namaPengirim}</div>
+                <div class="text-xs text-slate-500 font-mono">NIP: ${nipPengirim}</div>
                 <div class="text-xs font-medium text-slate-600 flex items-center gap-1.5 mt-1.5">
                   <span class="text-slate-400">🏛️</span>
-                  <span class="line-clamp-1">${row[2]}</span>
+                  <span class="line-clamp-1">${unitKerja}</span>
                 </div>
               </div>
               <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                 <div>
                   <span class="text-slate-400 block text-[11px] font-semibold uppercase">Atasan:</span>
-                  <span class="font-medium text-slate-700">${row[6]}</span>
-                  ${row[9] ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${row[9]}</span>` : ''}
+                  <span class="font-medium text-slate-700">${namaAtasan}</span>
+                  ${nipAtasan ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${nipAtasan}</span>` : ''}
                 </div>
                 <button onclick="deleteSubmissionData(${actualIdx})" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                   <span>Hapus</span>
@@ -1613,6 +1664,11 @@
           `;
         }
       });
+
+      tbody.innerHTML = tbodyHtml;
+      if (cardList) {
+        cardList.innerHTML = cardsHtml;
+      }
     }
 
     function filterTable() {
@@ -1695,22 +1751,22 @@
             return;
           }
           
-          tbody.innerHTML = '';
+          let tbodyHtml = '';
           list.forEach(keg => {
             const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
-            tbody.innerHTML += `
+            tbodyHtml += `
               <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
                 <td class="px-6 py-4">
-                  <div class="font-bold text-slate-800">${keg.nama}</div>
-                  <div class="text-xs text-slate-400">Integrasi: ${keg.integrasi}</div>
+                  <div class="font-bold text-slate-800">${escapeHtml(keg.nama)}</div>
+                  <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi)}</div>
                 </td>
-                <td class="px-6 py-4 font-medium text-slate-600">${keg.deadline || 'Tanpa Batas'}</td>
+                <td class="px-6 py-4 font-medium text-slate-600">${escapeHtml(keg.deadline || 'Tanpa Batas')}</td>
                 <td class="px-6 py-4 text-center">
-                  <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${keg.status}</span>
+                  <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${escapeHtml(keg.status)}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <button onclick="deleteKegiatanData('${keg.nama.replace(/'/g, "\\'")}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <button onclick="deleteKegiatanData('${keg.nama.replace(/'/g, "\\'")}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Kegiatan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
@@ -1718,6 +1774,7 @@
               </tr>
             `;
           });
+          tbody.innerHTML = tbodyHtml;
         })
         .withFailureHandler(function(err) {
           console.error("Gagal memuat kegiatan", err);
@@ -1878,7 +1935,7 @@
       const icon = document.createElement('div');
       icon.className = 'autocomplete-icon';
       icon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       `;
