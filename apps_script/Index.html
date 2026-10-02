@@ -66,11 +66,11 @@
     }
     #sig-canvas {
       border: 2px dashed #93c5fd;
-      border-radius: 12px;
+      border-radius: 16px;
       cursor: crosshair;
       background: #ffffff;
       touch-action: none;
-      transition: all 0.2s;
+      transition: border-color 0.2s;
       max-width: 100%;
     }
     #sig-canvas:hover {
@@ -467,15 +467,17 @@
             <span>Tanda Tangan Atasan</span>
           </h2>
           
-          <div class="flex flex-col items-center">
+          <div class="flex flex-col items-center w-full">
             <p class="text-sm text-slate-500 mb-4 text-center">Silakan tandatangani langsung di kotak putih di bawah ini:</p>
-            <canvas id="sig-canvas" width="350" height="250"></canvas>
+            <div class="w-full max-w-lg mx-auto">
+              <canvas id="sig-canvas" class="w-full block touch-none" style="height: 220px; border: 2px dashed #93C5FD; border-radius: 16px; background: #ffffff;"></canvas>
+            </div>
             
-            <div class="flex gap-3 mt-4">
-              <button type="button" onclick="clearCanvas()" class="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition-all">
+            <div class="flex flex-wrap justify-center gap-3 mt-4 w-full">
+              <button type="button" onclick="clearCanvas()" class="min-touch-target px-5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
                 🗑️ Bersihkan
               </button>
-              <button type="button" onclick="generateSrikandi()" class="px-5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 text-sm font-semibold transition-all flex items-center gap-2">
+              <button type="button" onclick="generateSrikandi()" class="min-touch-target px-5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
                 ✨ TTD Srikandi (BSrE)
               </button>
             </div>
@@ -1066,37 +1068,133 @@
     // --- HTML5 Signature Canvas Drawing Logic ---
     const canvas = document.getElementById('sig-canvas');
     let ctx, drawing = false, hasDrawn = false;
+    let canvasListenersInitialized = false;
+
+    function getPos(e) {
+      if (!canvas) return { x: 0, y: 0 };
+      const r = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : { left: 0, top: 0, width: 350, height: 220 };
+      const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+      return { 
+        x: (t.clientX !== undefined ? t.clientX : 0) - (r.left || 0), 
+        y: (t.clientY !== undefined ? t.clientY : 0) - (r.top || 0) 
+      };
+    }
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+      const container = canvas.parentElement;
+      const displayWidth = Math.round((container && container.clientWidth > 0 ? container.clientWidth : (canvas.clientWidth || 350)) || 350);
+      const displayHeight = 220;
+
+      const targetWidth = Math.round(displayWidth * dpr);
+      const targetHeight = Math.round(displayHeight * dpr);
+
+      // Skip resizing if buffer dimensions match and ctx is already configured
+      if (ctx && canvas.width === targetWidth && canvas.height === targetHeight) {
+        return;
+      }
+
+      // Preserve existing strokes if user has already drawn
+      let backupCanvas = null;
+      if (hasDrawn && canvas.width > 0 && canvas.height > 0 && typeof document !== 'undefined' && document.createElement) {
+        try {
+          backupCanvas = document.createElement('canvas');
+          backupCanvas.width = canvas.width;
+          backupCanvas.height = canvas.height;
+          const backupCtx = backupCanvas.getContext ? backupCanvas.getContext('2d') : null;
+          if (backupCtx && backupCtx.drawImage) {
+            backupCtx.drawImage(canvas, 0, 0);
+          }
+        } catch (err) {
+          console.warn("Could not backup canvas strokes", err);
+          backupCanvas = null;
+        }
+      }
+
+      // Set internal pixel buffer dimensions (scaled for high-DPI/Retina)
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Set CSS display dimensions
+      if (canvas.style) {
+        canvas.style.width = displayWidth + 'px';
+        canvas.style.height = displayHeight + 'px';
+      }
+
+      // Re-configure context with high-DPI scaling
+      if (canvas.getContext) {
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          if (ctx.scale) ctx.scale(dpr, dpr);
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = '#000000';
+
+          if (backupCanvas && ctx.drawImage) {
+            ctx.drawImage(backupCanvas, 0, 0, displayWidth, displayHeight);
+          }
+        }
+      }
+    }
 
     function initCanvas() {
-      ctx = canvas.getContext('2d');
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#000000';
+      if (!canvas) return;
+      resizeCanvas();
 
-      function getPos(e) {
-        const r = canvas.getBoundingClientRect();
-        const t = e.touches ? e.touches[0] : e;
-        return { 
-          x: (t.clientX - r.left) * (canvas.width / r.width), 
-          y: (t.clientY - r.top) * (canvas.height / r.height) 
-        };
+      if (!canvasListenersInitialized) {
+        function start(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          drawing = true; 
+          if (ctx && ctx.beginPath) ctx.beginPath(); 
+          const p = getPos(e); 
+          if (ctx && ctx.moveTo) ctx.moveTo(p.x, p.y); 
+        }
+
+        function move(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          if (!drawing) return; 
+          hasDrawn = true; 
+          const p = getPos(e); 
+          if (ctx && ctx.lineTo) ctx.lineTo(p.x, p.y); 
+          if (ctx && ctx.stroke) ctx.stroke(); 
+        }
+
+        function stop(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          drawing = false; 
+        }
+
+        if (canvas.addEventListener) {
+          canvas.addEventListener('mousedown', start);
+          canvas.addEventListener('mousemove', move);
+          canvas.addEventListener('mouseup', stop);
+          canvas.addEventListener('mouseleave', stop);
+          canvas.addEventListener('touchstart', start, { passive: false });
+          canvas.addEventListener('touchmove', move, { passive: false });
+          canvas.addEventListener('touchend', stop);
+          canvas.addEventListener('touchcancel', stop);
+        }
+
+        if (typeof window !== 'undefined' && window.addEventListener) {
+          let canvasResizeDebounce;
+          window.addEventListener('resize', function() {
+            clearTimeout(canvasResizeDebounce);
+            canvasResizeDebounce = setTimeout(resizeCanvas, 100);
+          });
+        }
+
+        canvasListenersInitialized = true;
       }
-      function start(e) { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
-      function move(e) { e.preventDefault(); if (!drawing) return; hasDrawn = true; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
-      function stop(e) { e.preventDefault(); drawing = false; }
-
-      canvas.addEventListener('mousedown', start);
-      canvas.addEventListener('mousemove', move);
-      canvas.addEventListener('mouseup', stop);
-      canvas.addEventListener('mouseleave', stop);
-      canvas.addEventListener('touchstart', start);
-      canvas.addEventListener('touchmove', move);
-      canvas.addEventListener('touchend', stop);
     }
 
     function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!ctx || !canvas) return;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+      if (ctx.clearRect) {
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      }
       hasDrawn = false;
     }
 
