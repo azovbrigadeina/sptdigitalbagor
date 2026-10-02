@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Kirim Surat Tugas Digital</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS & Google Fonts Outfit -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ua-blue': {
+              DEFAULT: '#0057B7',
+              dark: '#00438F',
+              light: '#EFF6FF',
+              surface: '#DBEAFE',
+              border: '#93C5FD'
+            },
+            'ua-gold': {
+              DEFAULT: '#F59E0B',
+              bright: '#FFD700',
+              dark: '#D97706',
+              light: '#FEF3C7'
+            },
+            'ua-dark': '#0F172A'
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 for beautiful alerts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    :root {
+      --color-ua-blue: #0057B7;
+      --color-ua-blue-dark: #00438F;
+      --color-ua-blue-light: #EFF6FF;
+      --color-ua-blue-border: #93C5FD;
+      --color-ua-gold: #F59E0B;
+      --color-ua-gold-bright: #FFD700;
+      --color-ua-gold-dark: #D97706;
+      --color-ua-gold-light: #FEF3C7;
+      --color-ua-dark: #0F172A;
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #f0f6fe;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(0, 87, 183, 0.18) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(0, 67, 143, 0.14) 0px, transparent 45%),
+        radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.20) 0px, transparent 55%),
+        radial-gradient(at 0% 100%, rgba(254, 240, 138, 0.24) 0px, transparent 50%),
+        linear-gradient(180deg, #e8f3fe 0%, #f4f8fd 45%, #fffdf5 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: var(--color-ua-dark);
+      touch-action: manipulation;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(191, 219, 254, 0.85);
+      box-shadow: 0 20px 25px -5px rgba(0, 87, 183, 0.08), 0 8px 10px -6px rgba(0, 87, 183, 0.04);
+    }
+    #sig-canvas {
+      border: 2px dashed #93c5fd;
+      border-radius: 16px;
+      cursor: crosshair;
+      background: #ffffff;
+      touch-action: none;
+      transition: border-color 0.2s;
+      max-width: 100%;
+    }
+    #sig-canvas:hover {
+      border-color: #0057b7;
+    }
+
+    /* Ukrainian Palette Utility Classes */
+    .bg-ua-blue { background-color: var(--color-ua-blue); }
+    .bg-ua-blue-dark { background-color: var(--color-ua-blue-dark); }
+    .bg-ua-blue-light { background-color: var(--color-ua-blue-light); }
+    .text-ua-blue { color: var(--color-ua-blue); }
+    .text-ua-blue-dark { color: var(--color-ua-blue-dark); }
+    .border-ua-blue { border-color: var(--color-ua-blue); }
+    .border-ua-blue-border { border-color: var(--color-ua-blue-border); }
+
+    .bg-ua-gold { background-color: var(--color-ua-gold); }
+    .bg-ua-gold-bright { background-color: var(--color-ua-gold-bright); }
+    .bg-ua-gold-dark { background-color: var(--color-ua-gold-dark); }
+    .bg-ua-gold-light { background-color: var(--color-ua-gold-light); }
+    .text-ua-gold { color: var(--color-ua-gold); }
+    .text-ua-gold-dark { color: var(--color-ua-gold-dark); }
+    .border-ua-gold { border-color: var(--color-ua-gold); }
+
+    .text-ua-dark { color: var(--color-ua-dark); }
+
+    /* Mobile Safe Area & Bottom Nav Dock */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(219, 234, 254, 0.85);
+      box-shadow: 0 -4px 20px -2px rgba(0, 87, 183, 0.08);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .pb-safe-dock {
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Mobile Touch Targets & Accessibility (Min 48px) */
+    .touch-target, .min-touch-target {
+      min-height: 48px;
+      min-width: 48px;
+    }
+    .touch-input {
+      min-height: 48px;
+    }
+
+    /* Smooth Focus Outlines */
+    input:focus, select:focus, textarea:focus, button:focus-visible {
+      outline: none;
+      border-color: var(--color-ua-blue-border);
+      box-shadow: 0 0 0 3px rgba(0, 87, 183, 0.22);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .focus-ring-ua:focus {
+      outline: none;
+      border-color: var(--color-ua-blue);
+      box-shadow: 0 0 0 3px rgba(0, 87, 183, 0.25);
+    }
+    .focus-ring-gold:focus {
+      outline: none;
+      border-color: var(--color-ua-gold);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
+    }
+    
+    /* Autocomplete Combobox Styling */
+    .autocomplete-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .autocomplete-icon {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      transition: transform 0.2s;
+    }
+    .autocomplete-wrapper.open .autocomplete-icon {
+      transform: translateY(-50%) rotate(180deg);
+    }
+    .autocomplete-menu {
+      position: absolute;
+      z-index: 9999;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      max-height: 250px;
+      overflow-y: auto;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .autocomplete-menu::-webkit-scrollbar {
+      width: 6px;
+    }
+    .autocomplete-menu::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .autocomplete-menu::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .autocomplete-menu::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .autocomplete-group-label {
+      padding: 8px 12px 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      background-color: #f8fafc;
+      letter-spacing: 0.05em;
+      border-top: 1px solid #f1f5f9;
+    }
+    .autocomplete-group-label:first-child {
+      border-top: none;
+    }
+    .autocomplete-item {
+      padding: 10px 16px;
+      font-size: 0.875rem;
+      color: #334155;
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .autocomplete-item:hover, .autocomplete-item.highlighted {
+      background-color: var(--color-ua-blue-light);
+      color: var(--color-ua-blue-dark);
+    }
+    .autocomplete-item.selected {
+      background-color: var(--color-ua-blue);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .autocomplete-no-results {
+      padding: 12px 16px;
+      font-size: 0.875rem;
+      color: #64748b;
+      text-align: center;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div id="main-app-container" class="pb-28 md:pb-8">
+    <!-- ==================== HEADER / NAVBAR ==================== -->
+    <header class="sticky top-0 z-40 bg-gradient-to-r from-[#004899] via-[#0057B7] to-[#003875] text-white shadow-xl border-b-4 border-amber-400 mb-6 px-4 py-3 sm:px-6 transition-all">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="bg-white/15 backdrop-blur-md border border-white/30 text-amber-300 p-2.5 md:p-3 rounded-2xl shadow-inner flex items-center justify-center ring-2 ring-amber-400/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl md:text-2xl font-extrabold text-white tracking-tight leading-tight drop-shadow-sm">KIRIM SPT DIGITAL</h1>
+              <span class="inline-block text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 shadow-sm border border-amber-300">Setda</span>
+            </div>
+            <p class="text-xs md:text-sm text-blue-100 font-medium">Bagian Organisasi Kabupaten Muaro Jambi</p>
+          </div>
+        </div>
+        <div class="hidden md:flex gap-1.5 p-1 bg-black/20 backdrop-blur-md rounded-2xl border border-white/15" role="tablist">
+          <button onclick="switchTab('operator-tab')" id="btn-operator-tab" aria-current="page" class="px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all duration-200 bg-amber-400 text-slate-900">
+            📝 Form Operator
+          </button>
+          <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-white/90 hover:bg-white/15">
+            🔒 Panel Admin
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+    <!-- ========================================================= -->
+    <!-- TAB 1: FORM OPERATOR                                      -->
+    <!-- ========================================================= -->
+    <div id="operator-tab" class="tab-content">
+      <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl border-t-4 border-t-[#0057B7]">
+        <div class="flex items-center gap-3 p-3 sm:p-3.5 bg-gradient-to-r from-blue-50 via-sky-50 to-amber-50/60 rounded-2xl border border-blue-100/90 mb-6 shadow-xs">
+          <span class="bg-[#0057B7] text-white w-8 h-8 rounded-xl inline-flex items-center justify-center text-sm font-black shadow-md shadow-blue-500/25 ring-2 ring-amber-400">1</span>
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Unit Kerja & Perihal Kegiatan</h2>
+        </div>
+        
+        <form id="sptForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Unit Kerja / OPD -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-bold text-slate-700">Unit Kerja / OPD</label>
+                <span id="opd-sync-badge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">Menghubungkan SI-PRABU...</span>
+              </div>
+              <select name="unit_kerja" id="opd-select" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all">
+                <option value="">-- Memuat Unit Kerja dari SI-PRABU... --</option>
+              </select>
+              <div id="opd-error-box" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+                <div class="flex items-start justify-between">
+                  <span id="opd-error-msg">Gagal memuat Unit Kerja dari SI-PRABU.</span>
+                  <button type="button" onclick="loadOpdFromSianjab(true)" class="ml-2 font-bold underline hover:text-red-900 whitespace-nowrap">Coba Lagi</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Kegiatan / Perihal -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Kegiatan / Perihal</label>
+              <select name="perihal" id="kegiatan-select" required onchange="handleKegiatanChange()" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all">
+                <option value="">-- Memuat kegiatan... --</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Dasar SPT Preview / Manual -->
+          <div class="mt-4">
+            <label class="block text-sm font-bold text-slate-700 mb-2">Dasar Surat Perintah Tugas (SPT)</label>
+            <textarea name="dasar_spt" id="dasar-textarea" rows="3" readonly placeholder="Dasar SPT akan muncul otomatis berdasarkan kegiatan yang dipilih" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 bg-slate-50 outline-none resize-none transition-all"></textarea>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 sm:p-3.5 bg-gradient-to-r from-blue-50 via-sky-50 to-amber-50/60 rounded-2xl border border-blue-100/90 mt-8 mb-6 shadow-xs">
+            <span class="bg-[#0057B7] text-white w-8 h-8 rounded-xl inline-flex items-center justify-center text-sm font-black shadow-md shadow-blue-500/25 ring-2 ring-amber-400">2</span>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Profil Admin Pengirim</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Status Pegawai -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Status Kepegawaian</label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 px-4 py-3 min-h-[48px] rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 cursor-pointer transition-all">
+                  <input type="radio" name="status_pegawai" value="PNS" checked class="w-5 h-5 text-[#0057B7] accent-[#0057B7] focus:ring-[#0057B7]">
+                  <span class="text-base font-semibold text-slate-800">PNS</span>
+                </label>
+                <label class="flex items-center gap-3 px-4 py-3 min-h-[48px] rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 cursor-pointer transition-all">
+                  <input type="radio" name="status_pegawai" value="PPPK" class="w-5 h-5 text-[#0057B7] accent-[#0057B7] focus:ring-[#0057B7]">
+                  <span class="text-base font-semibold text-slate-800">PPPK</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Nama Admin -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Lengkap Admin</label>
+              <input type="text" name="nama" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: Budi Santoso, S.Kom">
+            </div>
+
+            <!-- NIP Admin -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">NIP Admin (18 digit angka)</label>
+              <input type="text" name="nip" required maxlength="18" minlength="18" pattern="[0-9]{18}" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: 199012312015031001">
+            </div>
+
+            <!-- Pangkat / Golongan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Ruang</label>
+              <select name="pangkat" id="pangkat-select" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all">
+                <option value="">-- Pilih Pangkat / Golongan --</option>
+                <optgroup label="PNS (Pangkat / Golongan Ruang)">
+                  <option value="Juru Muda / I.a">Juru Muda - I/a</option>
+                  <option value="Juru Muda Tingkat I / I.b">Juru Muda Tingkat I - I/b</option>
+                  <option value="Juru / I.c">Juru - I/c</option>
+                  <option value="Juru Tingkat I / I.d">Juru Tingkat I - I/d</option>
+                  <option value="Pengatur Muda / II.a">Pengatur Muda - II/a</option>
+                  <option value="Pengatur Muda Tingkat I / II.b">Pengatur Muda Tingkat I - II/b</option>
+                  <option value="Pengatur / II.c">Pengatur - II/c</option>
+                  <option value="Pengatur Tingkat I / II.d">Pengatur Tingkat I - II/d</option>
+                  <option value="Penata Muda / III.a">Penata Muda - III/a</option>
+                  <option value="Penata Muda Tingkat I / III.b">Penata Muda Tingkat I - III/b</option>
+                  <option value="Penata / III.c">Penata - III/c</option>
+                  <option value="Penata Tingkat I / III.d">Penata Tingkat I - III/d</option>
+                  <option value="Pembina / IV.a">Pembina - IV/a</option>
+                  <option value="Pembina Tingkat I / IV.b">Pembina Tingkat I - IV/b</option>
+                  <option value="Pembina Utama Muda / IV.c">Pembina Utama Muda - IV/c</option>
+                  <option value="Pembina Utama Madya / IV.d">Pembina Utama Madya - IV/d</option>
+                  <option value="Pembina Utama / IV.e">Pembina Utama - IV/e</option>
+                </optgroup>
+                <optgroup label="PPPK (Golongan)">
+                  <option value="Golongan I">Golongan I</option>
+                  <option value="Golongan II">Golongan II</option>
+                  <option value="Golongan III">Golongan III</option>
+                  <option value="Golongan IV">Golongan IV</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
+                  <option value="Golongan X">Golongan X</option>
+                  <option value="Golongan XI">Golongan XI</option>
+                  <option value="Golongan XII">Golongan XII</option>
+                  <option value="Golongan XIII">Golongan XIII</option>
+                  <option value="Golongan XIV">Golongan XIV</option>
+                  <option value="Golongan XV">Golongan XV</option>
+                  <option value="Golongan XVI">Golongan XVI</option>
+                  <option value="Golongan XVII">Golongan XVII</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Jabatan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Jabatan</label>
+              <input type="text" name="jabatan" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: Analis Organisasi">
+            </div>
+
+            <!-- No HP -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp / HP</label>
+              <input type="text" name="no_hp" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: 081234567890">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Email (@gmail.com)</label>
+              <input type="email" name="email" required pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: budi.organisasi@gmail.com">
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 sm:p-3.5 bg-gradient-to-r from-blue-50 via-sky-50 to-amber-50/60 rounded-2xl border border-blue-100/90 mt-8 mb-6 shadow-xs">
+            <span class="bg-[#0057B7] text-white w-8 h-8 rounded-xl inline-flex items-center justify-center text-sm font-black shadow-md shadow-blue-500/25 ring-2 ring-amber-400">3</span>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Profil Atasan (Penandatangan SPT)</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nama Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Nama Atasan</label>
+              <input type="text" name="n_atasan" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Nama lengkap beserta gelar">
+            </div>
+
+            <!-- NIP Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">NIP Atasan (18 digit angka)</label>
+              <input type="text" name="nip_atasan" required maxlength="18" minlength="18" pattern="[0-9]{18}" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: 198012312005031001">
+            </div>
+
+            <!-- Jabatan Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Jabatan Atasan</label>
+              <input type="text" name="j_atasan" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all" placeholder="Contoh: Kepala Dinas Pendidikan">
+            </div>
+
+            <!-- Pangkat Atasan -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Pangkat / Golongan Atasan</label>
+              <select name="p_atasan" id="pangkat-atasan-select" required class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all">
+                <option value="">-- Pilih Pangkat / Golongan --</option>
+                <optgroup label="PNS (Pangkat / Golongan Ruang)">
+                  <option value="Juru Muda / I.a">Juru Muda - I/a</option>
+                  <option value="Juru Muda Tingkat I / I.b">Juru Muda Tingkat I - I/b</option>
+                  <option value="Juru / I.c">Juru - I/c</option>
+                  <option value="Juru Tingkat I / I.d">Juru Tingkat I - I/d</option>
+                  <option value="Pengatur Muda / II.a">Pengatur Muda - II/a</option>
+                  <option value="Pengatur Muda Tingkat I / II.b">Pengatur Muda Tingkat I - II/b</option>
+                  <option value="Pengatur / II.c">Pengatur - II/c</option>
+                  <option value="Pengatur Tingkat I / II.d">Pengatur Tingkat I - II/d</option>
+                  <option value="Penata Muda / III.a">Penata Muda - III/a</option>
+                  <option value="Penata Muda Tingkat I / III.b">Penata Muda Tingkat I - III/b</option>
+                  <option value="Penata / III.c">Penata - III/c</option>
+                  <option value="Penata Tingkat I / III.d">Penata Tingkat I - III/d</option>
+                  <option value="Pembina / IV.a">Pembina - IV/a</option>
+                  <option value="Pembina Tingkat I / IV.b">Pembina Tingkat I - IV/b</option>
+                  <option value="Pembina Utama Muda / IV.c">Pembina Utama Muda - IV/c</option>
+                  <option value="Pembina Utama Madya / IV.d">Pembina Utama Madya - IV/d</option>
+                  <option value="Pembina Utama / IV.e">Pembina Utama - IV/e</option>
+                </optgroup>
+                <optgroup label="PPPK (Golongan)">
+                  <option value="Golongan I">Golongan I</option>
+                  <option value="Golongan II">Golongan II</option>
+                  <option value="Golongan III">Golongan III</option>
+                  <option value="Golongan IV">Golongan IV</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
+                  <option value="Golongan X">Golongan X</option>
+                  <option value="Golongan XI">Golongan XI</option>
+                  <option value="Golongan XII">Golongan XII</option>
+                  <option value="Golongan XIII">Golongan XIII</option>
+                  <option value="Golongan XIV">Golongan XIV</option>
+                  <option value="Golongan XV">Golongan XV</option>
+                  <option value="Golongan XVI">Golongan XVI</option>
+                  <option value="Golongan XVII">Golongan XVII</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 sm:p-3.5 bg-gradient-to-r from-blue-50 via-sky-50 to-amber-50/60 rounded-2xl border border-blue-100/90 mt-8 mb-6 shadow-xs">
+            <span class="bg-[#0057B7] text-white w-8 h-8 rounded-xl inline-flex items-center justify-center text-sm font-black shadow-md shadow-blue-500/25 ring-2 ring-amber-400">4</span>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Tanda Tangan Atasan</h2>
+          </div>
+          
+          <div class="flex flex-col items-center w-full">
+            <p class="text-sm text-slate-500 mb-4 text-center">Silakan tandatangani langsung di kotak putih di bawah ini:</p>
+            <div class="w-full max-w-lg mx-auto bg-gradient-to-b from-blue-50/60 to-amber-50/30 p-3 rounded-2xl border border-blue-200/90 shadow-inner">
+              <div class="flex justify-between items-center mb-2 px-1">
+                <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400 inline-block animate-ping"></span>
+                  Area Tanda Tangan Digital
+                </span>
+                <span class="text-[11px] text-blue-700 font-semibold bg-blue-100/70 px-2 py-0.5 rounded-full">Touch & Mouse Ready</span>
+              </div>
+              <canvas id="sig-canvas" class="w-full block touch-none" style="height: 220px;"></canvas>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-3 mt-4 w-full">
+              <button type="button" onclick="clearCanvas()" class="min-touch-target px-5 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                🗑️ Bersihkan
+              </button>
+              <button type="button" onclick="generateSrikandi()" class="min-touch-target px-5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                ✨ TTD Srikandi (BSrE)
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-6 border-t border-blue-100">
+            <button id="btn-submit-spt" type="submit" class="w-full bg-gradient-to-r from-[#0057B7] via-[#0060cc] to-[#004899] hover:from-[#004899] hover:to-[#003875] active:scale-[0.99] text-white py-4 px-6 rounded-2xl font-black text-base shadow-xl shadow-blue-600/30 ring-2 ring-amber-400/80 hover:ring-amber-400 transition-all flex items-center justify-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              <span class="tracking-wide">Kirim SPT</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: PANEL ADMIN                                        -->
+    <!-- ========================================================= -->
+    <div id="admin-tab" class="tab-content hidden">
+      <!-- 2A. LOGIN BOX -->
+      <div id="admin-login" class="max-w-md mx-auto glass-card rounded-3xl p-6 md:p-8 shadow-xl mt-12">
+        <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Panel Keamanan</h2>
+        <p class="text-sm text-slate-500 mb-6 text-center">Masukkan password untuk mengelola database</p>
+        
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">Password Admin</label>
+            <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none text-slate-700" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
+            <span>🔓 MASUK PANEL</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- 2B. MAIN ADMIN PANEL LAYOUT -->
+      <div id="admin-panel" class="hidden space-y-8">
+        
+        <!-- Sub-tab pill switchers inside admin panel -->
+        <div class="bg-slate-100 p-1.5 rounded-2xl flex max-w-md w-full gap-1 border border-slate-200">
+          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center">
+            📊 Submisi & Statistik
+          </button>
+          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center">
+            ⚙️ Manajemen Kegiatan
+          </button>
+        </div>
+
+        <!-- ==================== SUB-TAB 1: SUBMISI PANEL ==================== -->
+        <div id="submisi-panel" class="admin-sub-tab space-y-6">
+          
+          <!-- Filter Perihal / Kegiatan -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Filter Kegiatan</h4>
+              <p class="text-xs text-slate-400">Tampilkan statistik dan rekap berdasarkan kegiatan tertentu</p>
+            </div>
+            <div class="w-full md:w-80">
+              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+                <option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- KPI Stats grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">PNS Terlapor</p>
+              <h3 id="stat-pns" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">PPPK Terlapor</p>
+              <h3 id="stat-pppk" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
+              <p class="text-xs font-bold text-slate-400 uppercase">Total Pengirim Unik</p>
+              <h3 id="stat-unik" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm border-l-4 border-l-[#0057B7]">
+              <p class="text-xs font-bold text-slate-400 uppercase">Total SPT Masuk</p>
+              <h3 id="stat-total" class="text-2xl md:text-3xl font-extrabold text-[#0057B7] mt-2">0</h3>
+            </div>
+          </div>
+
+          <!-- Progress bar / Compliance cards -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <h3 class="font-bold text-slate-800 text-lg mb-6">🏛️ Progress Unit Terlapor</h3>
+            <div id="progress-group-container" class="grid grid-cols-1 md:grid-cols-5 gap-6">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Compliance Status Grid (Nice cards of all units) -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <h3 class="font-bold text-slate-800 text-lg mb-4">🚩 Status Kehadiran Unit Kerja</h3>
+            <p class="text-xs text-slate-500 mb-6 flex flex-wrap gap-4 items-center">
+              <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">✅ Sudah Input</span>
+              <span class="inline-flex items-center gap-1.5 font-semibold text-amber-800">❌ Belum Ada Input</span>
+            </p>
+            
+            <div id="status-unit-grid" class="space-y-6">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Submission Data Table -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100">
+              <h3 class="font-bold text-slate-800 text-base md:text-lg">Detail Submisi Data SPT</h3>
+              <div class="flex gap-2 w-full md:w-auto">
+                <input type="text" id="table-search" oninput="filterTable()" placeholder="Cari NIP, nama, OPD..." class="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm w-full md:w-64 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7]">
+                <button onclick="exportToCsv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap min-touch-target flex items-center justify-center">
+                  📥 Unduh CSV
+                </button>
+              </div>
+            </div>
+            
+            <!-- Mobile Cards Container -->
+            <div id="submission-card-list" class="block md:hidden p-4 space-y-3 bg-slate-50/50">
+              <!-- Rendered via JS -->
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="hidden md:table w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                    <th class="px-6 py-4">Waktu</th>
+                    <th class="px-6 py-4">Nama / NIP Admin</th>
+                    <th class="px-6 py-4">Unit Kerja</th>
+                    <th class="px-6 py-4">Perihal</th>
+                    <th class="px-6 py-4">Atasan</th>
+                    <th class="px-6 py-4 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="submission-tbody" class="text-sm text-slate-600">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SUB-TAB 2: CONFIG KEGIATAN PANEL ==================== -->
+        <div id="kegiatan-panel" class="admin-sub-tab hidden space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Add New Kegiatan Form -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit">
+              <h3 class="font-bold text-slate-800 text-lg mb-6">➕ Tambah Perihal Baru</h3>
+              <form onsubmit="handleNewKegiatan(event)" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Kegiatan</label>
+                  <input type="text" id="keg-nama" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Contoh: SPT Rekon TPP">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Integrasi Sistem</label>
+                  <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+                    <option value="None">None (Tanpa Integrasi)</option>
+                    <option value="SITPP">SITPP</option>
+                    <option value="SI-PRABU">SI-PRABU</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Batas Tanggal / Deadline</label>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex gap-4 mb-1">
+                      <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                        <input type="radio" name="tipe_deadline" value="Tanpa Batas" checked onchange="toggleDeadlineInput()" class="w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
+                        <span>Tanpa Batas</span>
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                        <input type="radio" name="tipe_deadline" value="Pilih Tanggal" onchange="toggleDeadlineInput()" class="w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
+                        <span>Pilih Tanggal</span>
+                      </label>
+                    </div>
+                    <input type="date" id="keg-deadline-date" onchange="updateDeadlineValue()" class="hidden w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+                    <input type="hidden" id="keg-deadline" value="Tanpa Batas">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Status</label>
+                  <select id="keg-status" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+                    <option value="Aktif">Aktif</option>
+                    <option value="Nonaktif">Nonaktif</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Dasar SPT (Multi-line)</label>
+                  <textarea id="keg-dasar" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Masukkan Dasar SPT..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
+                  <span>💾 Simpan Kegiatan</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Kegiatan Table list -->
+            <div class="col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+              <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 text-lg">Daftar Kegiatan Terdaftar</h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                      <th class="px-6 py-4">Kegiatan</th>
+                      <th class="px-6 py-4">Batas Tanggal</th>
+                      <th class="px-6 py-4 text-center">Status</th>
+                      <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kegiatan-tbody" class="text-sm text-slate-600">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-6 py-2 flex items-center justify-around shadow-lg" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));" aria-label="Navigasi Utama">
+    <button id="mobile-nav-operator" type="button" onclick="switchTab('operator-tab')" aria-current="page" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <span class="text-xs mt-1">Form SPT</span>
+      <span id="nav-indicator-operator" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1" aria-hidden="true"></span>
+    </button>
+    <button id="mobile-nav-admin" type="button" onclick="switchTab('admin-tab')" class="flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <span class="text-xs mt-1">Panel Admin</span>
+      <span id="nav-indicator-admin" class="w-6 h-1 bg-[#F59E0B] rounded-full mt-1 invisible" aria-hidden="true"></span>
+    </button>
+  </nav>
+  </div>
+
+  <!-- ==================== VERIFICATION CONTAINER ==================== -->
+  <div id="verification-container" class="hidden max-w-2xl mx-4 md:mx-auto mt-12 p-6 md:p-8 glass-card rounded-3xl shadow-2xl border border-emerald-200">
+    <div class="flex flex-col items-center text-center">
+      <!-- Animated pulsing checkmark circle -->
+      <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 border-4 border-emerald-500 animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      
+      <h2 class="text-2xl font-extrabold text-slate-800 mb-1">DOKUMEN ASLI TERVERIFIKASI</h2>
+      <p class="text-sm font-bold text-emerald-600 tracking-wider uppercase mb-8">Aplikasi Srikandi - BSrE BSSN</p>
+      
+      <div class="w-full bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm mb-6 text-left">
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Penandatangan</td>
+              <td id="v-nama" class="px-6 py-4 font-bold text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">NIP Atasan</td>
+              <td id="v-nip" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Jabatan</td>
+              <td id="v-jabatan" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Perihal SPT</td>
+              <td id="v-perihal" class="px-6 py-4 text-slate-800 italic"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal TTE</td>
+              <td id="v-tanggal" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-semibold text-slate-500">Status Sertifikasi</td>
+              <td class="px-6 py-4 text-emerald-600 font-bold flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block animate-ping"></span>
+                <span>VALID & AKTIF</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <p class="text-xs text-slate-400 mb-8 leading-relaxed max-w-md">
+        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), BSSN.
+      </p>
+      
+      <button onclick="exitVerification()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md">
+        🏡 Masuk ke Aplikasi Utama
+      </button>
+    </div>
+  </div>
+
+  
+  <!-- Firebase SDK (v10 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="/docx-generator.js"></script>
+
+  <script>
+  (function() {
+    console.log('[Firebase] Initializing Firebase Firestore Client...');
+    const firebaseConfig = {
+      apiKey: "AIzaSyC5Vxe7wB0Ovvy9YMDnqCRwLwJQzXinpCk",
+      authDomain: "tugasku-bagor.firebaseapp.com",
+      projectId: "tugasku-bagor",
+      storageBucket: "tugasku-bagor.firebasestorage.app",
+      messagingSenderId: "259358647157",
+      appId: "1:259358647157:web:d76b8822200e5f2f06a93c",
+      measurementId: "G-JPS0PR59BH"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    function formatIndoDateTime(d) {
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    const FirebaseService = {
+      async getKegiatanList() {
+        try {
+          const snap = await db.collection('config_kegiatan').get();
+          if (snap.empty) {
+            const defaults = [
+              { nama: "SPT Rekon TPP dan SIMONA", integrasi: "SITPP", status: "Aktif", deadline: "6 Februari 2026", dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA" },
+              { nama: "Lainnya", integrasi: "None", status: "Aktif", deadline: "Tanpa Batas", dasar: "" }
+            ];
+            for (const item of defaults) {
+              await db.collection('config_kegiatan').doc(item.nama).set(item);
+            }
+            return defaults;
+          }
+          const list = [];
+          snap.forEach(doc => {
+            list.push(doc.data());
+          });
+          return list;
+        } catch(err) {
+          console.error("Firestore getKegiatanList error:", err);
+          throw err;
+        }
+      },
+
+      async saveKegiatan(item) {
+        await db.collection('config_kegiatan').doc(item.nama).set({
+          nama: item.nama,
+          integrasi: item.integrasi || "None",
+          status: item.status || "Aktif",
+          deadline: item.deadline || "Tanpa Batas",
+          dasar: item.dasar || "",
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return { success: true };
+      },
+
+      async deleteKegiatan(nama) {
+        await db.collection('config_kegiatan').doc(nama).delete();
+        return { success: true };
+      },
+
+      async getSianjabUnitKerja(forceRefresh) {
+        const cacheKey = "sianjab_unit_kerja_cache";
+        if (!forceRefresh) {
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                return { success: true, data: parsed, fromCache: true };
+              }
+            } catch(e) {}
+          }
+        }
+        try {
+          const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=getBulkData&entities=unitKerja");
+          const json = await resp.json();
+          if (json && json.success && json.data) {
+            const list = Array.isArray(json.data.unitKerja) ? json.data.unitKerja : (Array.isArray(json.data) ? json.data : []);
+            localStorage.setItem(cacheKey, JSON.stringify(list));
+            return { success: true, data: list };
+          }
+          throw new Error((json && json.error) || "Gagal memuat data SI-PRABU");
+        } catch(err) {
+          console.warn("Direct SI-PRABU fetch warning:", err);
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            return { success: true, data: JSON.parse(cached), fromCache: true };
+          }
+          return { success: false, error: err.toString() };
+        }
+      },
+
+      async checkAdminAuth(password) {
+        return password === "adminbagor123";
+      },
+
+      async getSubmissionsData() {
+        try {
+          const snap = await db.collection('submissions').orderBy('createdAt', 'desc').get();
+          const headers = [
+            "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin",
+            "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan",
+            "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId"
+          ];
+          const rows = [headers];
+          snap.forEach(doc => {
+            const d = doc.data();
+            rows.push([
+              d.waktu || "",
+              d.perihal || "",
+              d.unitKerja || "",
+              d.namaAdmin || "",
+              d.nipAdmin || "",
+              d.email || "",
+              d.namaAtasan || "",
+              d.jabatanAtasan || "",
+              d.pangkatGolAtasan || "",
+              d.nipAtasan || "",
+              d.ttd || "",
+              d.integrasi || "",
+              d.tahun || "",
+              doc.id
+            ]);
+          });
+          return rows;
+        } catch(err) {
+          console.error("Firestore getSubmissionsData error:", err);
+          throw err;
+        }
+      },
+
+      async deleteSubmission(rowIndexOrId) {
+        let docId = rowIndexOrId;
+        if (typeof rowIndexOrId === 'number' && window.submissionsDb && window.submissionsDb[rowIndexOrId]) {
+          docId = window.submissionsDb[rowIndexOrId][13];
+        }
+        if (docId) {
+          await db.collection('submissions').doc(docId).delete();
+        }
+        return { success: true };
+      },
+
+      async submitSptData(data) {
+        const now = new Date();
+        const subDoc = {
+          waktu: formatIndoDateTime(now),
+          perihal: data.perihal || "",
+          unitKerja: data.unit_kerja || "",
+          namaAdmin: data.nama || "",
+          nipAdmin: data.nip || "",
+          email: data.email || "",
+          namaAtasan: data.n_atasan || "",
+          jabatanAtasan: data.j_atasan || "",
+          pangkatGolAtasan: data.p_atasan || "",
+          nipAtasan: data.nip_atasan || "",
+          ttd: data.signature_data || "",
+          integrasi: data.integrasi || "SITPP",
+          tahun: data.tahun || now.getFullYear(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        const docRef = await db.collection('submissions').add(subDoc);
+
+        // SI-PRABU webhook
+        let sianjabResult = null;
+        if (data.integrasi === "SI-PRABU" || !data.integrasi) {
+          try {
+            const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=autoRegisterOperator", {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify({
+                nip: data.nip,
+                nama: data.nama,
+                email: data.email,
+                opdName: data.unit_kerja,
+                token: "sianjab_secure_token_abc123"
+              })
+            });
+            sianjabResult = await resp.json();
+          } catch(err) {
+            console.warn("SI-PRABU auto-register warning:", err);
+          }
+        }
+
+        // Generate Word DOCX client-side
+        const docxRes = await window.generateSptDocx(data);
+
+        const result = {
+          status: "success",
+          docId: docRef.id,
+          fileContent: docxRes.fileContent,
+          filename: docxRes.filename
+        };
+
+        if (sianjabResult && sianjabResult.success) {
+          result.sianjabCreated = true;
+          result.sianjabStatus = sianjabResult.data ? sianjabResult.data.status : "created";
+        }
+
+        return result;
+      }
+    };
+
+    window.google = window.google || {};
+    window.google.script = window.google.script || {};
+    window.google.script.run = (function createRunner(succ, fail) {
+      return new Proxy({}, {
+        get(target, prop) {
+          if (prop === 'withSuccessHandler') {
+            return function(h) { return createRunner(h, fail); };
+          }
+          if (prop === 'withFailureHandler') {
+            return function(h) { return createRunner(succ, h); };
+          }
+          return async function(...args) {
+            try {
+              if (typeof FirebaseService[prop] === 'function') {
+                const res = await FirebaseService[prop](...args);
+                if (succ) succ(res);
+                return res;
+              } else {
+                throw new Error('Metode ' + prop + ' tidak ditemukan di FirebaseService.');
+              }
+            } catch(err) {
+              console.error('Firebase error on ' + prop + ':', err);
+              if (fail) fail(err);
+            }
+          };
+        }
+      });
+    })(null, null);
+
+    window.db = db;
+    window.FirebaseService = FirebaseService;
+  })();
+  </script>
+
+  <!-- ========================================================= -->
+  <!-- CLIENT JS SCRIPT LOGIC                                    -->
+  <!-- ========================================================= -->
+  <script>
+    // Dynamic SIANJAB Units Data (No hardcoded fallback)
+    let sianjabUnits = [];
+
+    let kegiatanDb = [];
+    let submissionsDb = [];
+    let filteredSubmissions = [];
+    let authenticated = false;
+
+    // --- Tab Switch Logic ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) targetTab.classList.remove('hidden');
+      
+      const btnOp = document.getElementById('btn-operator-tab');
+      const btnAd = document.getElementById('btn-admin-tab');
+      const navOp = document.getElementById('mobile-nav-operator');
+      const navAd = document.getElementById('mobile-nav-admin');
+      const indOp = document.getElementById('nav-indicator-operator');
+      const indAd = document.getElementById('nav-indicator-admin');
+      
+      if (tabId === 'operator-tab') {
+        if (btnOp) {
+          btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all duration-200 bg-amber-400 text-slate-900";
+          btnOp.setAttribute('aria-current', 'page');
+        }
+        if (btnAd) {
+          btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-white/90 hover:bg-white/15";
+          btnAd.removeAttribute('aria-current');
+        }
+        if (navOp) {
+          navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+          navOp.setAttribute('aria-current', 'page');
+        }
+        if (navAd) {
+          navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+          navAd.removeAttribute('aria-current');
+        }
+        if (indOp) indOp.classList.remove('invisible');
+        if (indAd) indAd.classList.add('invisible');
+      } else {
+        if (btnAd) {
+          btnAd.className = "px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all duration-200 bg-amber-400 text-slate-900";
+          btnAd.setAttribute('aria-current', 'page');
+        }
+        if (btnOp) {
+          btnOp.className = "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 text-white/90 hover:bg-white/15";
+          btnOp.removeAttribute('aria-current');
+        }
+        if (navAd) {
+          navAd.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-[#0057B7] font-bold transition-all duration-200";
+          navAd.setAttribute('aria-current', 'page');
+        }
+        if (navOp) {
+          navOp.className = "flex flex-col items-center justify-center min-h-[48px] flex-1 py-1 text-slate-400 font-medium transition-all duration-200";
+          navOp.removeAttribute('aria-current');
+        }
+        if (indAd) indAd.classList.remove('invisible');
+        if (indOp) indOp.classList.add('invisible');
+        if (authenticated) {
+          loadAdminDashboard();
+        }
+      }
+    }
+
+    function switchAdminTab(subTabId) {
+      document.querySelectorAll('.admin-sub-tab').forEach(el => el.classList.add('hidden'));
+      document.getElementById(subTabId).classList.remove('hidden');
+      
+      const btnSub = document.getElementById('btn-submisi-panel');
+      const btnKeg = document.getElementById('btn-kegiatan-panel');
+      
+      if (subTabId === 'submisi-panel') {
+        btnSub.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
+        btnKeg.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
+      } else {
+        btnKeg.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
+        btnSub.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
+      }
+    }
+
+    // --- Page Load Initializer ---
+    window.onload = function() {
+      // Check for verification token in query parameters
+      let verifyToken = "";
+      try {
+        verifyToken = "";
+      } catch(e) {
+        const params = new URLSearchParams(window.location.search);
+        verifyToken = params.get('v') || "";
+      }
+      if (verifyToken && !verifyToken.startsWith("<" + "?")) {
+        showVerificationPage(verifyToken);
+        return;
+      }
+
+      // Normal initialization
+      // 1. Fetch kegiatan list for the form dropdown
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          renderKegiatanDropdown();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat daftar kegiatan", err);
+        })
+        .getKegiatanList();
+
+      // 2. Setup Signature Canvas
+      initCanvas();
+
+      // 3. Load dynamic OPD list from Sianjab database
+      loadOpdFromSianjab();
+
+      // 4. Initialize Autocompletes
+      createAutocomplete(document.getElementById('opd-select'));
+      createAutocomplete(document.getElementById('kegiatan-select'));
+      createAutocomplete(document.getElementById('pangkat-select'));
+      createAutocomplete(document.getElementById('pangkat-atasan-select'));
+    };
+
+    function loadOpdFromSianjab(forceRefresh) {
+      const selectEl = document.getElementById('opd-select');
+      const badgeEl = document.getElementById('opd-sync-badge');
+      const errorBoxEl = document.getElementById('opd-error-box');
+      const errorMsgEl = document.getElementById('opd-error-msg');
+      const submitBtn = document.getElementById('btn-submit-spt');
+
+      if (badgeEl) {
+        badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700 animate-pulse";
+        badgeEl.innerText = "Sinkronisasi SI-PRABU...";
+      }
+      if (errorBoxEl) errorBoxEl.classList.add('hidden');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
+      selectEl.innerHTML = '<option value="">-- Memuat Unit Kerja dari SI-PRABU... --</option>';
+      selectEl.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+            sianjabUnits = res.data;
+            const parents = sianjabUnits.filter(o => !o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+            const children = sianjabUnits.filter(o => o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+            
+            let html = '<option value="">-- Pilih Unit Kerja (SI-PRABU) --</option>';
+            
+            if (parents.length > 0) {
+              html += '<optgroup label="Unit Kerja Utama (Dinas / Badan / Kecamatan)">';
+              parents.forEach(o => {
+                const safeName = (o.nama || '').replace(/"/g, '&quot;');
+                html += `<option value="${safeName}">${safeName}</option>`;
+              });
+              html += '</optgroup>';
+            }
+            
+            if (children.length > 0) {
+              html += '<optgroup label="Sub Unit Kerja (Bagian / Puskesmas / RSUD)">';
+              children.forEach(o => {
+                const safeName = (o.nama || '').replace(/"/g, '&quot;');
+                html += `<option value="${safeName}">${safeName}</option>`;
+              });
+              html += '</optgroup>';
+            }
+            
+            selectEl.innerHTML = html;
+            selectEl.disabled = false;
+            
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            if (badgeEl) {
+              badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700";
+              badgeEl.innerText = `🟢 SI-PRABU (${sianjabUnits.length} Unit)`;
+            }
+            
+            // Re-render compliance report if admin dashboard is opened
+            if (authenticated) {
+              renderComplianceReport();
+            }
+          } else {
+            const errMsg = (res && res.error) ? res.error : "Data unit kerja tidak ditemukan di server SI-PRABU.";
+            handleOpdError(errMsg);
+          }
+        })
+        .withFailureHandler(function(err) {
+          handleOpdError(err && err.message ? err.message : err.toString());
+        })
+        .getSianjabUnitKerja(Boolean(forceRefresh));
+
+      function handleOpdError(errMsg) {
+        console.error("Gagal sinkronisasi dengan SI-PRABU:", errMsg);
+        selectEl.innerHTML = '<option value="">⚠️ Gagal memuat Unit Kerja dari SI-PRABU</option>';
+        selectEl.disabled = true;
+        
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        
+        if (badgeEl) {
+          badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700";
+          badgeEl.innerText = "🔴 SI-PRABU Terputus";
+        }
+        if (errorBoxEl) {
+          errorBoxEl.classList.remove('hidden');
+          if (errorMsgEl) {
+            errorMsgEl.innerText = "Gagal memuat Unit Kerja: " + errMsg;
+          }
+        }
+        
+        if (authenticated) {
+          renderComplianceReport();
+        }
+      }
+    }
+
+    function showVerificationPage(token) {
+      try {
+        let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) {
+          base64 += '=';
+        }
+        const jsonStr = decodeURIComponent(escape(window.atob(base64)));
+        const data = JSON.parse(jsonStr);
+        
+        document.getElementById('v-nama').innerText = data.n || "-";
+        document.getElementById('v-nip').innerText = data.nip || "-";
+        document.getElementById('v-jabatan').innerText = data.j || "-";
+        document.getElementById('v-perihal').innerText = data.p || "-";
+        document.getElementById('v-tanggal').innerText = data.d || "-";
+        
+        document.getElementById('main-app-container').classList.add('hidden');
+        document.getElementById('verification-container').classList.remove('hidden');
+      } catch(e) {
+        console.error(e);
+        Swal.fire({
+          icon: 'error',
+          title: 'Token Tidak Valid',
+          text: 'Token verifikasi TTE Srikandi tidak valid atau rusak!'
+        });
+      }
+    }
+    
+    function exitVerification() {
+      if (history.pushState) {
+        const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({path:newurl},'',newurl);
+      }
+      document.getElementById('verification-container').classList.add('hidden');
+      document.getElementById('main-app-container').classList.remove('hidden');
+      
+      // Initialize normally
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          renderKegiatanDropdown();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat daftar kegiatan", err);
+        })
+        .getKegiatanList();
+
+      initCanvas();
+    }
+
+    function generateSrikandi() {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Srikandi Belum Terhubung',
+        text: 'Aplikasi Srikandi belum terhubung dengan sistem ini. Silakan hubungi admin instansi Anda.',
+        confirmButtonColor: '#0d9488'
+      });
+    }
+
+    function renderKegiatanDropdown() {
+      const select = document.getElementById('kegiatan-select');
+      select.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+      kegiatanDb.forEach(keg => {
+        if (keg.status === 'Aktif') {
+          const opt = document.createElement('option');
+          opt.value = keg.nama;
+          opt.innerText = keg.nama;
+          select.appendChild(opt);
+        }
+      });
+    }
+
+    function handleKegiatanChange() {
+      const selectedNama = document.getElementById('kegiatan-select').value;
+      const text = document.getElementById('dasar-textarea');
+      const selected = kegiatanDb.find(k => k.nama === selectedNama);
+      
+      if (selected) {
+        text.value = selected.dasar || "";
+        if (selected.nama === "Lainnya") {
+          text.removeAttribute("readonly");
+          text.classList.remove("bg-slate-50", "text-slate-600");
+          text.classList.add("bg-white", "text-slate-700");
+        } else {
+          text.setAttribute("readonly", true);
+          text.classList.add("bg-slate-50", "text-slate-600");
+          text.classList.remove("bg-white", "text-slate-700");
+        }
+      } else {
+        text.value = "";
+      }
+    }
+
+    // --- HTML5 Signature Canvas Drawing Logic ---
+    const canvas = document.getElementById('sig-canvas');
+    let ctx, drawing = false, hasDrawn = false;
+    let canvasListenersInitialized = false;
+
+    function getPos(e) {
+      if (!canvas) return { x: 0, y: 0 };
+      const r = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : { left: 0, top: 0, width: 350, height: 220 };
+      const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+      return { 
+        x: (t.clientX !== undefined ? t.clientX : 0) - (r.left || 0), 
+        y: (t.clientY !== undefined ? t.clientY : 0) - (r.top || 0) 
+      };
+    }
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+      const container = canvas.parentElement;
+      const displayWidth = Math.round((container && container.clientWidth > 0 ? container.clientWidth : (canvas.clientWidth || 350)) || 350);
+      const displayHeight = 220;
+
+      const targetWidth = Math.round(displayWidth * dpr);
+      const targetHeight = Math.round(displayHeight * dpr);
+
+      // Skip resizing if buffer dimensions match and ctx is already configured
+      if (ctx && canvas.width === targetWidth && canvas.height === targetHeight) {
+        return;
+      }
+
+      // Preserve existing strokes if user has already drawn
+      let backupCanvas = null;
+      if (hasDrawn && canvas.width > 0 && canvas.height > 0 && typeof document !== 'undefined' && document.createElement) {
+        try {
+          backupCanvas = document.createElement('canvas');
+          backupCanvas.width = canvas.width;
+          backupCanvas.height = canvas.height;
+          const backupCtx = backupCanvas.getContext ? backupCanvas.getContext('2d') : null;
+          if (backupCtx && backupCtx.drawImage) {
+            backupCtx.drawImage(canvas, 0, 0);
+          }
+        } catch (err) {
+          console.warn("Could not backup canvas strokes", err);
+          backupCanvas = null;
+        }
+      }
+
+      // Set internal pixel buffer dimensions (scaled for high-DPI/Retina)
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Set CSS display dimensions
+      if (canvas.style) {
+        canvas.style.width = displayWidth + 'px';
+        canvas.style.height = displayHeight + 'px';
+      }
+
+      // Re-configure context with high-DPI scaling
+      if (canvas.getContext) {
+        ctx = canvas.getContext('2d');
+        if (ctx) {
+          if (ctx.scale) ctx.scale(dpr, dpr);
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = '#000000';
+
+          if (backupCanvas && ctx.drawImage) {
+            ctx.drawImage(backupCanvas, 0, 0, displayWidth, displayHeight);
+          }
+        }
+      }
+    }
+
+    function initCanvas() {
+      if (!canvas) return;
+      resizeCanvas();
+
+      if (!canvasListenersInitialized) {
+        function start(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          drawing = true; 
+          if (ctx && ctx.beginPath) ctx.beginPath(); 
+          const p = getPos(e); 
+          if (ctx && ctx.moveTo) ctx.moveTo(p.x, p.y); 
+        }
+
+        function move(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          if (!drawing) return; 
+          hasDrawn = true; 
+          const p = getPos(e); 
+          if (ctx && ctx.lineTo) ctx.lineTo(p.x, p.y); 
+          if (ctx && ctx.stroke) ctx.stroke(); 
+        }
+
+        function stop(e) { 
+          if (e && e.preventDefault) e.preventDefault(); 
+          drawing = false; 
+        }
+
+        if (canvas.addEventListener) {
+          canvas.addEventListener('mousedown', start);
+          canvas.addEventListener('mousemove', move);
+          canvas.addEventListener('mouseup', stop);
+          canvas.addEventListener('mouseleave', stop);
+          canvas.addEventListener('touchstart', start, { passive: false });
+          canvas.addEventListener('touchmove', move, { passive: false });
+          canvas.addEventListener('touchend', stop);
+          canvas.addEventListener('touchcancel', stop);
+        }
+
+        if (typeof window !== 'undefined' && window.addEventListener) {
+          let canvasResizeDebounce;
+          window.addEventListener('resize', function() {
+            clearTimeout(canvasResizeDebounce);
+            canvasResizeDebounce = setTimeout(resizeCanvas, 100);
+          });
+        }
+
+        canvasListenersInitialized = true;
+      }
+    }
+
+    function clearCanvas() {
+      if (!ctx || !canvas) return;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+      if (ctx.clearRect) {
+        if (ctx.setTransform) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (ctx.scale) ctx.scale(dpr, dpr);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      hasDrawn = false;
+    }
+
+    // --- Form Submission Logic ---
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const form = document.getElementById('sptForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Signature checks
+      if (!hasDrawn) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Tanda Tangan Kosong',
+          text: 'Harap tanda tangani pada kolom yang disediakan terlebih dahulu!'
+        });
+        return;
+      }
+      
+      data.signature_data = canvas.toDataURL('image/png');
+      
+      // Add integration info from selected kegiatan status
+      const selectKeg = kegiatanDb.find(k => k.nama === data.perihal);
+      data.integrasi = selectKeg ? selectKeg.integrasi : "None";
+      
+      Swal.fire({
+        title: 'Memproses Data...',
+        text: 'Mengirim data ke database dan membuat file dokumen...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          Swal.close();
+          if (response.status === "success") {
+            let successHtml = 'SPT Anda berhasil digenerate.';
+            if (response.sianjabCreated) {
+              if (response.sianjabStatus === "created") {
+                successHtml += '<br><br><div style="text-align: left; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; color: #166534; font-size: 0.9rem;">' +
+                  '🎉 <strong>Akun SI-PRABU Dibuat Otomatis!</strong><br>' +
+                  'Silakan login ke SI-PRABU dengan:<br>' +
+                  '• <strong>Username</strong>: NIP Anda (' + data.nip + ')<br>' +
+                  '• <strong>Password Default</strong>: <code style="background: #dcfce7; padding: 2px 4px; border-radius: 4px; font-weight: bold;">sianjabmj2026</code>' +
+                  '</div>';
+              } else if (response.sianjabStatus === "updated") {
+                successHtml += '<br><br><div style="text-align: left; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; color: #1e40af; font-size: 0.9rem;">' +
+                  '🔄 <strong>Sinkronisasi SI-PRABU Sukses!</strong><br>' +
+                  'Akun NIP Anda sudah terdaftar sebelumnya di SI-PRABU. Data profil dan OPD Anda telah diperbarui.' +
+                  '</div>';
+              }
+            }
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil Terkirim!',
+              html: successHtml,
+              confirmButtonText: 'Download SPT'
+            }).then(() => {
+              downloadFile(response.fileContent, response.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            });
+            form.reset();
+            clearCanvas();
+          } else if (response.status === "warning") {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Data Tersimpan!',
+              text: response.message
+            });
+            form.reset();
+            clearCanvas();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.message || 'Gagal membuat dokumen.'
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          Swal.close();
+          Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: err.toString()
+          });
+        })
+        .submitSptData(data);
+    }
+
+    function downloadFile(base64Content, filename, mimeType) {
+      const raw = window.atob(base64Content);
+      const rawLength = raw.length;
+      const array = new Uint8Array(new ArrayBuffer(rawLength));
+      
+      for(let i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+      }
+      
+      const blob = new Blob([array], {type: mimeType});
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    }
+
+    // --- Admin Authentication Logic ---
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('admin-pass-input').value;
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res) {
+            authenticated = true;
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAdminDashboard();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: 'Password yang Anda masukkan salah!'
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error(err);
+        })
+        .checkAdminAuth(pass);
+    }
+
+    // --- Admin Dashboard Loading & Calculation ---
+    function loadAdminDashboard() {
+      // 1. Load kegiatan table independently so it doesn't get blocked by submissions data loading issues
+      renderAdminKegiatanTable();
+
+      // 2. Load submissions data for stats and charts
+      google.script.run
+        .withSuccessHandler(function(submissions) {
+          submissionsDb = submissions;
+          populateFilterKegiatanDropdown();
+          applyFilters();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat rekap admin", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Memuat Submisi',
+            text: 'Gagal memuat data rekap admin/statistik. Error: ' + err.toString()
+          });
+        })
+        .getSubmissionsData();
+    }
+
+    function populateFilterKegiatanDropdown() {
+      const select = document.getElementById('filter-kegiatan');
+      if (!select) return;
+      
+      const currentSelected = select.value || "Semua Kegiatan";
+      select.innerHTML = '<option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>';
+      
+      const names = new Set();
+      if (kegiatanDb && Array.isArray(kegiatanDb)) {
+        kegiatanDb.forEach(k => {
+          if (k.nama) names.add(k.nama);
+        });
+      }
+      if (submissionsDb && Array.isArray(submissionsDb) && submissionsDb.length > 1) {
+        submissionsDb.slice(1).forEach(row => {
+          if (row[1]) names.add(row[1]);
+        });
+      }
+      
+      const sortedNames = Array.from(names).sort();
+      sortedNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+      });
+      
+      if (names.has(currentSelected)) {
+        select.value = currentSelected;
+      } else {
+        select.value = "Semua Kegiatan";
+      }
+    }
+
+    function applyFilters() {
+      const selectedKeg = document.getElementById('filter-kegiatan').value;
+      
+      if (!submissionsDb || submissionsDb.length === 0) {
+        filteredSubmissions = [];
+        calculateStats();
+        renderSubmissionTable();
+        renderComplianceReport();
+        return;
+      }
+      
+      const dataRows = submissionsDb.slice(1);
+      
+      let filteredData = [];
+      if (selectedKeg === "Semua Kegiatan") {
+        filteredData = dataRows.map((row, idx) => ({ row, index: idx + 1 }));
+      } else {
+        filteredData = dataRows
+          .map((row, idx) => ({ row, index: idx + 1 }))
+          .filter(item => item.row[1] === selectedKeg);
+      }
+      
+      filteredSubmissions = filteredData;
+      
+      calculateStats();
+      renderSubmissionTable();
+      renderComplianceReport();
+    }
+
+    function calculateStats() {
+      if (filteredSubmissions.length === 0) {
+        document.getElementById('stat-pns').innerText = '0';
+        document.getElementById('stat-pppk').innerText = '0';
+        document.getElementById('stat-unik').innerText = '0';
+        document.getElementById('stat-total').innerText = '0';
+        return;
+      }
+      
+      const uniqNip = new Set();
+      let pnsCount = 0;
+      let pppkCount = 0;
+      
+      filteredSubmissions.forEach(item => {
+        const row = item.row;
+        const nip = String(row[4]).trim();
+        const nama = String(row[3]).toUpperCase();
+        if (nip && !uniqNip.has(nip)) {
+          uniqNip.add(nip);
+          if (nama.includes("PNS")) pnsCount++;
+          if (nama.includes("PPPK")) pppkCount++;
+        }
+      });
+      
+      document.getElementById('stat-pns').innerText = pnsCount;
+      document.getElementById('stat-pppk').innerText = pppkCount;
+      document.getElementById('stat-unik').innerText = uniqNip.size;
+      document.getElementById('stat-total').innerText = filteredSubmissions.length;
+    }
+
+    function renderComplianceReport() {
+      const progressContainer = document.getElementById('progress-group-container');
+      const gridContainer = document.getElementById('status-unit-grid');
+      
+      progressContainer.innerHTML = '';
+      gridContainer.innerHTML = '';
+      
+      const reportedUnits = new Set();
+      filteredSubmissions.forEach(item => {
+        reportedUnits.add(String(item.row[2]).trim());
+      });
+      
+      if (!sianjabUnits || sianjabUnits.length === 0) {
+        progressContainer.innerHTML = `
+          <div class="col-span-full p-6 bg-amber-50 rounded-2xl border border-amber-200 text-amber-800 text-center">
+            <p class="font-bold text-base mb-1">Data Unit Kerja SI-PRABU Belum Tersedia</p>
+            <p class="text-xs text-amber-600 mb-3">Laporan kepatuhan dihitung langsung dari unit kerja SI-PRABU (tanpa fallback hardcoded). Pastikan integrasi SI-PRABU terhubung.</p>
+            <button onclick="loadOpdFromSianjab(true)" class="px-4 py-2 bg-[#0057B7] hover:bg-[#00438F] text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+              🔄 Sinkronkan Data SI-PRABU Sekarang
+            </button>
+          </div>
+        `;
+        gridContainer.innerHTML = '';
+        return;
+      }
+
+      const parents = sianjabUnits.filter(o => !o.parentId).map(o => o.nama).filter(Boolean).sort((a, b) => a.localeCompare(b));
+      const children = sianjabUnits.filter(o => o.parentId).map(o => o.nama).filter(Boolean).sort((a, b) => a.localeCompare(b));
+
+      const dynamicGroups = {};
+      if (parents.length > 0) {
+        dynamicGroups["Unit Kerja Utama (Dinas / Badan / Kecamatan)"] = parents;
+      }
+      if (children.length > 0) {
+        dynamicGroups["Sub Unit Kerja (Bagian / Puskesmas / RSUD)"] = children;
+      }
+
+      let progressHtml = '';
+      let gridHtml = '';
+      for (const [groupName, units] of Object.entries(dynamicGroups)) {
+        let sudahInput = 0;
+        units.forEach(u => {
+          if (reportedUnits.has(u)) sudahInput++;
+        });
+        const percent = units.length > 0 ? Math.round((sudahInput / units.length) * 100) : 0;
+        
+        progressHtml += `
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p class="text-xs font-bold text-slate-500 uppercase truncate">${escapeHtml(groupName)}</p>
+            <h4 class="text-xl font-extrabold text-slate-800 mt-1">${sudahInput} / ${units.length}</h4>
+            <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+              <div class="bg-[#0057B7] h-2 rounded-full" style="width: ${percent}%"></div>
+            </div>
+            <p class="text-right text-xs font-semibold text-slate-500 mt-1">${percent}%</p>
+          </div>
+        `;
+        
+        const unitCards = units.map(u => {
+          const done = reportedUnits.has(u);
+          const icon = done ? '✅' : '❌';
+          const bg = done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
+          return `<span class="px-3 py-1.5 rounded-lg border text-xs font-bold inline-block ${bg}">${icon} ${escapeHtml(u)}</span>`;
+        }).join('');
+        
+        gridHtml += `
+          <div class="border border-slate-100 rounded-2xl p-5 bg-slate-50">
+            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-[#0057B7] pl-2 uppercase">${escapeHtml(groupName)}</h4>
+            <div class="flex flex-wrap gap-2">${unitCards}</div>
+          </div>
+        `;
+      }
+      progressContainer.innerHTML = progressHtml;
+      gridContainer.innerHTML = gridHtml;
+    }
+
+    // --- HTML Sanitization Helper ---
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderSubmissionTable() {
+      const tbody = document.getElementById('submission-tbody');
+      const cardList = document.getElementById('submission-card-list');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      if (cardList) cardList.innerHTML = '';
+      
+      if (filteredSubmissions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">Belum ada data submisi.</td></tr>';
+        if (cardList) {
+          cardList.innerHTML = '<div class="p-8 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-100">Belum ada data submisi.</div>';
+        }
+        return;
+      }
+      
+      let tbodyHtml = '';
+      let cardsHtml = '';
+
+      filteredSubmissions.forEach((item) => {
+        const row = item.row;
+        const actualIdx = item.index;
+
+        const waktu = escapeHtml(row[0]);
+        const perihal = escapeHtml(row[1]);
+        const unitKerja = escapeHtml(row[2]);
+        const namaPengirim = escapeHtml(row[3]);
+        const nipPengirim = escapeHtml(row[4]);
+        const namaAtasan = escapeHtml(row[6]);
+        const nipAtasan = row[9] ? escapeHtml(row[9]) : '';
+
+        // Desktop table row
+        tbodyHtml += `
+          <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
+            <td class="px-6 py-4 font-semibold text-slate-700">${waktu}</td>
+            <td class="px-6 py-4">
+              <div class="font-semibold text-slate-800">${namaPengirim}</div>
+              <div class="text-xs text-slate-400">NIP: ${nipPengirim}</div>
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-600">${unitKerja}</td>
+            <td class="px-6 py-4 font-medium text-slate-600">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200 inline-block">${perihal}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="font-medium text-slate-700">${namaAtasan}</div>
+              <div class="text-xs text-slate-400">NIP: ${nipAtasan || '-'}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+        `;
+
+        // Mobile card view
+        if (cardList) {
+          cardsHtml += `
+            <div class="submission-card bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+              <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${waktu}
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200 max-w-[180px] truncate">${perihal}</span>
+              </div>
+              <div>
+                <div class="font-bold text-slate-800 text-sm">${namaPengirim}</div>
+                <div class="text-xs text-slate-500 font-mono">NIP: ${nipPengirim}</div>
+                <div class="text-xs font-medium text-slate-600 flex items-center gap-1.5 mt-1.5">
+                  <span class="text-slate-400">🏛️</span>
+                  <span class="line-clamp-1">${unitKerja}</span>
+                </div>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-slate-400 block text-[11px] font-semibold uppercase">Atasan:</span>
+                  <span class="font-medium text-slate-700">${namaAtasan}</span>
+                  ${nipAtasan ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${nipAtasan}</span>` : ''}
+                </div>
+                <button onclick="deleteSubmissionData(${actualIdx})" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      tbody.innerHTML = tbodyHtml;
+      if (cardList) {
+        cardList.innerHTML = cardsHtml;
+      }
+    }
+
+    function filterTable() {
+      const q = document.getElementById('table-search').value.toLowerCase();
+      const rows = document.querySelectorAll('#submission-tbody tr');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(q)) {
+          row.classList.remove('hidden');
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+
+      const cards = document.querySelectorAll('#submission-card-list .submission-card');
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(q)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function deleteSubmissionData(rowIdx) {
+      Swal.fire({
+        title: 'Hapus Data?',
+        text: "Data ini akan dihapus secara permanen dari Firebase Database!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+              loadAdminDashboard();
+            })
+            .deleteSubmission(rowIdx);
+        }
+      });
+    }
+
+    function exportToCsv() {
+      if (!submissionsDb || submissionsDb.length <= 1) return;
+      
+      let csvContent = "data:text/csv;charset=utf-8,";
+      // Export header
+      const headerEscaped = submissionsDb[0].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+      csvContent += headerEscaped + "\r\n";
+      
+      // Export filtered rows
+      filteredSubmissions.forEach(item => {
+        const escaped = item.row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+        csvContent += escaped + "\r\n";
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Rekap_SPT_${new Date().getFullYear()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function renderAdminKegiatanTable() {
+      const tbody = document.getElementById('kegiatan-tbody');
+      tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-500 font-medium">⏳ Memuat daftar kegiatan...</td></tr>';
+      
+      google.script.run
+        .withSuccessHandler(function(list) {
+          kegiatanDb = list;
+          populateFilterKegiatanDropdown();
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-400 font-medium">Belum ada kegiatan.</td></tr>';
+            return;
+          }
+          
+          let tbodyHtml = '';
+          list.forEach(keg => {
+            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
+            tbodyHtml += `
+              <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
+                <td class="px-6 py-4">
+                  <div class="font-bold text-slate-800">${escapeHtml(keg.nama)}</div>
+                  <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi)}</div>
+                </td>
+                <td class="px-6 py-4 font-medium text-slate-600">${escapeHtml(keg.deadline || 'Tanpa Batas')}</td>
+                <td class="px-6 py-4 text-center">
+                  <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${escapeHtml(keg.status)}</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button data-keg-nama="${escapeHtml(keg.nama)}" onclick="deleteKegiatanData(this.getAttribute('data-keg-nama'))" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Kegiatan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = tbodyHtml;
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal memuat kegiatan", err);
+          tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-6 text-center text-red-500 font-medium">❌ Gagal memuat daftar kegiatan: ${err.toString()}</td></tr>`;
+        })
+        .getKegiatanList();
+    }
+
+    const INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    function formatIndoDate(dateStr) {
+      if (!dateStr) return "";
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return "";
+      const year = parts[0];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return `${day} ${INDO_MONTHS[monthIdx]} ${year}`;
+    }
+
+    function toggleDeadlineInput() {
+      const type = document.querySelector('input[name="tipe_deadline"]:checked').value;
+      const dateInput = document.getElementById('keg-deadline-date');
+      const hiddenInput = document.getElementById('keg-deadline');
+      
+      if (type === "Pilih Tanggal") {
+        dateInput.classList.remove('hidden');
+        dateInput.required = true;
+        if (!dateInput.value) {
+          const today = new Date().toISOString().split('T')[0];
+          dateInput.value = today;
+        }
+        updateDeadlineValue();
+      } else {
+        dateInput.classList.add('hidden');
+        dateInput.required = false;
+        hiddenInput.value = "Tanpa Batas";
+      }
+    }
+
+    function updateDeadlineValue() {
+      const dateInput = document.getElementById('keg-deadline-date');
+      const hiddenInput = document.getElementById('keg-deadline');
+      hiddenInput.value = formatIndoDate(dateInput.value);
+    }
+
+    function handleNewKegiatan(e) {
+      e.preventDefault();
+      
+      const newKeg = {
+        nama: document.getElementById('keg-nama').value,
+        integrasi: document.getElementById('keg-integrasi').value,
+        status: document.getElementById('keg-status').value,
+        deadline: document.getElementById('keg-deadline').value,
+        dasar: document.getElementById('keg-dasar').value
+      };
+      
+      Swal.fire({
+        title: 'Menyimpan...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      
+      google.script.run
+        .withSuccessHandler(function() {
+          Swal.fire('Berhasil!', 'Kegiatan baru berhasil disimpan.', 'success');
+          document.getElementById('keg-nama').value = '';
+          document.getElementById('keg-dasar').value = '';
+          // Reset deadline selection
+          document.querySelector('input[name="tipe_deadline"][value="Tanpa Batas"]').checked = true;
+          document.getElementById('keg-deadline-date').value = '';
+          document.getElementById('keg-deadline-date').classList.add('hidden');
+          document.getElementById('keg-deadline-date').required = false;
+          document.getElementById('keg-deadline').value = 'Tanpa Batas';
+          loadAdminDashboard();
+        })
+        .saveKegiatan(newKeg);
+    }
+
+    function deleteKegiatanData(nama) {
+      if (nama === "Lainnya") {
+        Swal.fire('Aksi Ditolak', 'Kegiatan default "Lainnya" tidak boleh dihapus!', 'warning');
+        return;
+      }
+      
+      Swal.fire({
+        title: 'Hapus Kegiatan?',
+        text: `Anda akan menghapus perihal "${nama}" dari sistem!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire('Terhapus!', 'Kegiatan berhasil dihapus.', 'success');
+              loadAdminDashboard();
+              // Update operator dropdown as well
+              renderKegiatanDropdown();
+            })
+            .deleteKegiatan(nama);
+        }
+      });
+    }
+
+    // --- Custom Autocomplete Dropdown Creator ---
+    function createAutocomplete(selectEl) {
+      if (!selectEl) return;
+      
+      // Prevent duplicate creation
+      if (selectEl.dataset.autocompleteInitialized) return;
+      selectEl.dataset.autocompleteInitialized = "true";
+
+      // Hide original select visually but keep it focusable for accessibility and native HTML5 form features
+      selectEl.style.position = 'absolute';
+      selectEl.style.opacity = '0';
+      selectEl.style.pointerEvents = 'none';
+      selectEl.style.width = '1px';
+      selectEl.style.height = '1px';
+      selectEl.style.overflow = 'hidden';
+      
+      // Create wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'autocomplete-wrapper';
+      selectEl.parentNode.insertBefore(wrapper, selectEl);
+      wrapper.appendChild(selectEl); // move select element inside wrapper
+      
+      // Create input element
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none bg-white cursor-pointer transition-all';
+      input.placeholder = selectEl.options[0]?.text || '-- Pilih --';
+      input.required = selectEl.required;
+      input.autocomplete = 'off';
+      
+      // Sync input value with the select element
+      const updateInputFromSelect = () => {
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        if (selectedOpt && selectedOpt.value !== '') {
+          input.value = selectedOpt.text;
+        } else {
+          input.value = '';
+          input.placeholder = selectEl.options[0]?.text || '-- Pilih --';
+        }
+        input.disabled = selectEl.disabled;
+        if (selectEl.disabled) {
+          input.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-60');
+        } else {
+          input.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-60');
+        }
+      };
+      updateInputFromSelect();
+      
+      wrapper.appendChild(input);
+      
+      // Create chevron icon
+      const icon = document.createElement('div');
+      icon.className = 'autocomplete-icon';
+      icon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      `;
+      wrapper.appendChild(icon);
+      
+      // Create menu dropdown
+      const menu = document.createElement('div');
+      menu.className = 'autocomplete-menu hidden';
+      wrapper.appendChild(menu);
+      
+      let highlightedIndex = -1;
+      let items = []; // flat list of item objects for keyboard nav
+      
+      // Build options list inside dropdown
+      const buildOptionsList = () => {
+        menu.innerHTML = '';
+        items = [];
+        
+        const children = Array.from(selectEl.children);
+        children.forEach(child => {
+          if (child.tagName === 'OPTGROUP') {
+            const groupLabel = document.createElement('div');
+            groupLabel.className = 'autocomplete-group-label';
+            groupLabel.innerText = child.label;
+            menu.appendChild(groupLabel);
+            
+            const options = Array.from(child.children);
+            options.forEach(opt => {
+              createItem(opt);
+            });
+          } else if (child.tagName === 'OPTION') {
+            createItem(child);
+          }
+        });
+        
+        if (items.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.className = 'autocomplete-no-results';
+          emptyMsg.innerText = 'Tidak ada hasil';
+          menu.appendChild(emptyMsg);
+        }
+      };
+      
+      const createItem = (optionEl) => {
+        // Skip default placeholder options (e.g. empty value) if we have other options
+        if (optionEl.value === '' && selectEl.options.length > 1) return;
+        
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        if (optionEl.selected && optionEl.value !== '') {
+          item.classList.add('selected');
+        }
+        item.innerText = optionEl.text;
+        item.dataset.value = optionEl.value;
+        
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectOption(optionEl.value, optionEl.text);
+        });
+        
+        menu.appendChild(item);
+        items.push({
+          element: item,
+          value: optionEl.value,
+          text: optionEl.text
+        });
+      };
+      
+      const selectOption = (val, text) => {
+        selectEl.value = val;
+        input.value = (val === '') ? '' : text;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        closeDropdown();
+      };
+      
+      const filterOptions = (query) => {
+        const q = query.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        let currentGroupHeader = null;
+        let groupHasVisibleItems = false;
+        
+        Array.from(menu.children).forEach(child => {
+          if (child.classList.contains('autocomplete-group-label')) {
+            if (currentGroupHeader && !groupHasVisibleItems) {
+              currentGroupHeader.style.display = 'none';
+            }
+            currentGroupHeader = child;
+            child.style.display = '';
+            groupHasVisibleItems = false;
+          } else if (child.classList.contains('autocomplete-item')) {
+            const itemText = child.innerText.toLowerCase();
+            
+            if (q === '' || itemText.includes(q)) {
+              child.style.display = '';
+              visibleCount++;
+              groupHasVisibleItems = true;
+            } else {
+              child.style.display = 'none';
+            }
+            child.classList.remove('highlighted');
+          }
+        });
+        
+        if (currentGroupHeader && !groupHasVisibleItems) {
+          currentGroupHeader.style.display = 'none';
+        }
+        
+        let emptyMsg = menu.querySelector('.autocomplete-no-results');
+        if (visibleCount === 0) {
+          if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.className = 'autocomplete-no-results';
+            emptyMsg.innerText = 'Tidak ada hasil';
+            menu.appendChild(emptyMsg);
+          }
+          emptyMsg.style.display = '';
+        } else if (emptyMsg) {
+          emptyMsg.style.display = 'none';
+        }
+        
+        highlightedIndex = -1;
+      };
+      
+      const openDropdown = () => {
+        if (menu.classList.contains('hidden')) {
+          menu.classList.remove('hidden');
+          wrapper.classList.add('open');
+          buildOptionsList();
+          highlightedIndex = -1;
+          
+          const currentSelectedOpt = selectEl.options[selectEl.selectedIndex];
+          if (input.value === (currentSelectedOpt ? currentSelectedOpt.text : '')) {
+            filterOptions('');
+          } else {
+            filterOptions(input.value);
+          }
+          
+          // Position detection: flip upward if screen boundaries require it
+          const rect = input.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          if (rect.bottom + 250 > viewportHeight && rect.top > 250) {
+            menu.style.bottom = '100%';
+            menu.style.top = 'auto';
+            menu.style.marginTop = '0px';
+            menu.style.marginBottom = '4px';
+          } else {
+            menu.style.bottom = 'auto';
+            menu.style.top = '100%';
+            menu.style.marginTop = '4px';
+            menu.style.marginBottom = '0px';
+          }
+        }
+      };
+      
+      const closeDropdown = () => {
+        if (!menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+          wrapper.classList.remove('open');
+          updateInputFromSelect();
+        }
+      };
+      
+      input.addEventListener('focus', () => {
+        openDropdown();
+        input.select();
+      });
+      
+      input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDropdown();
+      });
+      
+      input.addEventListener('input', () => {
+        openDropdown();
+        filterOptions(input.value);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        const visibleItems = items.filter(item => item.element.style.display !== 'none');
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          openDropdown();
+          if (visibleItems.length > 0) {
+            if (highlightedIndex >= 0) {
+              visibleItems[highlightedIndex].element.classList.remove('highlighted');
+            }
+            highlightedIndex = (highlightedIndex + 1) % visibleItems.length;
+            visibleItems[highlightedIndex].element.classList.add('highlighted');
+            visibleItems[highlightedIndex].element.scrollIntoView({ block: 'nearest' });
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          openDropdown();
+          if (visibleItems.length > 0) {
+            if (highlightedIndex >= 0) {
+              visibleItems[highlightedIndex].element.classList.remove('highlighted');
+            }
+            highlightedIndex = (highlightedIndex - 1 + visibleItems.length) % visibleItems.length;
+            visibleItems[highlightedIndex].element.classList.add('highlighted');
+            visibleItems[highlightedIndex].element.scrollIntoView({ block: 'nearest' });
+          }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (visibleItems.length > 0 && highlightedIndex >= 0) {
+            const item = visibleItems[highlightedIndex];
+            selectOption(item.value, item.text);
+          } else if (visibleItems.length === 1) {
+            const item = visibleItems[0];
+            selectOption(item.value, item.text);
+          } else {
+            closeDropdown();
+          }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDropdown();
+          input.blur();
+        }
+      });
+      
+      const observer = new MutationObserver(() => {
+        updateInputFromSelect();
+        if (!menu.classList.contains('hidden')) {
+          buildOptionsList();
+        }
+      });
+      observer.observe(selectEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    }
+  </script>
+</body>
+</html>

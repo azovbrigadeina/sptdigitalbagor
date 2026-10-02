@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "docxtemplater": "^3.71.0",
+    "docxtemplater-image-module-free": "^1.1.1",
+    "pizzip": "^3.3.0"
+  },
+  "name": "sptdigitalbagor",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build.js",
+    "deploy": "node build.js && npx -y firebase-tools@latest deploy --only firestore:rules,hosting",
+    "deploy:hosting": "node build.js && npx -y firebase-tools@latest deploy --only hosting"
+  }
+}
