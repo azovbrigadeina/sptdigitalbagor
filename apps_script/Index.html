@@ -507,10 +507,10 @@
         <form onsubmit="handleAdminLogin(event)" class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-slate-700 mb-2">Password Admin</label>
-            <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700" placeholder="••••••••">
+            <input type="password" id="admin-pass-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none text-slate-700" placeholder="••••••••">
           </div>
-          <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-sm transition-all">
-            🔓 MASUK PANEL
+          <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
+            <span>🔓 MASUK PANEL</span>
           </button>
         </form>
       </div>
@@ -518,12 +518,12 @@
       <!-- 2B. MAIN ADMIN PANEL LAYOUT -->
       <div id="admin-panel" class="hidden space-y-8">
         
-        <!-- Tab bar inside admin panel -->
-        <div class="flex border-b border-slate-200">
-          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600">
+        <!-- Sub-tab pill switchers inside admin panel -->
+        <div class="bg-slate-100 p-1.5 rounded-2xl flex max-w-md w-full gap-1 border border-slate-200">
+          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center">
             📊 Submisi & Statistik
           </button>
-          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700">
+          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center">
             ⚙️ Manajemen Kegiatan
           </button>
         </div>
@@ -538,29 +538,29 @@
               <p class="text-xs text-slate-400">Tampilkan statistik dan rekap berdasarkan kegiatan tertentu</p>
             </div>
             <div class="w-full md:w-80">
-              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                 <option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>
               </select>
             </div>
           </div>
           
           <!-- KPI Stats grid -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
               <p class="text-xs font-bold text-slate-400 uppercase">PNS Terlapor</p>
-              <h3 id="stat-pns" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+              <h3 id="stat-pns" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
               <p class="text-xs font-bold text-slate-400 uppercase">PPPK Terlapor</p>
-              <h3 id="stat-pppk" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+              <h3 id="stat-pppk" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm">
               <p class="text-xs font-bold text-slate-400 uppercase">Total Pengirim Unik</p>
-              <h3 id="stat-unik" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+              <h3 id="stat-unik" class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2">0</h3>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm border-l-4 border-l-[#0057B7]">
               <p class="text-xs font-bold text-slate-400 uppercase">Total SPT Masuk</p>
-              <h3 id="stat-total" class="text-3xl font-extrabold text-indigo-600 mt-2">0</h3>
+              <h3 id="stat-total" class="text-2xl md:text-3xl font-extrabold text-[#0057B7] mt-2">0</h3>
             </div>
           </div>
 
@@ -575,7 +575,10 @@
           <!-- Compliance Status Grid (Nice cards of all units) -->
           <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
             <h3 class="font-bold text-slate-800 text-lg mb-4">🚩 Status Kehadiran Unit Kerja</h3>
-            <p class="text-xs text-slate-500 mb-6">✅ Sudah Input | ❌ Belum Ada Input</p>
+            <p class="text-xs text-slate-500 mb-6 flex flex-wrap gap-4 items-center">
+              <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">✅ Sudah Input</span>
+              <span class="inline-flex items-center gap-1.5 font-semibold text-amber-800">❌ Belum Ada Input</span>
+            </p>
             
             <div id="status-unit-grid" class="space-y-6">
               <!-- Rendered via JS -->
@@ -584,18 +587,23 @@
 
           <!-- Submission Data Table -->
           <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100">
-              <h3 class="font-bold text-slate-800 text-lg">Detail Submisi Data SPT</h3>
+            <div class="p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100">
+              <h3 class="font-bold text-slate-800 text-base md:text-lg">Detail Submisi Data SPT</h3>
               <div class="flex gap-2 w-full md:w-auto">
-                <input type="text" id="table-search" oninput="filterTable()" placeholder="Cari NIP, nama, OPD..." class="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm w-full md:w-64 focus:ring-2 focus:ring-indigo-500">
-                <button onclick="exportToCsv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap">
+                <input type="text" id="table-search" oninput="filterTable()" placeholder="Cari NIP, nama, OPD..." class="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm w-full md:w-64 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7]">
+                <button onclick="exportToCsv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap min-touch-target flex items-center justify-center">
                   📥 Unduh CSV
                 </button>
               </div>
             </div>
             
+            <!-- Mobile Cards Container -->
+            <div id="submission-card-list" class="block md:hidden p-4 space-y-3 bg-slate-50/50">
+              <!-- Rendered via JS -->
+            </div>
+
             <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="hidden md:table w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
                     <th class="px-6 py-4">Waktu</th>
@@ -623,11 +631,11 @@
               <form onsubmit="handleNewKegiatan(event)" class="space-y-4">
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Kegiatan</label>
-                  <input type="text" id="keg-nama" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Contoh: SPT Rekon TPP">
+                  <input type="text" id="keg-nama" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Contoh: SPT Rekon TPP">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Integrasi Sistem</label>
-                  <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                  <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                     <option value="None">None (Tanpa Integrasi)</option>
                     <option value="SITPP">SITPP</option>
                     <option value="SI-PRABU">SI-PRABU</option>
@@ -638,31 +646,31 @@
                   <div class="flex flex-col gap-2">
                     <div class="flex gap-4 mb-1">
                       <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
-                        <input type="radio" name="tipe_deadline" value="Tanpa Batas" checked onchange="toggleDeadlineInput()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <input type="radio" name="tipe_deadline" value="Tanpa Batas" checked onchange="toggleDeadlineInput()" class="w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
                         <span>Tanpa Batas</span>
                       </label>
                       <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
-                        <input type="radio" name="tipe_deadline" value="Pilih Tanggal" onchange="toggleDeadlineInput()" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <input type="radio" name="tipe_deadline" value="Pilih Tanggal" onchange="toggleDeadlineInput()" class="w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
                         <span>Pilih Tanggal</span>
                       </label>
                     </div>
-                    <input type="date" id="keg-deadline-date" onchange="updateDeadlineValue()" class="hidden w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <input type="date" id="keg-deadline-date" onchange="updateDeadlineValue()" class="hidden w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                     <input type="hidden" id="keg-deadline" value="Tanpa Batas">
                   </div>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Status</label>
-                  <select id="keg-status" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
+                  <select id="keg-status" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                     <option value="Aktif">Aktif</option>
                     <option value="Nonaktif">Nonaktif</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Dasar SPT (Multi-line)</label>
-                  <textarea id="keg-dasar" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Masukkan Dasar SPT..."></textarea>
+                  <textarea id="keg-dasar" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Masukkan Dasar SPT..."></textarea>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition-all">
-                  💾 Simpan Kegiatan
+                <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
+                  <span>💾 Simpan Kegiatan</span>
                 </button>
               </form>
             </div>
@@ -824,11 +832,11 @@
       const btnKeg = document.getElementById('btn-kegiatan-panel');
       
       if (subTabId === 'submisi-panel') {
-        btnSub.className = "px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600";
-        btnKeg.className = "px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+        btnSub.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
+        btnKeg.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
       } else {
-        btnKeg.className = "px-6 py-3 border-b-2 border-indigo-600 font-bold text-sm text-indigo-600";
-        btnSub.className = "px-6 py-3 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+        btnKeg.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
+        btnSub.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
       }
     }
 
@@ -1469,7 +1477,7 @@
           <div class="col-span-full p-6 bg-amber-50 rounded-2xl border border-amber-200 text-amber-800 text-center">
             <p class="font-bold text-base mb-1">Data Unit Kerja SI-PRABU Belum Tersedia</p>
             <p class="text-xs text-amber-600 mb-3">Laporan kepatuhan dihitung langsung dari unit kerja SI-PRABU (tanpa fallback hardcoded). Pastikan integrasi SI-PRABU terhubung.</p>
-            <button onclick="loadOpdFromSianjab(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+            <button onclick="loadOpdFromSianjab(true)" class="px-4 py-2 bg-[#0057B7] hover:bg-[#00438F] text-white rounded-xl text-xs font-bold transition-all shadow-sm">
               🔄 Sinkronkan Data SI-PRABU Sekarang
             </button>
           </div>
@@ -1501,7 +1509,7 @@
             <p class="text-xs font-bold text-slate-500 uppercase truncate">${groupName}</p>
             <h4 class="text-xl font-extrabold text-slate-800 mt-1">${sudahInput} / ${units.length}</h4>
             <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
-              <div class="bg-indigo-600 h-2 rounded-full" style="width: ${percent}%"></div>
+              <div class="bg-[#0057B7] h-2 rounded-full" style="width: ${percent}%"></div>
             </div>
             <p class="text-right text-xs font-semibold text-slate-500 mt-1">${percent}%</p>
           </div>
@@ -1510,13 +1518,13 @@
         const unitCards = units.map(u => {
           const done = reportedUnits.has(u);
           const icon = done ? '✅' : '❌';
-          const bg = done ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100 opacity-60';
+          const bg = done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
           return `<span class="px-3 py-1.5 rounded-lg border text-xs font-bold inline-block ${bg}">${icon} ${u}</span>`;
         }).join('');
         
         gridContainer.innerHTML += `
           <div class="border border-slate-100 rounded-2xl p-5 bg-slate-50">
-            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-indigo-600 pl-2 uppercase">${groupName}</h4>
+            <h4 class="font-bold text-slate-800 text-sm mb-3 border-l-4 border-[#0057B7] pl-2 uppercase">${groupName}</h4>
             <div class="flex flex-wrap gap-2">${unitCards}</div>
           </div>
         `;
@@ -1525,16 +1533,23 @@
 
     function renderSubmissionTable() {
       const tbody = document.getElementById('submission-tbody');
+      const cardList = document.getElementById('submission-card-list');
       tbody.innerHTML = '';
+      if (cardList) cardList.innerHTML = '';
       
       if (filteredSubmissions.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">Belum ada data submisi.</td></tr>';
+        if (cardList) {
+          cardList.innerHTML = '<div class="p-8 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-100">Belum ada data submisi.</div>';
+        }
         return;
       }
       
       filteredSubmissions.forEach((item) => {
         const row = item.row;
         const actualIdx = item.index;
+
+        // Desktop table row
         tbody.innerHTML += `
           <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
             <td class="px-6 py-4 font-semibold text-slate-700">${row[0]}</td>
@@ -1543,13 +1558,15 @@
               <div class="text-xs text-slate-400">NIP: ${row[4]}</div>
             </td>
             <td class="px-6 py-4 font-medium text-slate-600">${row[2]}</td>
-            <td class="px-6 py-4 font-medium text-slate-600">${row[1]}</td>
+            <td class="px-6 py-4 font-medium text-slate-600">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200 inline-block">${row[1]}</span>
+            </td>
             <td class="px-6 py-4">
               <div class="font-medium text-slate-700">${row[6]}</div>
-              <div class="text-xs text-slate-400">NIP: ${row[9]}</div>
+              <div class="text-xs text-slate-400">NIP: ${row[9] || '-'}</div>
             </td>
             <td class="px-6 py-4 text-center">
-              <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+              <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -1557,19 +1574,66 @@
             </td>
           </tr>
         `;
+
+        // Mobile card view
+        if (cardList) {
+          cardList.innerHTML += `
+            <div class="submission-card bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+              <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${row[0]}
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200 max-w-[180px] truncate">${row[1]}</span>
+              </div>
+              <div>
+                <div class="font-bold text-slate-800 text-sm">${row[3]}</div>
+                <div class="text-xs text-slate-500 font-mono">NIP: ${row[4]}</div>
+                <div class="text-xs font-medium text-slate-600 flex items-center gap-1.5 mt-1.5">
+                  <span class="text-slate-400">🏛️</span>
+                  <span class="line-clamp-1">${row[2]}</span>
+                </div>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-slate-400 block text-[11px] font-semibold uppercase">Atasan:</span>
+                  <span class="font-medium text-slate-700">${row[6]}</span>
+                  ${row[9] ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${row[9]}</span>` : ''}
+                </div>
+                <button onclick="deleteSubmissionData(${actualIdx})" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }
       });
     }
 
     function filterTable() {
       const q = document.getElementById('table-search').value.toLowerCase();
       const rows = document.querySelectorAll('#submission-tbody tr');
-      
       rows.forEach(row => {
         const text = row.innerText.toLowerCase();
         if (text.includes(q)) {
           row.classList.remove('hidden');
         } else {
           row.classList.add('hidden');
+        }
+      });
+
+      const cards = document.querySelectorAll('#submission-card-list .submission-card');
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(q)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
         }
       });
     }
@@ -1633,7 +1697,7 @@
           
           tbody.innerHTML = '';
           list.forEach(keg => {
-            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200';
+            const statusClass = keg.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-900 border-amber-200';
             tbody.innerHTML += `
               <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
                 <td class="px-6 py-4">
