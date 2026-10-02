@@ -231,6 +231,74 @@ function deleteKegiatan(nama) {
 }
 
 // ==========================================
+// SIANJAB INTEGRATION PROXY
+// ==========================================
+function getSianjabUnitKerja(forceRefresh) {
+  var cache = CacheService.getScriptCache();
+  if (!forceRefresh) {
+    var cached = cache.get("sianjab_unit_kerja");
+    if (cached) {
+      try {
+        return { success: true, data: JSON.parse(cached), fromCache: true };
+      } catch(e) {
+        // Cache corrupted, continue fetch
+      }
+    }
+  }
+
+  var props = PropertiesService.getScriptProperties();
+  var sianjabBaseUrl = props.getProperty("SIANJAB_API_URL") || "https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec";
+  
+  var url = sianjabBaseUrl + "?action=getBulkData&entities=unitKerja";
+  
+  try {
+    var response = UrlFetchApp.fetch(url, {
+      method: "get",
+      muteHttpExceptions: true
+    });
+    var code = response.getResponseCode();
+    var text = response.getContentText();
+    var json = null;
+    try {
+      json = JSON.parse(text);
+    } catch(pe) {
+      return {
+        success: false,
+        error: "Respon dari SIANJAB bukan JSON valid (HTTP " + code + "): " + text.substring(0, 100)
+      };
+    }
+    
+    if (json && json.success === true && json.data) {
+      var unitList = [];
+      if (Array.isArray(json.data.unitKerja)) {
+        unitList = json.data.unitKerja;
+      } else if (Array.isArray(json.data)) {
+        unitList = json.data;
+      }
+      
+      // Simpan di cache selama 3600 detik (1 jam)
+      try {
+        cache.put("sianjab_unit_kerja", JSON.stringify(unitList), 3600);
+      } catch(ce) {
+        Logger.log("Gagal menyimpan cache SIANJAB: " + ce);
+      }
+      return { success: true, data: unitList };
+    } else {
+      return {
+        success: false,
+        error: (json && json.error) ? json.error : ("Gagal memuat data dari SIANJAB (HTTP " + code + ")")
+      };
+    }
+  } catch(err) {
+    Logger.log("Koneksi ke SIANJAB gagal: " + err.toString());
+    return {
+      success: false,
+      error: "Gagal terhubung ke server SIANJAB: " + err.toString()
+    };
+  }
+}
+
+// ==========================================
 // SUBMISSIONS DATA (ADMIN PANEL)
 // ==========================================
 function getSubmissionsData() {
@@ -293,13 +361,16 @@ function submitSptData(data) {
   // If integration is SIANJAB, register user in SIANJAB automatically
   var registerResult = null;
   if (data.integrasi && data.integrasi.toUpperCase() === "SIANJAB") {
-    var sianjabUrl = "https://script.google.com/macros/s/AKfycbycp3NZVvZ4n1X_OmkCVtQVNrja-n7x-TYh1Fx1o4nIkCKakWf_to5AXOiBB8horXMPhg/exec?action=autoRegisterOperator";
+    var props = PropertiesService.getScriptProperties();
+    var sianjabBaseUrl = props.getProperty("SIANJAB_API_URL") || "https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec";
+    var sianjabToken = props.getProperty("SIANJAB_TOKEN") || "sianjab_secure_token_abc123";
+    var sianjabUrl = sianjabBaseUrl + "?action=autoRegisterOperator";
     var payload = {
       nip: data.nip,
       nama: data.nama,
       email: data.email,
       opdName: data.unit_kerja,
-      token: "sianjab_secure_token_abc123"
+      token: sianjabToken
     };
     
     try {
