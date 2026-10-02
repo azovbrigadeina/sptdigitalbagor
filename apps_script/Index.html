@@ -6,24 +6,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Tailwind CSS & Google Fonts Outfit -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ua-blue': {
+              DEFAULT: '#0057B7',
+              dark: '#00438F',
+              light: '#EFF6FF',
+              surface: '#DBEAFE',
+              border: '#93C5FD'
+            },
+            'ua-gold': {
+              DEFAULT: '#F59E0B',
+              bright: '#FFD700',
+              dark: '#D97706',
+              light: '#FEF3C7'
+            },
+            'ua-dark': '#0F172A'
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- SweetAlert2 for beautiful alerts -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
+    :root {
+      --color-ua-blue: #0057B7;
+      --color-ua-blue-dark: #00438F;
+      --color-ua-blue-light: #EFF6FF;
+      --color-ua-blue-border: #93C5FD;
+      --color-ua-gold: #F59E0B;
+      --color-ua-gold-bright: #FFD700;
+      --color-ua-gold-dark: #D97706;
+      --color-ua-gold-light: #FEF3C7;
+      --color-ua-dark: #0F172A;
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
     body {
       font-family: 'Outfit', sans-serif;
-      background: radial-gradient(circle at 10% 20%, rgba(243, 244, 246, 1) 0%, rgba(229, 231, 235, 1) 90%);
+      background: radial-gradient(circle at 10% 20%, rgba(248, 250, 252, 1) 0%, rgba(239, 246, 255, 0.8) 100%);
       min-height: 100vh;
+      color: var(--color-ua-dark);
+      touch-action: manipulation;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(219, 234, 254, 0.7);
     }
     #sig-canvas {
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed #93c5fd;
       border-radius: 12px;
       cursor: crosshair;
       background: #ffffff;
@@ -32,7 +74,71 @@
       max-width: 100%;
     }
     #sig-canvas:hover {
-      border-color: #94a3b8;
+      border-color: #0057b7;
+    }
+
+    /* Ukrainian Palette Utility Classes */
+    .bg-ua-blue { background-color: var(--color-ua-blue); }
+    .bg-ua-blue-dark { background-color: var(--color-ua-blue-dark); }
+    .bg-ua-blue-light { background-color: var(--color-ua-blue-light); }
+    .text-ua-blue { color: var(--color-ua-blue); }
+    .text-ua-blue-dark { color: var(--color-ua-blue-dark); }
+    .border-ua-blue { border-color: var(--color-ua-blue); }
+    .border-ua-blue-border { border-color: var(--color-ua-blue-border); }
+
+    .bg-ua-gold { background-color: var(--color-ua-gold); }
+    .bg-ua-gold-bright { background-color: var(--color-ua-gold-bright); }
+    .bg-ua-gold-dark { background-color: var(--color-ua-gold-dark); }
+    .bg-ua-gold-light { background-color: var(--color-ua-gold-light); }
+    .text-ua-gold { color: var(--color-ua-gold); }
+    .text-ua-gold-dark { color: var(--color-ua-gold-dark); }
+    .border-ua-gold { border-color: var(--color-ua-gold); }
+
+    .text-ua-dark { color: var(--color-ua-dark); }
+
+    /* Mobile Safe Area & Bottom Nav Dock */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(219, 234, 254, 0.85);
+      box-shadow: 0 -4px 20px -2px rgba(0, 87, 183, 0.08);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .pb-safe-dock {
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Mobile Touch Targets & Accessibility (Min 48px) */
+    .touch-target, .min-touch-target {
+      min-height: 48px;
+      min-width: 48px;
+    }
+    .touch-input {
+      min-height: 48px;
+    }
+
+    /* Smooth Focus Outlines */
+    input:focus, select:focus, textarea:focus, button:focus-visible {
+      outline: none;
+      border-color: var(--color-ua-blue-border);
+      box-shadow: 0 0 0 3px rgba(0, 87, 183, 0.22);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .focus-ring-ua:focus {
+      outline: none;
+      border-color: var(--color-ua-blue);
+      box-shadow: 0 0 0 3px rgba(0, 87, 183, 0.25);
+    }
+    .focus-ring-gold:focus {
+      outline: none;
+      border-color: var(--color-ua-gold);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
     }
     
     /* Autocomplete Combobox Styling */
@@ -98,11 +204,11 @@
       transition: background-color 0.15s, color 0.15s;
     }
     .autocomplete-item:hover, .autocomplete-item.highlighted {
-      background-color: #e0e7ff;
-      color: #4338ca;
+      background-color: var(--color-ua-blue-light);
+      color: var(--color-ua-blue-dark);
     }
     .autocomplete-item.selected {
-      background-color: #4f46e5;
+      background-color: var(--color-ua-blue);
       color: #ffffff;
       font-weight: 600;
     }
@@ -116,7 +222,7 @@
   </style>
 </head>
 <body class="py-6 px-4 md:px-8">
-  <div id="main-app-container">
+  <div id="main-app-container" class="pb-28 md:pb-8">
     <!-- ==================== HEADER / NAVBAR ==================== -->
   <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
     <div class="flex items-center gap-3">
