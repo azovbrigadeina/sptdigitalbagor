@@ -470,7 +470,7 @@
           <div class="flex flex-col items-center w-full">
             <p class="text-sm text-slate-500 mb-4 text-center">Silakan tandatangani langsung di kotak putih di bawah ini:</p>
             <div class="w-full max-w-lg mx-auto">
-              <canvas id="sig-canvas" class="w-full block touch-none" style="height: 220px; border: 2px dashed #93C5FD; border-radius: 16px; background: #ffffff;"></canvas>
+              <canvas id="sig-canvas" class="w-full block touch-none" style="height: 220px;"></canvas>
             </div>
             
             <div class="flex flex-wrap justify-center gap-3 mt-4 w-full">
@@ -1193,7 +1193,13 @@
       if (!ctx || !canvas) return;
       const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
       if (ctx.clearRect) {
-        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        if (ctx.setTransform) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (ctx.scale) ctx.scale(dpr, dpr);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
       }
       hasDrawn = false;
     }
