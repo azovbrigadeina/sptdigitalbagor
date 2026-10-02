@@ -154,14 +154,14 @@
             <div>
               <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-bold text-slate-700">Unit Kerja / OPD</label>
-                <span id="opd-sync-badge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">Menghubungkan SIANJAB...</span>
+                <span id="opd-sync-badge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">Menghubungkan SI-PRABU...</span>
               </div>
               <select name="unit_kerja" id="opd-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700">
-                <option value="">-- Memuat Unit Kerja dari SIANJAB... --</option>
+                <option value="">-- Memuat Unit Kerja dari SI-PRABU... --</option>
               </select>
               <div id="opd-error-box" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
                 <div class="flex items-start justify-between">
-                  <span id="opd-error-msg">Gagal memuat Unit Kerja dari SIANJAB.</span>
+                  <span id="opd-error-msg">Gagal memuat Unit Kerja dari SI-PRABU.</span>
                   <button type="button" onclick="loadOpdFromSianjab(true)" class="ml-2 font-bold underline hover:text-red-900 whitespace-nowrap">Coba Lagi</button>
                 </div>
               </div>
@@ -505,7 +505,7 @@
                   <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500 text-sm">
                     <option value="None">None (Tanpa Integrasi)</option>
                     <option value="SITPP">SITPP</option>
-                    <option value="SIANJAB">SIANJAB</option>
+                    <option value="SI-PRABU">SI-PRABU</option>
                   </select>
                 </div>
                 <div>
@@ -725,7 +725,7 @@
 
       if (badgeEl) {
         badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700 animate-pulse";
-        badgeEl.innerText = "Sinkronisasi SIANJAB...";
+        badgeEl.innerText = "Sinkronisasi SI-PRABU...";
       }
       if (errorBoxEl) errorBoxEl.classList.add('hidden');
       if (submitBtn) {
@@ -733,7 +733,7 @@
         submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
       }
 
-      selectEl.innerHTML = '<option value="">-- Memuat Unit Kerja dari SIANJAB... --</option>';
+      selectEl.innerHTML = '<option value="">-- Memuat Unit Kerja dari SI-PRABU... --</option>';
       selectEl.disabled = true;
 
       google.script.run
@@ -743,7 +743,7 @@
             const parents = sianjabUnits.filter(o => !o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
             const children = sianjabUnits.filter(o => o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
             
-            let html = '<option value="">-- Pilih Unit Kerja (SIANJAB) --</option>';
+            let html = '<option value="">-- Pilih Unit Kerja (SI-PRABU) --</option>';
             
             if (parents.length > 0) {
               html += '<optgroup label="Unit Kerja Utama (Dinas / Badan / Kecamatan)">';
@@ -773,7 +773,7 @@
             
             if (badgeEl) {
               badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700";
-              badgeEl.innerText = `🟢 SIANJAB (${sianjabUnits.length} Unit)`;
+              badgeEl.innerText = `🟢 SI-PRABU (${sianjabUnits.length} Unit)`;
             }
             
             // Re-render compliance report if admin dashboard is opened
@@ -781,7 +781,7 @@
               renderComplianceReport();
             }
           } else {
-            const errMsg = (res && res.error) ? res.error : "Data unit kerja tidak ditemukan di server SIANJAB.";
+            const errMsg = (res && res.error) ? res.error : "Data unit kerja tidak ditemukan di server SI-PRABU.";
             handleOpdError(errMsg);
           }
         })
@@ -791,8 +791,8 @@
         .getSianjabUnitKerja(Boolean(forceRefresh));
 
       function handleOpdError(errMsg) {
-        console.error("Gagal sinkronisasi dengan SIANJAB:", errMsg);
-        selectEl.innerHTML = '<option value="">⚠️ Gagal memuat Unit Kerja dari SIANJAB</option>';
+        console.error("Gagal sinkronisasi dengan SI-PRABU:", errMsg);
+        selectEl.innerHTML = '<option value="">⚠️ Gagal memuat Unit Kerja dari SI-PRABU</option>';
         selectEl.disabled = true;
         
         if (submitBtn) {
@@ -802,7 +802,7 @@
         
         if (badgeEl) {
           badgeEl.className = "text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700";
-          badgeEl.innerText = "🔴 SIANJAB Terputus";
+          badgeEl.innerText = "🔴 SI-PRABU Terputus";
         }
         if (errorBoxEl) {
           errorBoxEl.classList.remove('hidden');
@@ -987,15 +987,15 @@
             if (response.sianjabCreated) {
               if (response.sianjabStatus === "created") {
                 successHtml += '<br><br><div style="text-align: left; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; color: #166534; font-size: 0.9rem;">' +
-                  '🎉 <strong>Akun SIANJAB Dibuat Otomatis!</strong><br>' +
-                  'Silakan login ke SIANJAB dengan:<br>' +
+                  '🎉 <strong>Akun SI-PRABU Dibuat Otomatis!</strong><br>' +
+                  'Silakan login ke SI-PRABU dengan:<br>' +
                   '• <strong>Username</strong>: NIP Anda (' + data.nip + ')<br>' +
                   '• <strong>Password Default</strong>: <code style="background: #dcfce7; padding: 2px 4px; border-radius: 4px; font-weight: bold;">sianjabmj2026</code>' +
                   '</div>';
               } else if (response.sianjabStatus === "updated") {
                 successHtml += '<br><br><div style="text-align: left; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; color: #1e40af; font-size: 0.9rem;">' +
-                  '🔄 <strong>Sinkronisasi Sianjab Sukses!</strong><br>' +
-                  'Akun NIP Anda sudah terdaftar sebelumnya di SIANJAB. Data profil dan OPD Anda telah diperbarui.' +
+                  '🔄 <strong>Sinkronisasi SI-PRABU Sukses!</strong><br>' +
+                  'Akun NIP Anda sudah terdaftar sebelumnya di SI-PRABU. Data profil dan OPD Anda telah diperbarui.' +
                   '</div>';
               }
             }
@@ -1209,10 +1209,10 @@
       if (!sianjabUnits || sianjabUnits.length === 0) {
         progressContainer.innerHTML = `
           <div class="col-span-full p-6 bg-amber-50 rounded-2xl border border-amber-200 text-amber-800 text-center">
-            <p class="font-bold text-base mb-1">Data Unit Kerja SIANJAB Belum Tersedia</p>
-            <p class="text-xs text-amber-600 mb-3">Laporan kepatuhan dihitung langsung dari unit kerja SIANJAB (tanpa fallback hardcoded). Pastikan integrasi SIANJAB terhubung.</p>
+            <p class="font-bold text-base mb-1">Data Unit Kerja SI-PRABU Belum Tersedia</p>
+            <p class="text-xs text-amber-600 mb-3">Laporan kepatuhan dihitung langsung dari unit kerja SI-PRABU (tanpa fallback hardcoded). Pastikan integrasi SI-PRABU terhubung.</p>
             <button onclick="loadOpdFromSianjab(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
-              🔄 Sinkronkan Data SIANJAB Sekarang
+              🔄 Sinkronkan Data SI-PRABU Sekarang
             </button>
           </div>
         `;

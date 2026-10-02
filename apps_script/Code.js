@@ -33,7 +33,7 @@ function doGet(e) {
     var nip = e.parameter.nip;
     var email = e.parameter.email;
     var opd = e.parameter.opd;
-    var integrasi = e.parameter.integrasi || "SIANJAB";
+    var integrasi = e.parameter.integrasi || "SI-PRABU";
     
     // Security check - pre-shared secret token
     var EXPECTED_TOKEN = "sianjab_secure_token_abc123";
@@ -264,7 +264,7 @@ function getSianjabUnitKerja(forceRefresh) {
     } catch(pe) {
       return {
         success: false,
-        error: "Respon dari SIANJAB bukan JSON valid (HTTP " + code + "): " + text.substring(0, 100)
+        error: "Respon dari SI-PRABU bukan JSON valid (HTTP " + code + "): " + text.substring(0, 100)
       };
     }
     
@@ -280,20 +280,20 @@ function getSianjabUnitKerja(forceRefresh) {
       try {
         cache.put("sianjab_unit_kerja", JSON.stringify(unitList), 3600);
       } catch(ce) {
-        Logger.log("Gagal menyimpan cache SIANJAB: " + ce);
+        Logger.log("Gagal menyimpan cache SI-PRABU: " + ce);
       }
       return { success: true, data: unitList };
     } else {
       return {
         success: false,
-        error: (json && json.error) ? json.error : ("Gagal memuat data dari SIANJAB (HTTP " + code + ")")
+        error: (json && json.error) ? json.error : ("Gagal memuat data dari SI-PRABU (HTTP " + code + ")")
       };
     }
   } catch(err) {
-    Logger.log("Koneksi ke SIANJAB gagal: " + err.toString());
+    Logger.log("Koneksi ke SI-PRABU gagal: " + err.toString());
     return {
       success: false,
-      error: "Gagal terhubung ke server SIANJAB: " + err.toString()
+      error: "Gagal terhubung ke server SI-PRABU: " + err.toString()
     };
   }
 }
@@ -358,9 +358,14 @@ function submitSptData(data) {
     currentYear
   ]);
   
-  // If integration is SIANJAB, register user in SIANJAB automatically
+  // If integration is SI-PRABU or SIANJAB, register user automatically
   var registerResult = null;
-  if (data.integrasi && data.integrasi.toUpperCase() === "SIANJAB") {
+  var isSiPrabu = data.integrasi && (
+    data.integrasi.toUpperCase() === "SI-PRABU" || 
+    data.integrasi.toUpperCase() === "SIPRABU" || 
+    data.integrasi.toUpperCase() === "SIANJAB"
+  );
+  if (isSiPrabu) {
     var props = PropertiesService.getScriptProperties();
     var sianjabBaseUrl = props.getProperty("SIANJAB_API_URL") || "https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec";
     var sianjabToken = props.getProperty("SIANJAB_TOKEN") || "sianjab_secure_token_abc123";
@@ -382,9 +387,9 @@ function submitSptData(data) {
       });
       var responseText = response.getContentText();
       registerResult = JSON.parse(responseText);
-      Logger.log("SIANJAB Auto-Register Result: " + responseText);
+      Logger.log("SI-PRABU Auto-Register Result: " + responseText);
     } catch (e) {
-      Logger.log("Failed to register in SIANJAB: " + e.toString());
+      Logger.log("Failed to register in SI-PRABU: " + e.toString());
     }
   }
 
