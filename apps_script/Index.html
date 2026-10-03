@@ -1101,15 +1101,9 @@
       
       if (selected) {
         text.value = selected.dasar || "";
-        if (selected.nama === "Lainnya") {
-          text.removeAttribute("readonly");
-          text.classList.remove("bg-slate-50", "text-slate-600");
-          text.classList.add("bg-white", "text-slate-700");
-        } else {
-          text.setAttribute("readonly", true);
-          text.classList.add("bg-slate-50", "text-slate-600");
-          text.classList.remove("bg-white", "text-slate-700");
-        }
+        text.setAttribute("readonly", true);
+        text.classList.add("bg-slate-50", "text-slate-600");
+        text.classList.remove("bg-white", "text-slate-700");
       } else {
         text.value = "";
       }
@@ -1872,11 +1866,6 @@
     }
 
     function deleteKegiatanData(nama) {
-      if (nama === "Lainnya") {
-        Swal.fire('Aksi Ditolak', 'Kegiatan default "Lainnya" tidak boleh dihapus!', 'warning');
-        return;
-      }
-      
       Swal.fire({
         title: 'Hapus Kegiatan?',
         text: `Anda akan menghapus perihal "${nama}" dari sistem!`,

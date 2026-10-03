@@ -69,8 +69,7 @@ const firebaseSnippet = `
           const snap = await db.collection('config_kegiatan').get();
           if (snap.empty) {
             const defaults = [
-              { nama: "SPT Rekon TPP dan SIMONA", integrasi: "SITPP", status: "Aktif", deadline: "6 Februari 2026", dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA" },
-              { nama: "Lainnya", integrasi: "None", status: "Aktif", deadline: "Tanpa Batas", dasar: "" }
+              { nama: "SPT Rekon TPP dan SIMONA", integrasi: "SITPP", status: "Aktif", deadline: "6 Februari 2026", dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA" }
             ];
             for (const item of defaults) {
               await db.collection('config_kegiatan').doc(item.nama).set(item);
