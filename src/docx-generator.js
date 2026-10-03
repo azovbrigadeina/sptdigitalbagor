@@ -16,6 +16,17 @@ function base64ToUint8Array(base64) {
 const emptyPng = base64ToUint8Array(emptyPngBase64);
 
 const imageOpts = {
+  setParser(tag) {
+    if (tag === "ttd" || tag === "%ttd") {
+      return {
+        type: "placeholder",
+        value: "ttd",
+        module: "open-xml-templating/docxtemplater-image-module",
+        centered: false
+      };
+    }
+    return null;
+  },
   getImage(tagValue) {
     if (!tagValue || typeof tagValue !== 'string' || !tagValue.trim()) {
       return emptyPng.buffer;
