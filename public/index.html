@@ -501,8 +501,15 @@
             </div>
           </div>
 
-          <div class="pt-6 border-t border-blue-100">
-            <button id="btn-submit-spt" type="submit" class="w-full bg-gradient-to-r from-[#0057B7] via-[#0060cc] to-[#004899] hover:from-[#004899] hover:to-[#003875] active:scale-[0.99] text-white py-4 px-6 rounded-2xl font-black text-base shadow-xl shadow-blue-600/30 ring-2 ring-amber-400/80 hover:ring-amber-400 transition-all flex items-center justify-center gap-2.5">
+          <div class="pt-6 border-t border-blue-100 flex flex-col-reverse sm:flex-row gap-3">
+            <button id="btn-preview-spt" type="button" onclick="openSptPreviewModal()" class="w-full sm:w-1/2 bg-white hover:bg-blue-50/60 text-[#0057B7] border-2 border-[#0057B7] active:scale-[0.99] py-3.5 px-6 rounded-2xl font-bold text-base shadow-sm transition-all flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0057B7]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span>Preview SPT</span>
+            </button>
+            <button id="btn-submit-spt" type="submit" class="w-full sm:w-1/2 bg-gradient-to-r from-[#0057B7] via-[#0060cc] to-[#004899] hover:from-[#004899] hover:to-[#003875] active:scale-[0.99] text-white py-3.5 px-6 rounded-2xl font-black text-base shadow-xl shadow-blue-600/30 ring-2 ring-amber-400/80 hover:ring-amber-400 transition-all flex items-center justify-center gap-2.5">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
@@ -738,6 +745,129 @@
       <span id="nav-indicator-admin" class="w-4 h-0.5 bg-[#F59E0B] rounded-full mt-0.5 invisible" aria-hidden="true"></span>
     </button>
   </nav>
+  </div>
+
+  <!-- ==================== MODAL PREVIEW DRAFT SPT ==================== -->
+  <div id="preview-spt-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-200" aria-modal="true" role="dialog">
+    <div class="relative w-full max-w-3xl max-h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#004899] to-[#0057B7] text-white border-b-2 border-amber-400">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📄</span>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base leading-tight">Pratinjau Draft Surat Perintah Tugas (SPT)</h3>
+            <p class="text-[11px] text-blue-100 font-normal">Format resmi Bagian Organisasi Setda Kab. Muaro Jambi</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSptPreviewModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all" title="Tutup Pratinjau">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body / Paper Preview -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-100/90">
+        <!-- A4 Sheet Simulation -->
+        <div class="max-w-2xl mx-auto bg-white p-6 sm:p-10 shadow-lg border border-slate-200 rounded-2xl text-slate-800 font-serif leading-relaxed text-xs sm:text-sm">
+          
+          <!-- Kop Surat -->
+          <div class="text-center pb-3 border-b-4 border-double border-slate-800 mb-5">
+            <h4 class="font-bold text-xs sm:text-sm tracking-wider uppercase font-sans text-slate-700">PEMERINTAH KABUPATEN MUARO JAMBI</h4>
+            <h3 class="font-extrabold text-sm sm:text-base tracking-wide uppercase font-sans text-slate-900">SEKRETARIAT DAERAH</h3>
+            <h5 class="font-bold text-xs uppercase tracking-wider font-sans text-[#0057B7]">BAGIAN ORGANISASI</h5>
+            <p class="text-[10px] text-slate-500 font-sans mt-0.5">Kompleks Perkantoran Bukit Cinto Kenang - Sengeti 36381</p>
+          </div>
+
+          <!-- Judul SPT -->
+          <div class="text-center my-4">
+            <h4 class="font-extrabold text-sm sm:text-base tracking-wider uppercase underline underline-offset-4 font-sans text-slate-900">SURAT PERINTAH TUGAS</h4>
+            <p class="text-[11px] text-slate-600 font-sans mt-1">Nomor : 090 / <span id="prev-nomor">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> / Org / <span id="prev-tahun">2026</span></p>
+          </div>
+
+          <!-- Dasar -->
+          <div class="my-4 text-justify">
+            <table class="w-full text-xs sm:text-sm font-sans">
+              <tr class="align-top">
+                <td class="w-20 font-bold text-slate-700">Dasar</td>
+                <td class="w-4 font-bold">:</td>
+                <td id="prev-dasar" class="italic text-slate-700 leading-relaxed">[Belum ada dasar hukum kegiatan]</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Memerintahkan -->
+          <div class="text-center font-bold font-sans tracking-widest my-4 uppercase text-xs text-slate-800">
+            MEMERINTAHKAN :
+          </div>
+
+          <!-- Kepada -->
+          <div class="my-3">
+            <table class="w-full text-xs sm:text-sm font-sans">
+              <tr class="align-top">
+                <td class="w-20 font-bold text-slate-700">Kepada</td>
+                <td class="w-4 font-bold">:</td>
+                <td>
+                  <table class="w-full text-xs sm:text-sm space-y-1">
+                    <tr><td class="w-24 text-slate-500 font-medium">Nama</td><td class="w-3">:</td><td id="prev-nama" class="font-bold text-slate-900">-</td></tr>
+                    <tr><td class="text-slate-500 font-medium">NIP</td><td>:</td><td id="prev-nip" class="font-mono text-slate-800">-</td></tr>
+                    <tr><td class="text-slate-500 font-medium">Pangkat/Gol</td><td>:</td><td id="prev-pangkat" class="text-slate-800">-</td></tr>
+                    <tr><td class="text-slate-500 font-medium">Jabatan</td><td>:</td><td id="prev-jabatan" class="text-slate-800">-</td></tr>
+                    <tr><td class="text-slate-500 font-medium">Unit Kerja</td><td>:</td><td id="prev-unitkerja" class="font-semibold text-slate-900">-</td></tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Untuk -->
+          <div class="my-4">
+            <table class="w-full text-xs sm:text-sm font-sans">
+              <tr class="align-top">
+                <td class="w-20 font-bold text-slate-700">Untuk</td>
+                <td class="w-4 font-bold">:</td>
+                <td id="prev-kegiatan" class="text-justify font-medium text-slate-900 leading-relaxed">[Belum memilih kegiatan]</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Tanda Tangan Atasan -->
+          <div class="mt-8 flex justify-end">
+            <div class="w-64 text-center font-sans">
+              <p class="text-[11px] text-slate-600 mb-0.5">Ditetapkan di : Sengeti</p>
+              <p class="text-[11px] text-slate-600 mb-2">Pada tanggal : <span id="prev-tanggal">-</span></p>
+              <p id="prev-jatasan" class="font-bold text-xs uppercase text-slate-900 mb-1">[Jabatan Atasan]</p>
+              
+              <!-- Signature Area in Preview -->
+              <div id="prev-sig-box" class="h-24 flex items-center justify-center my-1.5 border border-dashed border-slate-300 rounded-xl bg-slate-50/80 overflow-hidden">
+                <img id="prev-sig-img" src="" alt="Tanda Tangan Atasan" class="hidden max-h-24 max-w-full object-contain">
+                <span id="prev-sig-empty" class="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded-md font-semibold border border-amber-200">⚠️ Belum Ada Tanda Tangan</span>
+              </div>
+              
+              <p id="prev-natasan" class="font-bold text-xs underline text-slate-900 mt-2">[Nama Atasan]</p>
+              <p id="prev-patasan" class="text-[11px] text-slate-600">[Pangkat Atasan]</p>
+              <p id="prev-nipatasan" class="text-[11px] font-mono text-slate-600">NIP. [NIP Atasan]</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="flex items-center justify-between gap-3 px-5 py-3.5 bg-white border-t border-slate-200">
+        <button type="button" onclick="closeSptPreviewModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs sm:text-sm transition-all">
+          Kembali ke Form
+        </button>
+        <button type="button" onclick="submitFromPreviewModal()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0057B7] to-[#004899] hover:from-[#004899] hover:to-[#003875] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          <span>Kirim SPT Sekarang</span>
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <!-- ==================== VERIFICATION CONTAINER ==================== -->
@@ -1599,6 +1729,73 @@
       link.href = window.URL.createObjectURL(blob);
       link.download = filename;
       link.click();
+    }
+
+    // --- Draft SPT Modal Preview Logic ---
+    function openSptPreviewModal() {
+      const form = document.getElementById('sptForm');
+      if (!form) return;
+      const formData = new FormData(form);
+
+      const unitKerja = formData.get('unit_kerja') || document.getElementById('opd-select').value;
+      const perihal = formData.get('perihal') || document.getElementById('kegiatan-select').value;
+      const dasarSpt = document.getElementById('dasar-textarea').value;
+      const namaAdmin = formData.get('nama') || "";
+      const nipAdmin = formData.get('nip') || "";
+      const pangkatAdmin = formData.get('pangkat') || document.getElementById('pangkat-select').value || "";
+      const jabatanAdmin = formData.get('jabatan') || "";
+      const namaAtasan = formData.get('n_atasan') || "";
+      const nipAtasan = formData.get('nip_atasan') || "";
+      const jabatanAtasan = formData.get('j_atasan') || "";
+      const pangkatAtasan = formData.get('p_atasan') || document.getElementById('pangkat-atasan-select').value || "";
+
+      const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      const d = new Date();
+      const todayIndo = d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+
+      document.getElementById('prev-tahun').innerText = d.getFullYear();
+      document.getElementById('prev-tanggal').innerText = todayIndo;
+      document.getElementById('prev-dasar').innerText = dasarSpt || "[Dasar hukum akan terisi otomatis sesuai kegiatan]";
+      document.getElementById('prev-unitkerja').innerText = unitKerja || "[Unit Kerja Belum Dipilih]";
+      document.getElementById('prev-kegiatan').innerText = perihal ? ("Melaksanakan tugas dalam rangka " + perihal + " di lingkungan Pemerintah Kabupaten Muaro Jambi.") : "[Kegiatan Belum Dipilih]";
+      document.getElementById('prev-nama').innerText = namaAdmin || "[Nama Pegawai Belum Diisi]";
+      document.getElementById('prev-nip').innerText = nipAdmin || "[NIP Belum Diisi]";
+      document.getElementById('prev-pangkat').innerText = pangkatAdmin || "[Pangkat/Golongan]";
+      document.getElementById('prev-jabatan').innerText = jabatanAdmin || "[Jabatan]";
+
+      document.getElementById('prev-jatasan').innerText = jabatanAtasan || "[Jabatan Atasan]";
+      document.getElementById('prev-natasan').innerText = namaAtasan || "[Nama Atasan]";
+      document.getElementById('prev-patasan').innerText = pangkatAtasan || "[Pangkat/Golongan]";
+      document.getElementById('prev-nipatasan').innerText = nipAtasan ? ("NIP. " + nipAtasan) : "NIP. -";
+
+      // Signature Canvas check
+      const sigImg = document.getElementById('prev-sig-img');
+      const sigEmpty = document.getElementById('prev-sig-empty');
+      if (hasDrawn && canvas) {
+        sigImg.src = canvas.toDataURL('image/png');
+        sigImg.classList.remove('hidden');
+        sigEmpty.classList.add('hidden');
+      } else {
+        sigImg.src = "";
+        sigImg.classList.add('hidden');
+        sigEmpty.classList.remove('hidden');
+      }
+
+      const modal = document.getElementById('preview-spt-modal');
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeSptPreviewModal() {
+      const modal = document.getElementById('preview-spt-modal');
+      if (modal) modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    function submitFromPreviewModal() {
+      closeSptPreviewModal();
+      const submitBtn = document.getElementById('btn-submit-spt');
+      if (submitBtn) submitBtn.click();
     }
 
     // --- Admin Authentication Logic ---
