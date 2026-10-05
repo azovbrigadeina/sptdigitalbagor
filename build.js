@@ -175,14 +175,28 @@ const firebaseSnippet = `
         }
       },
 
-      async deleteSubmission(rowIndexOrId) {
-        let docId = rowIndexOrId;
-        if (typeof rowIndexOrId === 'number' && window.submissionsDb && window.submissionsDb[rowIndexOrId]) {
-          docId = window.submissionsDb[rowIndexOrId][13];
+      async deleteSubmission(rowIndexOrId, docId) {
+        let targetDocId = null;
+
+        if (typeof docId === 'string' && docId.trim()) {
+          targetDocId = docId.trim();
+        } else if (typeof rowIndexOrId === 'string' && isNaN(Number(rowIndexOrId)) && rowIndexOrId.trim()) {
+          targetDocId = rowIndexOrId.trim();
+        } else {
+          const idx = Number(rowIndexOrId);
+          const list = window.submissionsDb || (typeof submissionsDb !== 'undefined' ? submissionsDb : null);
+          if (list && list[idx] && list[idx][13]) {
+            targetDocId = list[idx][13];
+          }
         }
-        if (docId) {
-          await db.collection('submissions').doc(docId).delete();
+
+        if (!targetDocId) {
+          console.error("Gagal menghapus submisi: ID dokumen tidak ditemukan", { rowIndexOrId, docId });
+          throw new Error("ID dokumen submisi tidak ditemukan. Silakan refresh halaman dan coba lagi.");
         }
+
+        console.log('[Firebase] Deleting submission document:', targetDocId);
+        await db.collection('submissions').doc(targetDocId).delete();
         return { success: true };
       },
 
@@ -228,6 +242,55 @@ const firebaseSnippet = `
           }
         }
 
+        // SiTPP RTDB Integration
+        let sitppResult = null;
+        const isSitpp = data.integrasi === "SITPP" || (data.perihal && data.perihal.toUpperCase().indexOf("TPP") !== -1);
+        if (isSitpp) {
+          try {
+            const currentYear = data.tahun || now.getFullYear();
+            const sitppPayload = {
+              id: docRef.id,
+              waktu: subDoc.waktu,
+              tahun: Number(currentYear),
+              perihal: subDoc.perihal,
+              opdId: data.opd_id || subDoc.unitKerja || "",
+              unitKerja: subDoc.unitKerja,
+              namaAdmin: subDoc.namaAdmin,
+              nipAdmin: subDoc.nipAdmin,
+              email: subDoc.email,
+              namaAtasan: subDoc.namaAtasan,
+              jabatanAtasan: subDoc.jabatanAtasan,
+              pangkatGolAtasan: subDoc.pangkatGolAtasan,
+              nipAtasan: subDoc.nipAtasan,
+              ttd: subDoc.ttd,
+              statusApproval: "PENDING",
+              approvalHistory: {
+                submittedAt: Date.now(),
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ""
+              },
+              source: "sptdigitalbagor"
+            };
+
+            const rtdbUrl = "https://sitpp-7b65d-default-rtdb.asia-southeast1.firebasedatabase.app/spt_approvals/" + currentYear + "/" + docRef.id + ".json";
+            const rtdbResp = await fetch(rtdbUrl, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(sitppPayload)
+            });
+            if (rtdbResp.ok) {
+              sitppResult = { success: true };
+              console.log("[SiTPP] Successfully pushed submission to SiTPP RTDB:", docRef.id);
+            } else {
+              const rtdbErr = await rtdbResp.text();
+              console.warn("[SiTPP] RTDB push warning:", rtdbResp.status, rtdbErr);
+            }
+          } catch(err) {
+            console.warn("SiTPP RTDB integration error:", err);
+          }
+        }
+
         // Generate Word DOCX client-side
         const docxRes = await window.generateSptDocx(data);
 
@@ -241,6 +304,10 @@ const firebaseSnippet = `
         if (sianjabResult && sianjabResult.success) {
           result.sianjabCreated = true;
           result.sianjabStatus = sianjabResult.data ? sianjabResult.data.status : "created";
+        }
+
+        if (sitppResult && sitppResult.success) {
+          result.sitppEnqueued = true;
         }
 
         return result;

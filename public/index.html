@@ -1068,14 +1068,28 @@
         }
       },
 
-      async deleteSubmission(rowIndexOrId) {
-        let docId = rowIndexOrId;
-        if (typeof rowIndexOrId === 'number' && window.submissionsDb && window.submissionsDb[rowIndexOrId]) {
-          docId = window.submissionsDb[rowIndexOrId][13];
+      async deleteSubmission(rowIndexOrId, docId) {
+        let targetDocId = null;
+
+        if (typeof docId === 'string' && docId.trim()) {
+          targetDocId = docId.trim();
+        } else if (typeof rowIndexOrId === 'string' && isNaN(Number(rowIndexOrId)) && rowIndexOrId.trim()) {
+          targetDocId = rowIndexOrId.trim();
+        } else {
+          const idx = Number(rowIndexOrId);
+          const list = window.submissionsDb || (typeof submissionsDb !== 'undefined' ? submissionsDb : null);
+          if (list && list[idx] && list[idx][13]) {
+            targetDocId = list[idx][13];
+          }
         }
-        if (docId) {
-          await db.collection('submissions').doc(docId).delete();
+
+        if (!targetDocId) {
+          console.error("Gagal menghapus submisi: ID dokumen tidak ditemukan", { rowIndexOrId, docId });
+          throw new Error("ID dokumen submisi tidak ditemukan. Silakan refresh halaman dan coba lagi.");
         }
+
+        console.log('[Firebase] Deleting submission document:', targetDocId);
+        await db.collection('submissions').doc(targetDocId).delete();
         return { success: true };
       },
 
@@ -1121,6 +1135,55 @@
           }
         }
 
+        // SiTPP RTDB Integration
+        let sitppResult = null;
+        const isSitpp = data.integrasi === "SITPP" || (data.perihal && data.perihal.toUpperCase().indexOf("TPP") !== -1);
+        if (isSitpp) {
+          try {
+            const currentYear = data.tahun || now.getFullYear();
+            const sitppPayload = {
+              id: docRef.id,
+              waktu: subDoc.waktu,
+              tahun: Number(currentYear),
+              perihal: subDoc.perihal,
+              opdId: data.opd_id || subDoc.unitKerja || "",
+              unitKerja: subDoc.unitKerja,
+              namaAdmin: subDoc.namaAdmin,
+              nipAdmin: subDoc.nipAdmin,
+              email: subDoc.email,
+              namaAtasan: subDoc.namaAtasan,
+              jabatanAtasan: subDoc.jabatanAtasan,
+              pangkatGolAtasan: subDoc.pangkatGolAtasan,
+              nipAtasan: subDoc.nipAtasan,
+              ttd: subDoc.ttd,
+              statusApproval: "PENDING",
+              approvalHistory: {
+                submittedAt: Date.now(),
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ""
+              },
+              source: "sptdigitalbagor"
+            };
+
+            const rtdbUrl = "https://sitpp-7b65d-default-rtdb.asia-southeast1.firebasedatabase.app/spt_approvals/" + currentYear + "/" + docRef.id + ".json";
+            const rtdbResp = await fetch(rtdbUrl, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(sitppPayload)
+            });
+            if (rtdbResp.ok) {
+              sitppResult = { success: true };
+              console.log("[SiTPP] Successfully pushed submission to SiTPP RTDB:", docRef.id);
+            } else {
+              const rtdbErr = await rtdbResp.text();
+              console.warn("[SiTPP] RTDB push warning:", rtdbResp.status, rtdbErr);
+            }
+          } catch(err) {
+            console.warn("SiTPP RTDB integration error:", err);
+          }
+        }
+
         // Generate Word DOCX client-side
         const docxRes = await window.generateSptDocx(data);
 
@@ -1134,6 +1197,10 @@
         if (sianjabResult && sianjabResult.success) {
           result.sianjabCreated = true;
           result.sianjabStatus = sianjabResult.data ? sianjabResult.data.status : "created";
+        }
+
+        if (sitppResult && sitppResult.success) {
+          result.sitppEnqueued = true;
         }
 
         return result;
@@ -1183,6 +1250,7 @@
 
     let kegiatanDb = [];
     let submissionsDb = [];
+    window.submissionsDb = submissionsDb;
     let filteredSubmissions = [];
     let authenticated = false;
 
@@ -1678,6 +1746,16 @@
                   '</div>';
               }
             }
+            if (response.sitppEnqueued) {
+              successHtml += '<br><br><div style="text-align: left; background: #fefce8; border: 1px solid #fef08a; padding: 12px; border-radius: 8px; color: #854d0e; font-size: 0.9rem;">' +
+                '⏳ <strong>Terkirim ke Antrean Verifikasi SiTPP!</strong><br>' +
+                'Data pengajuan SPT Anda telah diteruskan ke antrean verifikasi Admin SiTPP.<br>' +
+                '• <strong>Status</strong>: Menunggu Approval Admin<br>' +
+                '• <strong>Email Terdaftar</strong>: ' + (data.email || '-') + '<br>' +
+                '• <strong>Password Default</strong>: <code style="background: #fef9c3; padding: 2px 4px; border-radius: 4px; font-weight: bold;">MuaroJambi2027!</code><br>' +
+                '<small style="color: #713f12;">Setelah disetujui Admin SiTPP, Anda dapat login ke portal SiTPP untuk menyusun data usulan TPP OPD Anda.</small>' +
+                '</div>';
+            }
             Swal.fire({
               icon: 'success',
               title: 'Berhasil Terkirim!',
@@ -1833,6 +1911,7 @@
       google.script.run
         .withSuccessHandler(function(submissions) {
           submissionsDb = submissions;
+          window.submissionsDb = submissions;
           populateFilterKegiatanDropdown();
           applyFilters();
         })
@@ -2047,6 +2126,7 @@
       filteredSubmissions.forEach((item) => {
         const row = item.row;
         const actualIdx = item.index;
+        const docId = row[13] || '';
 
         const waktu = escapeHtml(row[0]);
         const perihal = escapeHtml(row[1]);
@@ -2073,7 +2153,7 @@
               <div class="text-xs text-slate-400">NIP: ${nipAtasan || '-'}</div>
             </td>
             <td class="px-6 py-4 text-center">
-              <button onclick="deleteSubmissionData(${actualIdx})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
+              <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -2109,7 +2189,7 @@
                   <span class="font-medium text-slate-700">${namaAtasan}</span>
                   ${nipAtasan ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${nipAtasan}</span>` : ''}
                 </div>
-                <button onclick="deleteSubmissionData(${actualIdx})" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
+                <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -2150,7 +2230,11 @@
       });
     }
 
-    function deleteSubmissionData(rowIdx) {
+    function deleteSubmissionData(rowIdx, docId) {
+      if (!docId && typeof submissionsDb !== 'undefined' && submissionsDb && submissionsDb[rowIdx]) {
+        docId = submissionsDb[rowIdx][13] || '';
+      }
+
       Swal.fire({
         title: 'Hapus Data?',
         text: "Data ini akan dihapus secara permanen dari Firebase Database!",
@@ -2158,15 +2242,32 @@
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus!'
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
       }).then((result) => {
         if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Menghapus Data...',
+            text: 'Sedang memproses penghapusan data',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
           google.script.run
             .withSuccessHandler(function() {
               Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
               loadAdminDashboard();
             })
-            .deleteSubmission(rowIdx);
+            .withFailureHandler(function(err) {
+              console.error("Gagal menghapus submisi:", err);
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menghapus',
+                text: 'Terjadi kesalahan saat menghapus data: ' + (err.message || err.toString())
+              });
+            })
+            .deleteSubmission(rowIdx, docId);
         }
       });
     }
@@ -2317,15 +2418,32 @@
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus!'
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
       }).then((result) => {
         if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Menghapus Kegiatan...',
+            text: 'Sedang memproses penghapusan kegiatan',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
           google.script.run
             .withSuccessHandler(function() {
               Swal.fire('Terhapus!', 'Kegiatan berhasil dihapus.', 'success');
               loadAdminDashboard();
               // Update operator dropdown as well
               renderKegiatanDropdown();
+            })
+            .withFailureHandler(function(err) {
+              console.error("Gagal menghapus kegiatan:", err);
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menghapus',
+                text: 'Terjadi kesalahan saat menghapus kegiatan: ' + (err.message || err.toString())
+              });
             })
             .deleteKegiatan(nama);
         }
