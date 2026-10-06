@@ -544,12 +544,15 @@
       <div id="admin-panel" class="hidden space-y-8">
         
         <!-- Sub-tab pill switchers inside admin panel -->
-        <div class="bg-slate-100 p-1.5 rounded-2xl flex max-w-md w-full gap-1 border border-slate-200">
-          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center">
+        <div class="bg-slate-100 p-1.5 rounded-2xl flex max-w-xl w-full gap-1 border border-slate-200">
+          <button onclick="switchAdminTab('submisi-panel')" id="btn-submisi-panel" class="px-3 sm:px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-xs sm:text-sm transition-all flex-1 text-center">
             📊 Submisi & Statistik
           </button>
-          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center">
+          <button onclick="switchAdminTab('kegiatan-panel')" id="btn-kegiatan-panel" class="px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center">
             ⚙️ Manajemen Kegiatan
+          </button>
+          <button onclick="switchAdminTab('template-panel')" id="btn-template-panel" class="px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center">
+            📝 Template & Tag
           </button>
         </div>
 
@@ -724,9 +727,180 @@
           </div>
         </div>
 
+        <!-- ==================== SUB-TAB 3: TEMPLATE & TAG MANAGER ==================== -->
+        <div id="template-panel" class="admin-sub-tab hidden space-y-6">
+          
+          <!-- Card Status Template Aktif -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">📄</span>
+                  <h3 class="font-bold text-slate-800 text-base md:text-lg">Template Dokumen SPT Saat Ini</h3>
+                  <span id="tpl-active-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Template Bawaan</span>
+                </div>
+                <p id="tpl-active-desc" class="text-xs text-slate-500">Berkas bawaan sistem: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">template_spt_simona.docx</code></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="downloadCurrentTemplateDocx()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-touch-target">
+                  <span>📥</span> Unduh Template Aktif (.docx)
+                </button>
+                <button type="button" onclick="testPreviewCurrentTemplate()" class="px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-touch-target">
+                  <span>🧪</span> Uji Coba Pratinjau (Preview SPT)
+                </button>
+                <button type="button" id="btn-reset-template" onclick="resetActiveTemplateToDefault()" class="hidden px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-touch-target">
+                  <span>🔄</span> Reset ke Default
+                </button>
+              </div>
+            </div>
+            
+            <div class="mt-4 pt-1 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <span class="text-slate-400 block font-semibold">Nama Berkas:</span>
+                <span id="tpl-stat-filename" class="font-bold text-slate-700 truncate block mt-0.5">template_spt_simona.docx</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <span class="text-slate-400 block font-semibold">Ukuran Berkas:</span>
+                <span id="tpl-stat-size" class="font-bold text-slate-700 block mt-0.5">108 KB</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <span class="text-slate-400 block font-semibold">Terakhir Diperbarui:</span>
+                <span id="tpl-stat-updated" class="font-bold text-slate-700 block mt-0.5">Bawaan Sistem</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Unggah & Tag Scanner Validator -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base md:text-lg flex items-center gap-2">
+                <span>📤</span> Unggah & Validasi Template Baru (.docx)
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">
+                Pilih file Word (.docx) hasil editan Anda. Sistem akan memindai secara instan seluruh tag <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">{{tag}}</code> di dalamnya dan memastikan formatnya kompatibel sebelum disimpan.
+              </p>
+            </div>
+
+            <!-- Upload Area -->
+            <div id="drop-zone" class="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/30 hover:bg-blue-50/60 rounded-3xl p-6 md:p-8 text-center transition-all cursor-pointer" onclick="document.getElementById('docx-file-input').click()">
+              <input type="file" id="docx-file-input" accept=".docx" class="hidden" onchange="handleDocxFileInput(this.files)">
+              <div class="max-w-md mx-auto space-y-3">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-100 text-[#0057B7] flex items-center justify-center text-2xl shadow-inner">
+                  📄
+                </div>
+                <div>
+                  <p class="font-bold text-slate-800 text-sm md:text-base">Klik atau Seret Berkas Template Word (.docx) ke Sini</p>
+                  <p class="text-xs text-slate-400 mt-1">Format yang didukung: <strong>.docx</strong> (Maksimal 500 KB)</p>
+                </div>
+                <button type="button" class="px-4 py-2 bg-[#0057B7] hover:bg-[#00438F] text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                  Pilih File Word (.docx)
+                </button>
+              </div>
+            </div>
+
+            <!-- Result Box: Analisis Tag Scanner (Hidden by default) -->
+            <div id="scan-result-card" class="hidden rounded-2xl p-5 border transition-all space-y-4">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200/60">
+                <div>
+                  <h4 id="scan-status-title" class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                    Hasil Pemindaian Template
+                  </h4>
+                  <p id="scan-status-desc" class="text-xs text-slate-500 mt-0.5">Memeriksa struktur tag variabel pada berkas</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" onclick="testPreviewUploadedTemplate()" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-all border border-blue-200 flex items-center gap-1.5">
+                    <span>🧪</span> Uji Pratinjau File Ini Dulu
+                  </button>
+                  <button type="button" id="btn-save-scanned-template" onclick="saveScannedTemplateAsActive()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                    <span>💾</span> Simpan & Jadikan Template Utama
+                  </button>
+                </div>
+              </div>
+
+              <!-- Badges Summary -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div class="p-3 bg-white rounded-xl border border-slate-200/80">
+                  <span class="text-slate-400 block font-semibold">Total Tag Ditemukan:</span>
+                  <span id="scan-count-total" class="font-extrabold text-base text-slate-800">0</span>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800">
+                  <span class="block font-semibold">Tag Valid (Dikenali):</span>
+                  <span id="scan-count-valid" class="font-extrabold text-base text-emerald-700">0</span>
+                </div>
+                <div class="p-3 bg-red-50 rounded-xl border border-red-200 text-red-800">
+                  <span class="block font-semibold">Tag Asing / Typo:</span>
+                  <span id="scan-count-unknown" class="font-extrabold text-base text-red-700">0</span>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-blue-800">
+                  <span class="block font-semibold">Tag Tanda Tangan:</span>
+                  <span id="scan-status-ttd" class="font-extrabold text-base text-blue-700">Terpasang</span>
+                </div>
+              </div>
+
+              <!-- List of tags detected -->
+              <div class="space-y-2 text-xs">
+                <!-- Unknown / Typo Tags Alert -->
+                <div id="scan-unknown-box" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1">
+                  <div class="font-bold flex items-center gap-1.5">
+                    <span>⚠️</span> Ditemukan tag yang tidak dikenali sistem (Mungkin salah ketik):
+                  </div>
+                  <div id="scan-unknown-tags" class="flex flex-wrap gap-1.5 pt-1"></div>
+                  <p class="text-[11px] text-amber-700 mt-1">Tag di atas akan dibiarkan kosong atau tidak terisi saat dokumen digenerate.</p>
+                </div>
+
+                <!-- Missing Crucial Tags Alert -->
+                <div id="scan-missing-box" class="hidden p-3 bg-red-50 border border-red-200 rounded-xl text-red-900 space-y-1">
+                  <div class="font-bold flex items-center gap-1.5">
+                    <span>🚨</span> Peringatan: Tag Tanda Tangan <code class="font-mono bg-red-100 px-1 py-0.5 rounded">{{ttd}}</code> tidak ditemukan!
+                  </div>
+                  <p class="text-[11px] text-red-700">Pastikan Anda menyisipkan tag <code class="font-mono bg-red-100 px-1 py-0.5 rounded">{{ttd}}</code> di atas nama pejabat penandatangan agar tanda tangan digital dapat dicetak pada dokumen Word.</p>
+                </div>
+
+                <!-- Valid tags list -->
+                <div>
+                  <span class="text-slate-500 font-semibold block mb-1.5">Tag Valid yang Terdeteksi:</span>
+                  <div id="scan-valid-tags" class="flex flex-wrap gap-1.5"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Kamus Tag Sistem (Tag Cheat Sheet) -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="font-bold text-slate-800 text-base md:text-lg flex items-center gap-2">
+                  <span>📖</span> Kamus Tag Resmi Sistem (Tag Cheat Sheet)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  Klik tombol <strong>"Salin"</strong> pada tag yang Anda butuhkan, lalu <em>Paste</em> ke dalam dokumen Microsoft Word Anda.
+                </p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 self-start md:self-auto">
+                15 Tag Tersedia
+              </span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
+                    <th class="px-4 py-3">Tag Variabel</th>
+                    <th class="px-4 py-3">Keterangan / Variabel</th>
+                    <th class="px-4 py-3">Contoh Nilai Saat Digenerate</th>
+                    <th class="px-4 py-3 text-center">Salin</th>
+                  </tr>
+                </thead>
+                <tbody id="tag-dict-tbody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
-  </div>
 
   <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
   <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-4 py-1 flex items-center justify-around shadow-md" style="padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0.25rem));" aria-label="Navigasi Utama">
@@ -887,23 +1061,31 @@
         <table class="w-full text-sm">
           <tbody>
             <tr class="border-b border-slate-50">
-              <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Penandatangan</td>
+              <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Penandatangan (Atasan)</td>
               <td id="v-nama" class="px-6 py-4 font-bold text-slate-800"></td>
             </tr>
             <tr class="border-b border-slate-50">
               <td class="px-6 py-4 font-semibold text-slate-500">NIP Atasan</td>
-              <td id="v-nip" class="px-6 py-4 text-slate-800"></td>
+              <td id="v-nip" class="px-6 py-4 text-slate-800 font-mono"></td>
             </tr>
             <tr class="border-b border-slate-50">
-              <td class="px-6 py-4 font-semibold text-slate-500">Jabatan</td>
+              <td class="px-6 py-4 font-semibold text-slate-500">Jabatan Atasan</td>
               <td id="v-jabatan" class="px-6 py-4 text-slate-800"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Pegawai (Pemohon)</td>
+              <td id="v-pegawai" class="px-6 py-4 text-slate-800 font-semibold"></td>
+            </tr>
+            <tr class="border-b border-slate-50">
+              <td class="px-6 py-4 font-semibold text-slate-500">Unit Kerja</td>
+              <td id="v-unitkerja" class="px-6 py-4 text-slate-800"></td>
             </tr>
             <tr class="border-b border-slate-50">
               <td class="px-6 py-4 font-semibold text-slate-500">Perihal SPT</td>
               <td id="v-perihal" class="px-6 py-4 text-slate-800 italic"></td>
             </tr>
             <tr class="border-b border-slate-50">
-              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal TTE</td>
+              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal TTE / Submisi</td>
               <td id="v-tanggal" class="px-6 py-4 text-slate-800"></td>
             </tr>
             <tr>
@@ -1033,13 +1215,68 @@
         return password === "adminbagor123";
       },
 
+      async getActiveTemplate() {
+        try {
+          const doc = await db.collection('config_templates').doc('active_spt').get();
+          if (doc.exists) {
+            const data = doc.data();
+            if (data && data.contentBase64) {
+              window.__activeCustomTemplateBase64 = data.contentBase64;
+              return {
+                exists: true,
+                filename: data.filename || "template_custom.docx",
+                fileSize: data.fileSize || 0,
+                updatedAt: data.updatedAt ? data.updatedAt.toDate().toLocaleString('id-ID') : "",
+                contentBase64: data.contentBase64
+              };
+            }
+          }
+          window.__activeCustomTemplateBase64 = null;
+          return { exists: false };
+        } catch(err) {
+          console.warn("Firestore getActiveTemplate error:", err);
+          return { exists: false, error: err.toString() };
+        }
+      },
+
+      async saveActiveTemplate(templateData) {
+        try {
+          if (!templateData || !templateData.contentBase64) {
+            throw new Error("Data template tidak valid atau kosong.");
+          }
+          await db.collection('config_templates').doc('active_spt').set({
+            filename: templateData.filename || "template_spt.docx",
+            fileSize: templateData.fileSize || 0,
+            contentBase64: templateData.contentBase64,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          window.__activeCustomTemplateBase64 = templateData.contentBase64;
+          return { success: true };
+        } catch(err) {
+          console.error("Firestore saveActiveTemplate error:", err);
+          throw err;
+        }
+      },
+
+      async resetActiveTemplate() {
+        try {
+          await db.collection('config_templates').doc('active_spt').delete();
+          window.__activeCustomTemplateBase64 = null;
+          return { success: true };
+        } catch(err) {
+          console.error("Firestore resetActiveTemplate error:", err);
+          throw err;
+        }
+      },
+
       async getSubmissionsData() {
         try {
           const snap = await db.collection('submissions').orderBy('createdAt', 'desc').get();
           const headers = [
             "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin",
             "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan",
-            "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId"
+            "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId",
+            "Status Pegawai", "Jabatan Admin", "Pangkat Admin", "No HP Admin", "Unit Kerja ID"
           ];
           const rows = [headers];
           snap.forEach(doc => {
@@ -1055,10 +1292,15 @@
               d.jabatanAtasan || "",
               d.pangkatGolAtasan || "",
               d.nipAtasan || "",
-              d.ttd || "",
+              "", // S-6: TTD dikosongkan dari payload tabel & CSV agar ringan & tidak merusak file
               d.integrasi || "",
               d.tahun || "",
-              doc.id
+              doc.id,
+              d.statusPegawai || "",
+              d.jabatanAdmin || d.jabatan || "",
+              d.pangkatAdmin || d.pangkat || "",
+              d.noHpAdmin || d.no_hp || "",
+              d.unitKerjaId || ""
             ]);
           });
           return rows;
@@ -1095,20 +1337,52 @@
 
       async submitSptData(data) {
         const now = new Date();
+        const currentYear = Number(data.tahun || now.getFullYear());
+
+        // S-8: Cek duplikasi pengajuan berdasarkan NIP + Perihal/Kegiatan di tahun berjalan
+        if (data.nip && data.perihal) {
+          try {
+            const dupSnap = await db.collection('submissions')
+              .where('nipAdmin', '==', String(data.nip).trim())
+              .where('perihal', '==', String(data.perihal).trim())
+              .get();
+            
+            if (!dupSnap.empty) {
+              const alreadyExists = dupSnap.docs.some(d => {
+                const docYear = d.data().tahun ? Number(d.data().tahun) : null;
+                return !docYear || docYear === currentYear;
+              });
+              if (alreadyExists) {
+                throw new Error("Data SPT untuk NIP " + data.nip + ' dengan kegiatan "' + data.perihal + '" sudah pernah dikirim.');
+              }
+            }
+          } catch(dupErr) {
+            if (dupErr.message && dupErr.message.includes("sudah pernah dikirim")) {
+              throw dupErr;
+            }
+            console.warn("Pemeriksaan duplikasi dilewati karena error kueri:", dupErr);
+          }
+        }
+
         const subDoc = {
           waktu: formatIndoDateTime(now),
           perihal: data.perihal || "",
           unitKerja: data.unit_kerja || "",
+          unitKerjaId: data.unit_kerja_id || "",
           namaAdmin: data.nama || "",
           nipAdmin: data.nip || "",
+          statusPegawai: data.status_pegawai || "",
+          pangkatAdmin: data.pangkat || "",
+          jabatanAdmin: data.jabatan || "",
+          noHpAdmin: data.no_hp || "",
           email: data.email || "",
           namaAtasan: data.n_atasan || "",
           jabatanAtasan: data.j_atasan || "",
           pangkatGolAtasan: data.p_atasan || "",
           nipAtasan: data.nip_atasan || "",
           ttd: data.signature_data || "",
-          integrasi: data.integrasi || "SITPP",
-          tahun: data.tahun || now.getFullYear(),
+          integrasi: data.integrasi || "None",
+          tahun: currentYear,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -1135,21 +1409,21 @@
           }
         }
 
-        // SiTPP RTDB Integration
+        // SiTPP RTDB Integration (S-4: hanya jika konfigurasi kegiatan bernilai SITPP)
         let sitppResult = null;
-        const isSitpp = data.integrasi === "SITPP" || (data.perihal && data.perihal.toUpperCase().indexOf("TPP") !== -1);
+        const isSitpp = data.integrasi === "SITPP";
         if (isSitpp) {
           try {
-            const currentYear = data.tahun || now.getFullYear();
             const sitppPayload = {
               id: docRef.id,
               waktu: subDoc.waktu,
               tahun: Number(currentYear),
               perihal: subDoc.perihal,
-              opdId: data.opd_id || subDoc.unitKerja || "",
+              opdId: data.unit_kerja_id || data.opd_id || subDoc.unitKerja || "",
               unitKerja: subDoc.unitKerja,
               namaAdmin: subDoc.namaAdmin,
               nipAdmin: subDoc.nipAdmin,
+              statusPegawai: subDoc.statusPegawai,
               email: subDoc.email,
               namaAtasan: subDoc.namaAtasan,
               jabatanAtasan: subDoc.jabatanAtasan,
@@ -1184,8 +1458,17 @@
           }
         }
 
-        // Generate Word DOCX client-side
-        const docxRes = await window.generateSptDocx(data);
+        // Pass docId & verification URL to data object so generateSptDocx embeds QR Code verification link
+        data.docId = docRef.id;
+        data.verify_url = "https://tugasku-bagor.web.app/?v=" + docRef.id;
+
+        // Generate Word DOCX client-side (menggunakan template aktif kustom jika ada)
+        if (!window.__activeCustomTemplateBase64) {
+          try {
+            await FirebaseService.getActiveTemplate();
+          } catch(e) {}
+        }
+        const docxRes = await window.generateSptDocx(data, window.__activeCustomTemplateBase64);
 
         const result = {
           status: "success",
@@ -1313,31 +1596,31 @@
 
     function switchAdminTab(subTabId) {
       document.querySelectorAll('.admin-sub-tab').forEach(el => el.classList.add('hidden'));
-      document.getElementById(subTabId).classList.remove('hidden');
+      const target = document.getElementById(subTabId);
+      if (target) target.classList.remove('hidden');
       
       const btnSub = document.getElementById('btn-submisi-panel');
       const btnKeg = document.getElementById('btn-kegiatan-panel');
-      
-      if (subTabId === 'submisi-panel') {
-        btnSub.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
-        btnKeg.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
-      } else {
-        btnKeg.className = "px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-sm transition-all flex-1 text-center";
-        btnSub.className = "px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-sm transition-all flex-1 text-center";
+      const btnTpl = document.getElementById('btn-template-panel');
+
+      const activeClass = "px-3 sm:px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-xs sm:text-sm transition-all flex-1 text-center";
+      const inactiveClass = "px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center";
+
+      if (btnSub) btnSub.className = subTabId === 'submisi-panel' ? activeClass : inactiveClass;
+      if (btnKeg) btnKeg.className = subTabId === 'kegiatan-panel' ? activeClass : inactiveClass;
+      if (btnTpl) btnTpl.className = subTabId === 'template-panel' ? activeClass : inactiveClass;
+
+      if (subTabId === 'template-panel') {
+        loadTemplateManager();
       }
     }
 
     // --- Page Load Initializer ---
     window.onload = function() {
       // Check for verification token in query parameters
-      let verifyToken = "";
-      try {
-        verifyToken = "";
-      } catch(e) {
-        const params = new URLSearchParams(window.location.search);
-        verifyToken = params.get('v') || "";
-      }
-      if (verifyToken && !verifyToken.startsWith("<" + "?")) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const verifyToken = urlParams.get('v') || "";
+      if (verifyToken) {
         showVerificationPage(verifyToken);
         return;
       }
@@ -1400,7 +1683,8 @@
               html += '<optgroup label="Unit Kerja Utama (Dinas / Badan / Kecamatan)">';
               parents.forEach(o => {
                 const safeName = (o.nama || '').replace(/"/g, '&quot;');
-                html += `<option value="${safeName}">${safeName}</option>`;
+                const opdId = (o.id || '').toString().replace(/"/g, '&quot;');
+                html += `<option value="${safeName}" data-id="${opdId}">${safeName}</option>`;
               });
               html += '</optgroup>';
             }
@@ -1409,7 +1693,8 @@
               html += '<optgroup label="Sub Unit Kerja (Bagian / Puskesmas / RSUD)">';
               children.forEach(o => {
                 const safeName = (o.nama || '').replace(/"/g, '&quot;');
-                html += `<option value="${safeName}">${safeName}</option>`;
+                const opdId = (o.id || '').toString().replace(/"/g, '&quot;');
+                html += `<option value="${safeName}" data-id="${opdId}">${safeName}</option>`;
               });
               html += '</optgroup>';
             }
@@ -1468,7 +1753,48 @@
       }
     }
 
-    function showVerificationPage(token) {
+    async function showVerificationPage(token) {
+      if (!token) return;
+
+      document.getElementById('main-app-container').classList.add('hidden');
+      document.getElementById('verification-container').classList.remove('hidden');
+
+      if (token === "SAMPLE_PREVIEW") {
+        document.getElementById('v-nama').innerText = "Drs. H. Ahmad Fauzi, M.Si";
+        document.getElementById('v-nip').innerText = "197508152000031002";
+        document.getElementById('v-jabatan').innerText = "Kepala Bagian Organisasi";
+        document.getElementById('v-perihal').innerText = "Uji Coba Preview Format Template SPT SIMONA";
+        document.getElementById('v-tanggal').innerText = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (document.getElementById('v-pegawai')) document.getElementById('v-pegawai').innerText = "Budi Santoso, S.Kom (NIP: 199012312015031001)";
+        if (document.getElementById('v-unitkerja')) document.getElementById('v-unitkerja').innerText = "Bagian Organisasi Sekretariat Daerah";
+        return;
+      }
+
+      // Try Firestore document lookup by docId
+      try {
+        if (window.db) {
+          const docSnap = await window.db.collection('submissions').doc(token).get();
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            document.getElementById('v-nama').innerText = data.namaAtasan || data.namaAdmin || "-";
+            document.getElementById('v-nip').innerText = data.nipAtasan || data.nipAdmin || "-";
+            document.getElementById('v-jabatan').innerText = data.jabatanAtasan || data.jabatanAdmin || "-";
+            document.getElementById('v-perihal').innerText = data.perihal || "-";
+            document.getElementById('v-tanggal').innerText = data.waktu || "-";
+            if (document.getElementById('v-pegawai')) {
+              document.getElementById('v-pegawai').innerText = (data.namaAdmin || "-") + (data.nipAdmin ? (" (NIP: " + data.nipAdmin + ")") : "");
+            }
+            if (document.getElementById('v-unitkerja')) {
+              document.getElementById('v-unitkerja').innerText = data.unitKerja || "-";
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Firestore doc lookup warning:", err);
+      }
+
+      // Fallback: Legacy Base64 JSON token parsing
       try {
         let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
         while (base64.length % 4) {
@@ -1482,15 +1808,14 @@
         document.getElementById('v-jabatan').innerText = data.j || "-";
         document.getElementById('v-perihal').innerText = data.p || "-";
         document.getElementById('v-tanggal').innerText = data.d || "-";
-        
-        document.getElementById('main-app-container').classList.add('hidden');
-        document.getElementById('verification-container').classList.remove('hidden');
+        if (document.getElementById('v-pegawai')) document.getElementById('v-pegawai').innerText = "-";
+        if (document.getElementById('v-unitkerja')) document.getElementById('v-unitkerja').innerText = "-";
       } catch(e) {
         console.error(e);
         Swal.fire({
           icon: 'error',
-          title: 'Token Tidak Valid',
-          text: 'Token verifikasi TTE Srikandi tidak valid atau rusak!'
+          title: 'Dokumen Tidak Ditemukan',
+          text: 'Token atau ID dokumen verifikasi SPT ini tidak ditemukan di database!'
         });
       }
     }
@@ -1712,6 +2037,11 @@
       }
       
       data.signature_data = canvas.toDataURL('image/png');
+      
+      // Ambil unit kerja ID dari pilihan dropdown SI-PRABU
+      const opdSelect = document.getElementById('opd-select');
+      const selectedOption = opdSelect && opdSelect.options[opdSelect.selectedIndex];
+      data.unit_kerja_id = selectedOption ? (selectedOption.getAttribute('data-id') || '') : '';
       
       // Add integration info from selected kegiatan status
       const selectKeg = kegiatanDb.find(k => k.nama === data.perihal);
@@ -2008,8 +2338,12 @@
         const nama = String(row[3]).toUpperCase();
         if (nip && !uniqNip.has(nip)) {
           uniqNip.add(nip);
-          if (nama.includes("PNS")) pnsCount++;
-          if (nama.includes("PPPK")) pppkCount++;
+          const statusPegawai = (row[14] ? String(row[14]) : "").toUpperCase().trim();
+          if (statusPegawai === "PNS" || (!statusPegawai && nama.includes("PNS"))) {
+            pnsCount++;
+          } else if (statusPegawai === "PPPK" || (!statusPegawai && nama.includes("PPPK"))) {
+            pppkCount++;
+          }
         }
       });
       
@@ -2135,14 +2469,19 @@
         const nipPengirim = escapeHtml(row[4]);
         const namaAtasan = escapeHtml(row[6]);
         const nipAtasan = row[9] ? escapeHtml(row[9]) : '';
+        const statusPegawai = row[14] ? escapeHtml(row[14]) : '';
+        const jabatanPengirim = row[15] ? escapeHtml(row[15]) : '';
 
         // Desktop table row
         tbodyHtml += `
           <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
             <td class="px-6 py-4 font-semibold text-slate-700">${waktu}</td>
             <td class="px-6 py-4">
-              <div class="font-semibold text-slate-800">${namaPengirim}</div>
-              <div class="text-xs text-slate-400">NIP: ${nipPengirim}</div>
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-slate-800">${namaPengirim}</span>
+                ${statusPegawai ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusPegawai === 'PNS' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-purple-100 text-purple-800 border border-purple-200'}">${statusPegawai}</span>` : ''}
+              </div>
+              <div class="text-xs text-slate-400">NIP: ${nipPengirim}${jabatanPengirim ? ` • ${jabatanPengirim}` : ''}</div>
             </td>
             <td class="px-6 py-4 font-medium text-slate-600">${unitKerja}</td>
             <td class="px-6 py-4 font-medium text-slate-600">
@@ -2176,8 +2515,11 @@
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200 max-w-[180px] truncate">${perihal}</span>
               </div>
               <div>
-                <div class="font-bold text-slate-800 text-sm">${namaPengirim}</div>
-                <div class="text-xs text-slate-500 font-mono">NIP: ${nipPengirim}</div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-800 text-sm">${namaPengirim}</span>
+                  ${statusPegawai ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusPegawai === 'PNS' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-purple-100 text-purple-800 border border-purple-200'}">${statusPegawai}</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-500 font-mono">NIP: ${nipPengirim}${jabatanPengirim ? ` • ${jabatanPengirim}` : ''}</div>
                 <div class="text-xs font-medium text-slate-600 flex items-center gap-1.5 mt-1.5">
                   <span class="text-slate-400">🏛️</span>
                   <span class="line-clamp-1">${unitKerja}</span>
@@ -2275,7 +2617,7 @@
     function exportToCsv() {
       if (!submissionsDb || submissionsDb.length <= 1) return;
       
-      let csvContent = "data:text/csv;charset=utf-8,";
+      let csvContent = "";
       // Export header
       const headerEscaped = submissionsDb[0].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
       csvContent += headerEscaped + "\r\n";
@@ -2286,13 +2628,15 @@
         csvContent += escaped + "\r\n";
       });
       
-      const encodedUri = encodeURI(csvContent);
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       link.setAttribute("download", `Rekap_SPT_${new Date().getFullYear()}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     function renderAdminKegiatanTable() {
@@ -2739,6 +3083,393 @@
         }
       });
       observer.observe(selectEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    }
+
+    // ==================== TEMPLATE & TAG MANAGER LOGIC ====================
+    let currentActiveTemplate = null;
+    let pendingUploadedDocx = null; // { arrayBuffer, base64, filename, fileSize, scan }
+
+    function loadTemplateManager() {
+      renderTagDictionary();
+      fetchActiveTemplateInfo();
+    }
+
+    function renderTagDictionary() {
+      const tbody = document.getElementById('tag-dict-tbody');
+      if (!tbody) return;
+      
+      const tagList = window.SYSTEM_TAG_LIST || [
+        { tag: "unitkerja", label: "Unit Kerja / OPD", desc: "Nama Unit Kerja atau Instansi dari SI-PRABU", example: "Bagian Organisasi Setda" },
+        { tag: "nama_admin", label: "Nama Admin / Pemohon", desc: "Nama lengkap admin pemohon", example: "Budi Santoso, S.Kom" },
+        { tag: "NIP_admin", label: "NIP Admin", desc: "NIP 18 digit pegawai pemohon", example: "199012312015031001" },
+        { tag: "pangkat_admin", label: "Pangkat / Golongan Pemohon", desc: "Pangkat dan golongan ruang pegawai", example: "Penata Muda - III/a" },
+        { tag: "Jabatanadmin", label: "Jabatan Pemohon", desc: "Nama jabatan admin pemohon", example: "Analis Kebijakan Ahli Pertama" },
+        { tag: "no_hpadmin", label: "Nomor WhatsApp / HP", desc: "Nomor kontak aktif pemohon", example: "081234567890" },
+        { tag: "email_admin", label: "Email Pemohon", desc: "Alamat email pemohon (@gmail.com)", example: "budi.organisasi@gmail.com" },
+        { tag: "perihal", label: "Kegiatan / Perihal", desc: "Nama kegiatan atau perihal SPT", example: "Penyusunan Analisis Jabatan dan Beban Kerja" },
+        { tag: "dasar_spt", label: "Dasar Hukum SPT", desc: "Teks dasar hukum yang terhubung dengan kegiatan", example: "Peraturan Menteri Pendayagunaan Aparatur Negara..." },
+        { tag: "TTL", label: "Tanggal Dokumen", desc: "Tanggal terbit dokumen (hari ini dalam format Indo)", example: "5 Oktober 2026" },
+        { tag: "NAMA_ATASAN", label: "Nama Atasan", desc: "Nama lengkap atasan penandatangan", example: "Drs. H. Ahmad Fauzi, M.Si" },
+        { tag: "NIP_ATASAN", label: "NIP Atasan", desc: "NIP 18 digit atasan penandatangan", example: "197508152000031002" },
+        { tag: "JABATAN_ATASAN", label: "Jabatan Atasan", desc: "Nama jabatan atasan penandatangan", example: "Kepala Bagian Organisasi" },
+        { tag: "PANGKAT_GOL_ATASAN", label: "Pangkat / Golongan Atasan", desc: "Pangkat dan golongan ruang atasan", example: "Pembina Tingkat I - IV/b" },
+        { tag: "ttd", label: "Gambar Tanda Tangan", desc: "Tag gambar khusus untuk tanda tangan atasan", example: "[Gambar Tanda Tangan Digital]" }
+      ];
+
+      let html = '';
+      tagList.forEach(item => {
+        const isTtd = item.tag === 'ttd';
+        html += `
+          <tr class="hover:bg-slate-50/80 transition-all">
+            <td class="px-4 py-3 font-mono font-bold text-slate-800">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${isTtd ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-50 text-blue-800 border border-blue-200'}">
+                {{${item.tag}}}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="font-bold text-slate-800">${escapeHtml(item.label)}</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">${escapeHtml(item.desc)}</div>
+            </td>
+            <td class="px-4 py-3 text-slate-600 font-mono text-[11px]">
+              ${escapeHtml(item.example)}
+            </td>
+            <td class="px-4 py-3 text-center">
+              <button type="button" onclick="copyTagToClipboard('${item.tag}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-[#0057B7] text-slate-700 hover:text-white font-bold transition-all shadow-xs inline-flex items-center gap-1 text-xs">
+                <span>📋</span> Salin
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function copyTagToClipboard(tagName) {
+      const textToCopy = "{{" + tagName + "}}";
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true
+        });
+        Toast.fire({
+          icon: 'success',
+          title: 'Tag ' + textToCopy + ' berhasil disalin!'
+        });
+      }).catch(err => {
+        prompt("Salin tag ini secara manual:", textToCopy);
+      });
+    }
+
+    function fetchActiveTemplateInfo() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          const badge = document.getElementById('tpl-active-badge');
+          const desc = document.getElementById('tpl-active-desc');
+          const statFilename = document.getElementById('tpl-stat-filename');
+          const statSize = document.getElementById('tpl-stat-size');
+          const statUpdated = document.getElementById('tpl-stat-updated');
+          const resetBtn = document.getElementById('btn-reset-template');
+
+          if (res && res.exists) {
+            currentActiveTemplate = res;
+            if (badge) {
+              badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800";
+              badge.innerText = "🟢 Template Kustom Aktif";
+            }
+            if (desc) desc.innerHTML = 'Template aktif dikelola via database Firestore: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">' + escapeHtml(res.filename) + '</code>';
+            if (statFilename) statFilename.innerText = res.filename;
+            if (statSize) statSize.innerText = Math.round(res.fileSize / 1024) + ' KB';
+            if (statUpdated) statUpdated.innerText = res.updatedAt || "-";
+            if (resetBtn) resetBtn.classList.remove('hidden');
+          } else {
+            currentActiveTemplate = null;
+            if (badge) {
+              badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700";
+              badge.innerText = "🔵 Template Bawaan Sistem";
+            }
+            if (desc) desc.innerHTML = 'Berkas bawaan sistem: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">template_spt_simona.docx</code>';
+            if (statFilename) statFilename.innerText = "template_spt_simona.docx";
+            if (statSize) statSize.innerText = "108 KB";
+            if (statUpdated) statUpdated.innerText = "Bawaan Sistem";
+            if (resetBtn) resetBtn.classList.add('hidden');
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.warn("Gagal membaca active template:", err);
+        })
+        .getActiveTemplate();
+    }
+
+    function handleDocxFileInput(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      if (!file.name.toLowerCase().endsWith('.docx')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Format Berkas Salah',
+          text: 'Harap pilih berkas dokumen Microsoft Word dengan ekstensi .docx'
+        });
+        return;
+      }
+
+      if (file.size > 800 * 1024) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Ukuran Berkas Terlalu Besar',
+          text: 'Ukuran berkas template .docx maksimal adalah 800 KB agar performa unduhan optimal.'
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        
+        // Scan tags with window.scanDocxTags
+        if (typeof window.scanDocxTags !== 'function') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Modul Belum Siap',
+            text: 'Modul pemindai tag DOCX belum dimuat. Silakan refresh halaman.'
+          });
+          return;
+        }
+
+        const scan = window.scanDocxTags(arrayBuffer);
+        if (!scan.success) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Membaca Dokumen Word',
+            text: 'Berkas tidak dapat dipindai sebagai format .docx yang valid: ' + (scan.error || '')
+          });
+          return;
+        }
+
+        // Convert arrayBuffer to base64
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+
+        pendingUploadedDocx = {
+          arrayBuffer,
+          base64,
+          filename: file.name,
+          fileSize: file.size,
+          scan
+        };
+
+        renderScanResults(pendingUploadedDocx);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderScanResults(item) {
+      const card = document.getElementById('scan-result-card');
+      if (!card) return;
+      card.classList.remove('hidden');
+
+      const scan = item.scan;
+      document.getElementById('scan-count-total').innerText = scan.totalTags;
+      document.getElementById('scan-count-valid').innerText = scan.validTags.length;
+      document.getElementById('scan-count-unknown').innerText = scan.unknownTags.length;
+      
+      const ttdStatusEl = document.getElementById('scan-status-ttd');
+      if (scan.hasTtd) {
+        ttdStatusEl.innerText = "✅ Terpasang";
+        ttdStatusEl.className = "font-extrabold text-base text-emerald-700";
+      } else {
+        ttdStatusEl.innerText = "❌ Hilang / Tidak Ada";
+        ttdStatusEl.className = "font-extrabold text-base text-red-600 animate-pulse";
+      }
+
+      // Unknown tags box
+      const unknownBox = document.getElementById('scan-unknown-box');
+      const unknownContainer = document.getElementById('scan-unknown-tags');
+      if (scan.unknownTags.length > 0) {
+        unknownBox.classList.remove('hidden');
+        unknownContainer.innerHTML = scan.unknownTags.map(t => `<span class="px-2 py-0.5 rounded bg-red-100 text-red-800 font-mono font-bold">{{${escapeHtml(t)}}}</span>`).join('');
+      } else {
+        unknownBox.classList.add('hidden');
+        unknownContainer.innerHTML = '';
+      }
+
+      // Missing TTD box
+      const missingBox = document.getElementById('scan-missing-box');
+      if (!scan.hasTtd) {
+        missingBox.classList.remove('hidden');
+      } else {
+        missingBox.classList.add('hidden');
+      }
+
+      // Valid tags
+      const validContainer = document.getElementById('scan-valid-tags');
+      if (scan.validTags.length > 0) {
+        validContainer.innerHTML = scan.validTags.map(t => `<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">{{${escapeHtml(t)}}}</span>`).join('');
+      } else {
+        validContainer.innerHTML = '<span class="text-slate-400 italic">Tidak ada tag valid yang terdeteksi.</span>';
+      }
+
+      // Title & desc
+      document.getElementById('scan-status-title').innerText = `Pemindaian Berkas: ${item.filename} (${Math.round(item.fileSize / 1024)} KB)`;
+      document.getElementById('scan-status-desc').innerText = `Ditemukan ${scan.validTags.length} tag valid dari ${scan.totalTags} tag terdeteksi.`;
+
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function testPreviewUploadedTemplate() {
+      if (!pendingUploadedDocx || !pendingUploadedDocx.arrayBuffer) {
+        Swal.fire('Belum Ada Berkas', 'Silakan pilih berkas .docx terlebih dahulu.', 'warning');
+        return;
+      }
+      runSampleDocxGeneration(pendingUploadedDocx.arrayBuffer);
+    }
+
+    function testPreviewCurrentTemplate() {
+      if (currentActiveTemplate && currentActiveTemplate.contentBase64) {
+        runSampleDocxGeneration(currentActiveTemplate.contentBase64);
+      } else {
+        runSampleDocxGeneration(null); // uses default /template_spt_simona.docx
+      }
+    }
+
+    function runSampleDocxGeneration(templateSource) {
+      Swal.fire({
+        title: 'Membuat Pratinjau Dokumen...',
+        text: 'Sedang mengisi data sampel dummy ke template Word',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      window.generateSampleSptDocx(templateSource)
+        .then(res => {
+          Swal.close();
+          downloadFile(res.fileContent, res.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+          Swal.fire({
+            icon: 'success',
+            title: 'Pratinjau Berhasil Diunduh!',
+            text: 'Silakan buka file Word hasil download untuk memeriksa kerapian format, margin, tabel, dan posisi tanda tangan.'
+          });
+        })
+        .catch(err => {
+          Swal.close();
+          console.error("Gagal generate sample DOCX:", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Membuat Pratinjau',
+            text: 'Terjadi kesalahan saat memproses dokumen: ' + (err.message || err.toString())
+          });
+        });
+    }
+
+    function saveScannedTemplateAsActive() {
+      if (!pendingUploadedDocx || !pendingUploadedDocx.base64) {
+        Swal.fire('Belum Ada Berkas', 'Silakan pilih berkas .docx terlebih dahulu.', 'warning');
+        return;
+      }
+
+      Swal.fire({
+        title: 'Terapkan Template Ini?',
+        html: `Apakah Anda yakin ingin menjadikan berkas <strong>${escapeHtml(pendingUploadedDocx.filename)}</strong> sebagai template aktif utama SPT? Semua pengajuan selanjutnya akan menggunakan format ini.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0057B7',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Terapkan!',
+        cancelButtonText: 'Batal'
+      }).then(result => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Menyimpan Template...',
+            text: 'Sedang mengunggah template ke basis data',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire({
+                icon: 'success',
+                title: 'Template Berhasil Diterapkan!',
+                text: 'Template baru telah aktif digunakan pada formulir SPT pemohon.'
+              });
+              fetchActiveTemplateInfo();
+              document.getElementById('scan-result-card').classList.add('hidden');
+              pendingUploadedDocx = null;
+              document.getElementById('docx-file-input').value = '';
+            })
+            .withFailureHandler(function(err) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menyimpan Template',
+                text: 'Terjadi error: ' + (err.message || err.toString())
+              });
+            })
+            .saveActiveTemplate({
+              filename: pendingUploadedDocx.filename,
+              fileSize: pendingUploadedDocx.fileSize,
+              contentBase64: pendingUploadedDocx.base64
+            });
+        }
+      });
+    }
+
+    function resetActiveTemplateToDefault() {
+      Swal.fire({
+        title: 'Reset ke Template Bawaan?',
+        text: 'Format template akan dikembalikan ke template master asli bawaan sistem (template_spt_simona.docx).',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Kembalikan ke Default',
+        cancelButtonText: 'Batal'
+      }).then(result => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Mereset Template...',
+            text: 'Sedang memproses',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+
+          google.script.run
+            .withSuccessHandler(function() {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Direset!',
+                text: 'Template telah kembali menggunakan versi bawaan sistem.'
+              });
+              fetchActiveTemplateInfo();
+            })
+            .withFailureHandler(function(err) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Mereset Template',
+                text: 'Terjadi error: ' + (err.message || err.toString())
+              });
+            })
+            .resetActiveTemplate();
+        }
+      });
+    }
+
+    function downloadCurrentTemplateDocx() {
+      if (currentActiveTemplate && currentActiveTemplate.contentBase64) {
+        downloadFile(currentActiveTemplate.contentBase64, currentActiveTemplate.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      } else {
+        const link = document.createElement('a');
+        link.href = '/template_spt_simona.docx';
+        link.download = 'template_spt_simona.docx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   </script>
 </body>

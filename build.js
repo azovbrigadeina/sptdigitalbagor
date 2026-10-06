@@ -140,13 +140,68 @@ const firebaseSnippet = `
         return password === "adminbagor123";
       },
 
+      async getActiveTemplate() {
+        try {
+          const doc = await db.collection('config_templates').doc('active_spt').get();
+          if (doc.exists) {
+            const data = doc.data();
+            if (data && data.contentBase64) {
+              window.__activeCustomTemplateBase64 = data.contentBase64;
+              return {
+                exists: true,
+                filename: data.filename || "template_custom.docx",
+                fileSize: data.fileSize || 0,
+                updatedAt: data.updatedAt ? data.updatedAt.toDate().toLocaleString('id-ID') : "",
+                contentBase64: data.contentBase64
+              };
+            }
+          }
+          window.__activeCustomTemplateBase64 = null;
+          return { exists: false };
+        } catch(err) {
+          console.warn("Firestore getActiveTemplate error:", err);
+          return { exists: false, error: err.toString() };
+        }
+      },
+
+      async saveActiveTemplate(templateData) {
+        try {
+          if (!templateData || !templateData.contentBase64) {
+            throw new Error("Data template tidak valid atau kosong.");
+          }
+          await db.collection('config_templates').doc('active_spt').set({
+            filename: templateData.filename || "template_spt.docx",
+            fileSize: templateData.fileSize || 0,
+            contentBase64: templateData.contentBase64,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          window.__activeCustomTemplateBase64 = templateData.contentBase64;
+          return { success: true };
+        } catch(err) {
+          console.error("Firestore saveActiveTemplate error:", err);
+          throw err;
+        }
+      },
+
+      async resetActiveTemplate() {
+        try {
+          await db.collection('config_templates').doc('active_spt').delete();
+          window.__activeCustomTemplateBase64 = null;
+          return { success: true };
+        } catch(err) {
+          console.error("Firestore resetActiveTemplate error:", err);
+          throw err;
+        }
+      },
+
       async getSubmissionsData() {
         try {
           const snap = await db.collection('submissions').orderBy('createdAt', 'desc').get();
           const headers = [
             "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin",
             "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan",
-            "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId"
+            "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId",
+            "Status Pegawai", "Jabatan Admin", "Pangkat Admin", "No HP Admin", "Unit Kerja ID"
           ];
           const rows = [headers];
           snap.forEach(doc => {
@@ -162,10 +217,15 @@ const firebaseSnippet = `
               d.jabatanAtasan || "",
               d.pangkatGolAtasan || "",
               d.nipAtasan || "",
-              d.ttd || "",
+              "", // S-6: TTD dikosongkan dari payload tabel & CSV agar ringan & tidak merusak file
               d.integrasi || "",
               d.tahun || "",
-              doc.id
+              doc.id,
+              d.statusPegawai || "",
+              d.jabatanAdmin || d.jabatan || "",
+              d.pangkatAdmin || d.pangkat || "",
+              d.noHpAdmin || d.no_hp || "",
+              d.unitKerjaId || ""
             ]);
           });
           return rows;
@@ -202,20 +262,52 @@ const firebaseSnippet = `
 
       async submitSptData(data) {
         const now = new Date();
+        const currentYear = Number(data.tahun || now.getFullYear());
+
+        // S-8: Cek duplikasi pengajuan berdasarkan NIP + Perihal/Kegiatan di tahun berjalan
+        if (data.nip && data.perihal) {
+          try {
+            const dupSnap = await db.collection('submissions')
+              .where('nipAdmin', '==', String(data.nip).trim())
+              .where('perihal', '==', String(data.perihal).trim())
+              .get();
+            
+            if (!dupSnap.empty) {
+              const alreadyExists = dupSnap.docs.some(d => {
+                const docYear = d.data().tahun ? Number(d.data().tahun) : null;
+                return !docYear || docYear === currentYear;
+              });
+              if (alreadyExists) {
+                throw new Error("Data SPT untuk NIP " + data.nip + ' dengan kegiatan "' + data.perihal + '" sudah pernah dikirim.');
+              }
+            }
+          } catch(dupErr) {
+            if (dupErr.message && dupErr.message.includes("sudah pernah dikirim")) {
+              throw dupErr;
+            }
+            console.warn("Pemeriksaan duplikasi dilewati karena error kueri:", dupErr);
+          }
+        }
+
         const subDoc = {
           waktu: formatIndoDateTime(now),
           perihal: data.perihal || "",
           unitKerja: data.unit_kerja || "",
+          unitKerjaId: data.unit_kerja_id || "",
           namaAdmin: data.nama || "",
           nipAdmin: data.nip || "",
+          statusPegawai: data.status_pegawai || "",
+          pangkatAdmin: data.pangkat || "",
+          jabatanAdmin: data.jabatan || "",
+          noHpAdmin: data.no_hp || "",
           email: data.email || "",
           namaAtasan: data.n_atasan || "",
           jabatanAtasan: data.j_atasan || "",
           pangkatGolAtasan: data.p_atasan || "",
           nipAtasan: data.nip_atasan || "",
           ttd: data.signature_data || "",
-          integrasi: data.integrasi || "SITPP",
-          tahun: data.tahun || now.getFullYear(),
+          integrasi: data.integrasi || "None",
+          tahun: currentYear,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -242,21 +334,21 @@ const firebaseSnippet = `
           }
         }
 
-        // SiTPP RTDB Integration
+        // SiTPP RTDB Integration (S-4: hanya jika konfigurasi kegiatan bernilai SITPP)
         let sitppResult = null;
-        const isSitpp = data.integrasi === "SITPP" || (data.perihal && data.perihal.toUpperCase().indexOf("TPP") !== -1);
+        const isSitpp = data.integrasi === "SITPP";
         if (isSitpp) {
           try {
-            const currentYear = data.tahun || now.getFullYear();
             const sitppPayload = {
               id: docRef.id,
               waktu: subDoc.waktu,
               tahun: Number(currentYear),
               perihal: subDoc.perihal,
-              opdId: data.opd_id || subDoc.unitKerja || "",
+              opdId: data.unit_kerja_id || data.opd_id || subDoc.unitKerja || "",
               unitKerja: subDoc.unitKerja,
               namaAdmin: subDoc.namaAdmin,
               nipAdmin: subDoc.nipAdmin,
+              statusPegawai: subDoc.statusPegawai,
               email: subDoc.email,
               namaAtasan: subDoc.namaAtasan,
               jabatanAtasan: subDoc.jabatanAtasan,
@@ -291,8 +383,17 @@ const firebaseSnippet = `
           }
         }
 
-        // Generate Word DOCX client-side
-        const docxRes = await window.generateSptDocx(data);
+        // Pass docId & verification URL to data object so generateSptDocx embeds QR Code verification link
+        data.docId = docRef.id;
+        data.verify_url = "https://tugasku-bagor.web.app/?v=" + docRef.id;
+
+        // Generate Word DOCX client-side (menggunakan template aktif kustom jika ada)
+        if (!window.__activeCustomTemplateBase64) {
+          try {
+            await FirebaseService.getActiveTemplate();
+          } catch(e) {}
+        }
+        const docxRes = await window.generateSptDocx(data, window.__activeCustomTemplateBase64);
 
         const result = {
           status: "success",
