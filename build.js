@@ -69,7 +69,15 @@ const firebaseSnippet = `
           const snap = await db.collection('config_kegiatan').get();
           if (snap.empty) {
             const defaults = [
-              { nama: "SPT Rekon TPP dan SIMONA", integrasi: "SITPP", status: "Aktif", deadline: "6 Februari 2026", dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA" }
+              { 
+                nama: "SPT Rekon TPP dan SIMONA", 
+                integrasi: "SITPP", 
+                status: "Aktif", 
+                deadline: "6 Februari 2026", 
+                dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA",
+                autoNomor: true,
+                formatNomor: "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"
+              }
             ];
             for (const item of defaults) {
               await db.collection('config_kegiatan').doc(item.nama).set(item);
@@ -78,7 +86,16 @@ const firebaseSnippet = `
           }
           const list = [];
           snap.forEach(doc => {
-            list.push(doc.data());
+            const d = doc.data();
+            list.push({
+              nama: d.nama,
+              integrasi: d.integrasi || "None",
+              status: d.status || "Aktif",
+              deadline: d.deadline || "Tanpa Batas",
+              dasar: d.dasar || "",
+              autoNomor: d.autoNomor !== false,
+              formatNomor: d.formatNomor || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"
+            });
           });
           return list;
         } catch(err) {
@@ -94,14 +111,61 @@ const firebaseSnippet = `
           status: item.status || "Aktif",
           deadline: item.deadline || "Tanpa Batas",
           dasar: item.dasar || "",
+          autoNomor: item.autoNomor !== false,
+          formatNomor: item.formatNomor || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}",
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
         return { success: true };
       },
 
       async deleteKegiatan(nama) {
         await db.collection('config_kegiatan').doc(nama).delete();
         return { success: true };
+      },
+
+      async getOpdConfigList() {
+        try {
+          const snap = await db.collection('config_opd').get();
+          const list = [];
+          snap.forEach(doc => {
+            const d = doc.data();
+            list.push({
+              id: doc.id,
+              nama: d.nama || "",
+              kodeSianjab: d.kodeSianjab || "",
+              kodeCustom: d.kodeCustom || "",
+              updatedAt: d.updatedAt ? d.updatedAt.toDate().toLocaleString('id-ID') : ""
+            });
+          });
+          return list;
+        } catch(err) {
+          console.error("Firestore getOpdConfigList error:", err);
+          return [];
+        }
+      },
+
+      async saveOpdConfig(items) {
+        try {
+          const arr = Array.isArray(items) ? items : [items];
+          const batch = db.batch();
+          arr.forEach(item => {
+            const docId = String(item.id || item.nama || '').trim();
+            if (!docId) return;
+            const ref = db.collection('config_opd').doc(docId);
+            batch.set(ref, {
+              id: item.id || docId,
+              nama: item.nama || "",
+              kodeSianjab: item.kodeSianjab || "",
+              kodeCustom: item.kodeCustom || "",
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          });
+          await batch.commit();
+          return { success: true };
+        } catch(err) {
+          console.error("Firestore saveOpdConfig error:", err);
+          throw err;
+        }
       },
 
       async getSianjabUnitKerja(forceRefresh) {
@@ -201,7 +265,8 @@ const firebaseSnippet = `
             "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin",
             "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan",
             "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId",
-            "Status Pegawai", "Jabatan Admin", "Pangkat Admin", "No HP Admin", "Unit Kerja ID"
+            "Status Pegawai", "Jabatan Admin", "Pangkat Admin", "No HP Admin", "Unit Kerja ID",
+            "Nomor SPT", "Nomor Urut", "Kode OPD"
           ];
           const rows = [headers];
           snap.forEach(doc => {
@@ -225,7 +290,10 @@ const firebaseSnippet = `
               d.jabatanAdmin || d.jabatan || "",
               d.pangkatAdmin || d.pangkat || "",
               d.noHpAdmin || d.no_hp || "",
-              d.unitKerjaId || ""
+              d.unitKerjaId || "",
+              d.nomorSpt || d.nomor_spt || "",
+              d.nomorUrut || d.nomor_urut || "",
+              d.kodeOpd || d.kode_opd || ""
             ]);
           });
           return rows;
@@ -289,6 +357,73 @@ const firebaseSnippet = `
           }
         }
 
+        // 1. Hitung nomor urut pendaftaran per kegiatan (FCFS)
+        let countPerihal = 0;
+        try {
+          const countSnap = await db.collection('submissions')
+            .where('perihal', '==', String(data.perihal).trim())
+            .get();
+          countPerihal = countSnap.size;
+        } catch(e) {
+          console.warn("Gagal menghitung nomor urut pendaftaran:", e);
+        }
+        const nomorUrutPad = String(countPerihal + 1).padStart(3, '0');
+
+        // 2. Tentukan Kode OPD (Hybrid: Config_OPD custom override -> SIANJAB)
+        let kodeOpd = data.kode_opd || "";
+        if (!kodeOpd) {
+          try {
+            const opdSnap = await db.collection('config_opd').get();
+            opdSnap.forEach(doc => {
+              const d = doc.data();
+              if ((data.unit_kerja_id && d.id === data.unit_kerja_id) || 
+                  (data.unit_kerja && (d.nama === data.unit_kerja || d.id === data.unit_kerja))) {
+                if (d.kodeCustom && d.kodeCustom.trim()) kodeOpd = d.kodeCustom.trim();
+                else if (d.kodeSianjab && d.kodeSianjab.trim()) kodeOpd = d.kodeSianjab.trim();
+              }
+            });
+          } catch(e) {}
+        }
+        if (!kodeOpd && window.sianjabUnits && Array.isArray(window.sianjabUnits)) {
+          let target = window.sianjabUnits.find(u => u.nama === data.unit_kerja || u.id === data.unit_kerja_id);
+          let depth = 0;
+          while (target && target.parentId && depth < 5) {
+            const parent = window.sianjabUnits.find(u => u.id === target.parentId || u.nama === target.parentId);
+            if (!parent) break;
+            target = parent;
+            depth++;
+          }
+          if (target && target.kode) kodeOpd = target.kode;
+        }
+        if (!kodeOpd) kodeOpd = "OPD";
+
+        // 3. Konfigurasi Penomoran Kegiatan
+        let isAutoNomor = true;
+        let formatTemplate = "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
+        try {
+          const kegDoc = await db.collection('config_kegiatan').doc(data.perihal).get();
+          if (kegDoc.exists) {
+            const kd = kegDoc.data();
+            if (kd.autoNomor === false) isAutoNomor = false;
+            if (kd.formatNomor) formatTemplate = kd.formatNomor;
+          }
+        } catch(e) {}
+
+        let nomorSpt = "";
+        if (isAutoNomor) {
+          nomorSpt = formatTemplate
+            .replace(/{nomor}/g, nomorUrutPad)
+            .replace(/{kode_opd}/g, kodeOpd)
+            .replace(/{tahun}/g, String(currentYear));
+        } else {
+          nomorSpt = data.nomor_spt || "";
+        }
+
+        data.nomor_spt = nomorSpt;
+        data.nomor_urut = nomorUrutPad;
+        data.kode_opd = kodeOpd;
+        data.tahun = currentYear;
+
         const subDoc = {
           waktu: formatIndoDateTime(now),
           perihal: data.perihal || "",
@@ -308,6 +443,9 @@ const firebaseSnippet = `
           ttd: data.signature_data || "",
           integrasi: data.integrasi || "None",
           tahun: currentYear,
+          nomorSpt: nomorSpt,
+          nomorUrut: nomorUrutPad,
+          kodeOpd: kodeOpd,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -344,6 +482,7 @@ const firebaseSnippet = `
               waktu: subDoc.waktu,
               tahun: Number(currentYear),
               perihal: subDoc.perihal,
+              nomorSpt: nomorSpt,
               opdId: data.unit_kerja_id || data.opd_id || subDoc.unitKerja || "",
               unitKerja: subDoc.unitKerja,
               namaAdmin: subDoc.namaAdmin,
@@ -398,6 +537,9 @@ const firebaseSnippet = `
         const result = {
           status: "success",
           docId: docRef.id,
+          nomor_spt: nomorSpt,
+          nomor_urut: nomorUrutPad,
+          kode_opd: kodeOpd,
           fileContent: docxRes.fileContent,
           filename: docxRes.filename
         };
@@ -412,6 +554,111 @@ const firebaseSnippet = `
         }
 
         return result;
+      },
+
+      async checkAttendance(kegiatan, nip) {
+        try {
+          if (!kegiatan || !nip) {
+            return { success: false, reason: "INVALID_INPUT", message: "Kegiatan dan NIP wajib diisi." };
+          }
+          const cleanNip = String(nip).trim();
+          const cleanKegiatan = String(kegiatan).trim();
+
+          // 1. Cek keberadaan SPT di koleksi submissions
+          const snap = await db.collection('submissions')
+            .where('perihal', '==', cleanKegiatan)
+            .get();
+
+          let matchedSub = null;
+          snap.forEach(doc => {
+            const d = doc.data();
+            const subNip = String(d.nipAdmin || d.nip || '').trim();
+            if (subNip === cleanNip) {
+              matchedSub = { id: doc.id, ...d };
+            }
+          });
+
+          if (!matchedSub) {
+            return { 
+              success: false, 
+              reason: "SPT_NOT_FOUND", 
+              message: "NIP " + cleanNip + ' belum terdaftar mengirimkan Surat Perintah Tugas (SPT) untuk kegiatan "' + cleanKegiatan + '".' 
+            };
+          }
+
+          // 2. Cek apakah sudah pernah presensi di presensi_kegiatan
+          const presensiId = encodeURIComponent(cleanKegiatan).replace(/%/g, '_') + "_" + cleanNip;
+          const presensiRef = db.collection('presensi_kegiatan').doc(presensiId);
+          const presensiSnap = await presensiRef.get();
+
+          if (presensiSnap.exists) {
+            return {
+              success: true,
+              alreadyCheckedIn: true,
+              data: presensiSnap.data(),
+              message: "Peserta sudah tercatat hadir sebelumnya."
+            };
+          }
+
+          // 3. Simpan presensi baru
+          const newPresensi = {
+            id: presensiId,
+            kegiatan: cleanKegiatan,
+            nip: cleanNip,
+            nama: matchedSub.namaAdmin || matchedSub.nama || "",
+            opd: matchedSub.unitKerja || matchedSub.unit_kerja || "",
+            opdId: matchedSub.unitKerjaId || matchedSub.opdId || "",
+            jabatan: matchedSub.jabatanAdmin || matchedSub.jabatan || "",
+            statusPegawai: matchedSub.statusPegawai || "",
+            submissionId: matchedSub.id,
+            nomorSpt: matchedSub.nomorSpt || matchedSub.nomor_spt || "-",
+            waktuCheckIn: formatIndoDateTime(new Date()),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            source: "web_presensi"
+          };
+
+          await presensiRef.set(newPresensi);
+
+          return {
+            success: true,
+            alreadyCheckedIn: false,
+            data: newPresensi,
+            message: "Presensi berhasil dikonfirmasi!"
+          };
+        } catch(err) {
+          console.error("Firebase checkAttendance error:", err);
+          return { success: false, reason: "ERROR", message: err.message || err.toString() };
+        }
+      },
+
+      async getAttendanceList(kegiatan) {
+        try {
+          let ref = db.collection('presensi_kegiatan');
+          if (kegiatan && kegiatan !== "Semua Kegiatan") {
+            ref = ref.where('kegiatan', '==', String(kegiatan).trim());
+          }
+          const snap = await ref.get();
+          const list = [];
+          snap.forEach(doc => {
+            list.push(doc.data());
+          });
+          // Sort by waktuCheckIn descending
+          list.sort((a, b) => (b.waktuCheckIn || '').localeCompare(a.waktuCheckIn || ''));
+          return list;
+        } catch(err) {
+          console.error("Firebase getAttendanceList error:", err);
+          return [];
+        }
+      },
+
+      async deleteAttendance(id) {
+        try {
+          await db.collection('presensi_kegiatan').doc(id).delete();
+          return { success: true };
+        } catch(err) {
+          console.error("Firebase deleteAttendance error:", err);
+          return { success: false, error: err.toString() };
+        }
       }
     };
 
@@ -459,3 +706,18 @@ if (html.includes(insertTarget)) {
 
 fs.writeFileSync(DIST_FILE, html, 'utf8');
 console.log(`[Build] Successfully compiled to ${DIST_FILE}! (${fs.statSync(DIST_FILE).size} bytes)`);
+
+// 4. Compile Presensi.html
+const PRESENSI_SRC = path.join(__dirname, 'apps_script', 'Presensi.html');
+const PRESENSI_DIST = path.join(PUBLIC_DIR, 'presensi.html');
+
+if (fs.existsSync(PRESENSI_SRC)) {
+  let presensiHtml = fs.readFileSync(PRESENSI_SRC, 'utf8');
+  if (presensiHtml.includes('<!-- FIREBASE_SNIPPET -->')) {
+    presensiHtml = presensiHtml.replace('<!-- FIREBASE_SNIPPET -->', firebaseSnippet);
+  } else if (presensiHtml.includes('</body>')) {
+    presensiHtml = presensiHtml.replace('</body>', `${firebaseSnippet}\n</body>`);
+  }
+  fs.writeFileSync(PRESENSI_DIST, presensiHtml, 'utf8');
+  console.log(`[Build] Successfully compiled to ${PRESENSI_DIST}! (${fs.statSync(PRESENSI_DIST).size} bytes)`);
+}

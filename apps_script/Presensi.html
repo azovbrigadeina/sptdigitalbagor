@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daftar Hadir Kegiatan - Bagian Organisasi Setda Kab. Muaro Jambi</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Muaro_Jambi.png">
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            ukr: {
+              blue: '#0057B7',
+              blueDark: '#00438F',
+              blueLight: '#EBF3FC',
+              yellow: '#FFD700',
+              yellowDark: '#E6C200',
+              yellowLight: '#FFFBE6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .min-touch-target {
+      min-height: 48px;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.95; transform: scale(0.99); }
+    }
+    .pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-ukr-yellow selection:text-slate-900">
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <a href="index.html" class="inline-flex items-center gap-2 text-slate-600 hover:text-ukr-blue text-xs sm:text-sm font-bold transition-all py-2 px-2.5 rounded-xl hover:bg-ukr-blueLight min-touch-target">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Form Kirim SPT</span>
+      </a>
+
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-ukr-blue text-white shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-ukr-yellow animate-ping"></span>
+          <span>Presensi Digital</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+  <main class="flex-grow max-w-2xl w-full mx-auto px-4 py-6 sm:py-10 space-y-6">
+
+    <!-- HERO HEADER CARD -->
+    <div class="bg-gradient-to-br from-[#0057B7] to-[#003875] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+      <!-- Decorative background blur circle -->
+      <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-ukr-yellow/20 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2.5 flex items-center justify-center shrink-0 shadow-inner">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Muaro_Jambi.png" alt="Logo Pemkab Muaro Jambi" class="w-full h-full object-contain filter drop-shadow">
+        </div>
+        <div>
+          <span class="text-ukr-yellow text-xs font-extrabold tracking-wider uppercase block">Bagian Organisasi Setda Kab. Muaro Jambi</span>
+          <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">Daftar Hadir Kegiatan Resmi</h1>
+          <p class="text-white/80 text-xs sm:text-sm mt-1 leading-relaxed">
+            Konfirmasi kehadiran acara kedinasan. Kehadiran diakui jika Anda telah terdaftar pada Surat Perintah Tugas (SPT).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRESENSI CARD FORM -->
+    <div id="presensi-form-card" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-6 transition-all">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+          <span class="text-xl">📍</span> Konfirmasi Kehadiran Peserta
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">Pilih kegiatan resmi yang diikuti lalu masukkan NIP Anda.</p>
+      </div>
+
+      <form id="presensi-form" onsubmit="handleConfirmAttendance(event)" class="space-y-5">
+        <!-- 1. Pilihan Kegiatan -->
+        <div>
+          <label for="presensi-kegiatan-select" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+            1. Nama Kegiatan / Acara <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select id="presensi-kegiatan-select" required onchange="handleKegiatanSelectionChange()" class="w-full min-touch-target py-3.5 px-4 text-sm font-semibold text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all bg-white appearance-none pr-10">
+              <option value="">-- Memuat daftar kegiatan aktif... --</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div id="kegiatan-info-box" class="hidden mt-2 p-3 bg-ukr-blueLight/60 border border-ukr-blue/20 rounded-xl text-xs text-ukr-blueDark flex items-start gap-2">
+            <span class="text-base shrink-0">ℹ️</span>
+            <div>
+              <span class="font-bold block" id="kegiatan-info-nama">-</span>
+              <span class="text-[11px] text-slate-600 block mt-0.5" id="kegiatan-info-dasar">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Input NIP -->
+        <div>
+          <label for="presensi-nip" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+            2. NIP Peserta (18 Digit) <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="presensi-nip" 
+              name="nip" 
+              required 
+              maxlength="18" 
+              inputmode="numeric" 
+              pattern="[0-9]{18}"
+              placeholder="Contoh: 198801012010011002"
+              oninput="handleNipInput(this)"
+              class="w-full min-touch-target py-3.5 px-4 text-base font-mono font-bold text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-300 placeholder:font-sans"
+            >
+            <div id="nip-char-count" class="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-mono font-semibold text-slate-400 pointer-events-none">
+              0/18
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
+            <span>💡</span> Masukkan 18 digit NIP tanpa spasi atau tanda hubung.
+          </p>
+        </div>
+
+        <!-- TOMBOL KONFIRMASI -->
+        <div class="pt-2">
+          <button 
+            type="submit" 
+            id="btn-confirm-attendance" 
+            class="w-full min-touch-target py-4 px-6 rounded-2xl bg-ukr-blue hover:bg-ukr-blueDark text-white font-extrabold text-sm sm:text-base transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+          >
+            <span id="btn-spinner" class="hidden">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+            <span id="btn-text">📍 Konfirmasi Hadir Sekarang</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ==================== DYNAMIC RESULT FEEDBACK CARDS ==================== -->
+    <div id="result-container" class="hidden transition-all duration-300 space-y-4">
+      
+      <!-- 1. KONDISI SUKSES: HADIR BARU (HIJAU) -->
+      <div id="card-success" class="hidden bg-emerald-50/90 border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+        <div class="flex items-center gap-3.5 pb-4 border-b border-emerald-200">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm">
+            ✓
+          </div>
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-200 text-emerald-900 inline-block mb-1">
+              Presensi Sah
+            </span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-emerald-950">Kehadiran Berhasil Dikonfirmasi!</h3>
+            <p class="text-xs text-emerald-800">Data Anda telah dicatat ke dalam daftar hadir resmi.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-emerald-100 shadow-xs space-y-3 text-xs sm:text-sm">
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Nama Peserta:</span>
+            <span class="font-extrabold text-slate-900 text-right" id="res-nama">-</span>
+          </div>
+          <div class="flex justify-between items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">NIP / Status:</span>
+            <span class="font-mono font-bold text-slate-800 text-right" id="res-nip">-</span>
+          </div>
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Unit Kerja / OPD:</span>
+            <span class="font-bold text-slate-900 text-right" id="res-opd">-</span>
+          </div>
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Jabatan:</span>
+            <span class="font-medium text-slate-700 text-right" id="res-jabatan">-</span>
+          </div>
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Nomor SPT:</span>
+            <span class="font-mono text-xs font-bold text-ukr-blue text-right" id="res-nomor-spt">-</span>
+          </div>
+          <div class="flex justify-between items-center gap-2 pt-1">
+            <span class="text-slate-500 font-medium">Waktu Check-In:</span>
+            <span class="font-bold text-emerald-700 text-right" id="res-waktu">-</span>
+          </div>
+        </div>
+
+        <button onclick="resetPresensiForm()" class="w-full min-touch-target py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+          <span>🔄 Presensi Peserta Lain</span>
+        </button>
+      </div>
+
+      <!-- 2. KONDISI SUDAH HADIR SEBELUMNYA (BIRU) -->
+      <div id="card-already" class="hidden bg-blue-50/90 border-2 border-ukr-blue/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+        <div class="flex items-center gap-3.5 pb-4 border-b border-blue-200">
+          <div class="w-12 h-12 rounded-2xl bg-ukr-blue text-white flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm">
+            ℹ
+          </div>
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-200 text-blue-900 inline-block mb-1">
+              Sudah Hadir
+            </span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-blue-950">Anda Sudah Terdaftar Hadir!</h3>
+            <p class="text-xs text-blue-800">Kehadiran untuk NIP ini sudah diverifikasi sebelumnya.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-blue-100 shadow-xs space-y-3 text-xs sm:text-sm">
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Nama Peserta:</span>
+            <span class="font-extrabold text-slate-900 text-right" id="already-nama">-</span>
+          </div>
+          <div class="flex justify-between items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">NIP:</span>
+            <span class="font-mono font-bold text-slate-800 text-right" id="already-nip">-</span>
+          </div>
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Unit Kerja / OPD:</span>
+            <span class="font-bold text-slate-900 text-right" id="already-opd">-</span>
+          </div>
+          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+            <span class="text-slate-500 font-medium">Nomor SPT:</span>
+            <span class="font-mono text-xs font-bold text-ukr-blue text-right" id="already-nomor-spt">-</span>
+          </div>
+          <div class="flex justify-between items-center gap-2 pt-1">
+            <span class="text-slate-500 font-medium">Waktu Presensi Awal:</span>
+            <span class="font-bold text-ukr-blueDark text-right" id="already-waktu">-</span>
+          </div>
+        </div>
+
+        <button onclick="resetPresensiForm()" class="w-full min-touch-target py-3 px-4 bg-ukr-blue hover:bg-ukr-blueDark text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+          <span>🔄 Presensi Peserta Lain</span>
+        </button>
+      </div>
+
+      <!-- 3. KONDISI PENOLAKAN: SPT BELUM ADA (AMBER/RED) -->
+      <div id="card-rejected" class="hidden bg-amber-50/95 border-2 border-amber-400 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+        <div class="flex items-center gap-3.5 pb-4 border-b border-amber-200">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl font-bold shrink-0 shadow-sm">
+            ⚠️
+          </div>
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 inline-block mb-1">
+              Prasyarat SPT Belum Terpenuhi
+            </span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-amber-950">Surat Perintah Tugas Belum Ditemukan!</h3>
+            <p class="text-xs text-amber-800">Kehadiran hanya dapat diakui jika SPT telah dikirimkan ke sistem.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-amber-200/80 shadow-xs text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+          <p>
+            NIP <span class="font-mono font-bold text-slate-900" id="rej-nip">-</span> belum terdaftar memiliki Surat Perintah Tugas resmi untuk kegiatan <span class="font-bold text-ukr-blue" id="rej-kegiatan">-</span>.
+          </p>
+          <p class="text-slate-500 text-xs">
+            Silakan kirimkan Surat Perintah Tugas terlebih dahulu melalui formulir digital kami. Setelah SPT selesai dikirim dan ditandatangani, Anda dapat langsung melakukan presensi di halaman ini.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a 
+            id="btn-link-isi-spt" 
+            href="index.html" 
+            class="flex-1 min-touch-target py-3.5 px-4 bg-ukr-blue hover:bg-ukr-blueDark text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md text-center flex items-center justify-center gap-2"
+          >
+            <span>📝 Isi Formulir SPT Sekarang</span>
+          </a>
+          <button 
+            type="button" 
+            onclick="resetPresensiForm()" 
+            class="min-touch-target py-3.5 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm rounded-xl border border-slate-300 transition-all text-center flex items-center justify-center"
+          >
+            <span>Coba NIP Lain</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PETUNJUK & INFORMASI KEDINASAN -->
+    <div class="bg-slate-100/70 border border-slate-200 rounded-3xl p-5 sm:p-6 text-xs text-slate-600 space-y-2">
+      <h4 class="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+        <span>📋</span> Informasi & Ketentuan Presensi
+      </h4>
+      <ul class="list-disc list-inside space-y-1 pl-1 text-[11px] sm:text-xs leading-relaxed text-slate-600">
+        <li>Peserta wajib memilih nama kegiatan resmi yang sesuai dengan agenda acara.</li>
+        <li>Sistem akan memverifikasi NIP Anda secara otomatis dengan database SPT resmi.</li>
+        <li>Waktu presensi dicatat secara *real-time* dan digunakan sebagai data rekapitulasi kehadiran instansi/OPD.</li>
+        <li>Jika menemui kendala teknis, silakan hubungi tim panitia atau admin Bagian Organisasi di meja registrasi.</li>
+      </ul>
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="mt-8 border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
+    <div class="max-w-2xl mx-auto px-4 space-y-1">
+      <p class="font-bold text-slate-600">Bagian Organisasi Sekretariat Daerah Kabupaten Muaro Jambi</p>
+      <p>© 2026 Sistem Informasi Kirim SPT & Presensi Digital</p>
+    </div>
+  </footer>
+
+  <!-- ==================== CLIENT LOGIC SCRIPT ==================== -->
+  <script>
+    let activeKegiatanList = [];
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadKegiatanDropdown();
+      setupUrlParams();
+    });
+
+    // Check URL params (e.g. ?kegiatan=...&nip=...)
+    function setupUrlParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramKeg = urlParams.get('kegiatan');
+      const paramNip = urlParams.get('nip');
+      if (paramNip) {
+        const nipInput = document.getElementById('presensi-nip');
+        if (nipInput) {
+          nipInput.value = paramNip;
+          handleNipInput(nipInput);
+        }
+      }
+      if (paramKeg) {
+        window.__targetKegiatanParam = paramKeg;
+      }
+    }
+
+    // Load Kegiatan List
+    async function loadKegiatanDropdown() {
+      const select = document.getElementById('presensi-kegiatan-select');
+      select.innerHTML = '<option value="">-- Memuat daftar kegiatan aktif... --</option>';
+      select.disabled = true;
+
+      try {
+        let list = [];
+        if (window.FirebaseService && typeof window.FirebaseService.getKegiatanList === 'function') {
+          list = await window.FirebaseService.getKegiatanList();
+        } else if (window.google && window.google.script && window.google.script.run) {
+          list = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getKegiatanList();
+          });
+        }
+
+        activeKegiatanList = Array.isArray(list) ? list.filter(k => k.status === 'Aktif') : [];
+
+        if (activeKegiatanList.length === 0) {
+          select.innerHTML = '<option value="">-- Tidak ada kegiatan aktif saat ini --</option>';
+          select.disabled = true;
+          return;
+        }
+
+        let html = '<option value="">-- Pilih Kegiatan Resmi --</option>';
+        activeKegiatanList.forEach(k => {
+          const safeName = (k.nama || '').replace(/"/g, '&quot;');
+          html += `<option value="${safeName}">${safeName}</option>`;
+        });
+
+        select.innerHTML = html;
+        select.disabled = false;
+
+        // Auto select if param provided
+        if (window.__targetKegiatanParam) {
+          const found = activeKegiatanList.find(k => k.nama === window.__targetKegiatanParam);
+          if (found) {
+            select.value = found.nama;
+            handleKegiatanSelectionChange();
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memuat kegiatan:", err);
+        select.innerHTML = '<option value="">-- Gagal memuat kegiatan. Muat ulang halaman --</option>';
+      }
+    }
+
+    function handleKegiatanSelectionChange() {
+      const select = document.getElementById('presensi-kegiatan-select');
+      const val = select.value;
+      const infoBox = document.getElementById('kegiatan-info-box');
+      const infoNama = document.getElementById('kegiatan-info-nama');
+      const infoDasar = document.getElementById('kegiatan-info-dasar');
+
+      const found = activeKegiatanList.find(k => k.nama === val);
+      if (found) {
+        infoNama.innerText = found.nama;
+        infoDasar.innerText = found.dasar ? ("Dasar: " + found.dasar) : ("Batas: " + (found.deadline || "Tanpa Batas"));
+        infoBox.classList.remove('hidden');
+      } else {
+        infoBox.classList.add('hidden');
+      }
+    }
+
+    function handleNipInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 18);
+      const countEl = document.getElementById('nip-char-count');
+      if (countEl) {
+        countEl.innerText = `${input.value.length}/18`;
+        if (input.value.length === 18) {
+          countEl.className = "absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-mono font-bold text-emerald-600 pointer-events-none";
+        } else {
+          countEl.className = "absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-mono font-semibold text-slate-400 pointer-events-none";
+        }
+      }
+    }
+
+    // Submit Attendance Confirmation
+    async function handleConfirmAttendance(e) {
+      e.preventDefault();
+      const kegiatanSelect = document.getElementById('presensi-kegiatan-select');
+      const nipInput = document.getElementById('presensi-nip');
+      const kegiatan = kegiatanSelect.value.trim();
+      const nip = nipInput.value.trim();
+
+      if (!kegiatan) {
+        alert("Silakan pilih kegiatan terlebih dahulu!");
+        kegiatanSelect.focus();
+        return;
+      }
+
+      if (nip.length !== 18) {
+        alert("NIP wajib 18 digit angka!");
+        nipInput.focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        let result = null;
+        if (window.FirebaseService && typeof window.FirebaseService.checkAttendance === 'function') {
+          result = await window.FirebaseService.checkAttendance(kegiatan, nip);
+        } else if (window.google && window.google.script && window.google.script.run) {
+          result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .checkAttendance(kegiatan, nip);
+          });
+        } else {
+          throw new Error("Layanan database tidak tersedia.");
+        }
+
+        renderResult(result, kegiatan, nip);
+      } catch (err) {
+        console.error("Presensi error:", err);
+        alert("Terjadi kesalahan saat memeriksa kehadiran: " + (err.message || err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderResult(res, kegiatan, nip) {
+      const container = document.getElementById('result-container');
+      const cardSuccess = document.getElementById('card-success');
+      const cardAlready = document.getElementById('card-already');
+      const cardRejected = document.getElementById('card-rejected');
+      const formCard = document.getElementById('presensi-form-card');
+
+      container.classList.remove('hidden');
+      cardSuccess.classList.add('hidden');
+      cardAlready.classList.add('hidden');
+      cardRejected.classList.add('hidden');
+
+      if (res && res.success) {
+        const d = res.data || {};
+        if (res.alreadyCheckedIn) {
+          // Kasus 2: Sudah hadir sebelumnya
+          document.getElementById('already-nama').innerText = d.nama || '-';
+          document.getElementById('already-nip').innerText = d.nip || nip;
+          document.getElementById('already-opd').innerText = d.opd || '-';
+          document.getElementById('already-nomor-spt').innerText = d.nomorSpt || '-';
+          document.getElementById('already-waktu').innerText = d.waktuCheckIn || '-';
+          cardAlready.classList.remove('hidden');
+        } else {
+          // Kasus 1: Hadir baru
+          document.getElementById('res-nama').innerText = d.nama || '-';
+          document.getElementById('res-nip').innerText = `${d.nip || nip}${d.statusPegawai ? ` (${d.statusPegawai})` : ''}`;
+          document.getElementById('res-opd').innerText = d.opd || '-';
+          document.getElementById('res-jabatan').innerText = d.jabatan || '-';
+          document.getElementById('res-nomor-spt').innerText = d.nomorSpt || '-';
+          document.getElementById('res-waktu').innerText = d.waktuCheckIn || '-';
+          cardSuccess.classList.remove('hidden');
+        }
+      } else {
+        // Kasus 3: SPT Belum Ditemukan
+        document.getElementById('rej-nip').innerText = nip;
+        document.getElementById('rej-kegiatan').innerText = kegiatan;
+        const linkBtn = document.getElementById('btn-link-isi-spt');
+        if (linkBtn) {
+          linkBtn.href = `index.html?kegiatan=${encodeURIComponent(kegiatan)}&nip=${encodeURIComponent(nip)}`;
+        }
+        cardRejected.classList.remove('hidden');
+      }
+
+      // Smooth scroll to result
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function resetPresensiForm() {
+      const container = document.getElementById('result-container');
+      container.classList.add('hidden');
+      const nipInput = document.getElementById('presensi-nip');
+      nipInput.value = '';
+      handleNipInput(nipInput);
+      nipInput.focus();
+    }
+
+    function setLoading(isLoading) {
+      const btn = document.getElementById('btn-confirm-attendance');
+      const spinner = document.getElementById('btn-spinner');
+      const text = document.getElementById('btn-text');
+
+      if (isLoading) {
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-wait');
+        spinner.classList.remove('hidden');
+        text.innerText = "Memverifikasi SPT & Kehadiran...";
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-wait');
+        spinner.classList.add('hidden');
+        text.innerText = "📍 Konfirmasi Hadir Sekarang";
+      }
+    }
+  </script>
+
+  <!-- FIREBASE_SNIPPET -->
+</body>
+</html>
