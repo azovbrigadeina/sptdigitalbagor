@@ -704,17 +704,832 @@
 
       async getSianjabUnitKerja(forceRefresh) {
         const cacheKey = "sianjab_unit_kerja_cache";
+        const seedUnits = [
+  {
+    "catatanRevisi": "",
+    "createdAt": "2026-08-03T08:48:01.514Z",
+    "kode": "",
+    "nama": "UPTD Satuan Pendidikan Formal (TK Negeri)",
+    "parentId": "DISDIKBUD",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T05:15:32.356Z",
+    "urutan": 7,
+    "id": "-Oz5njqiKTtfWOU2XwkH"
+  },
+  {
+    "catatanRevisi": "",
+    "createdAt": "2026-08-03T08:48:17.649Z",
+    "kode": "",
+    "nama": "UPTD Satuan Pendidikan Formal (SD Negeri)",
+    "parentId": "DISDIKBUD",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T04:38:45.154Z",
+    "urutan": 8,
+    "id": "-Oz5nnm9NSfkaEPzkDPl"
+  },
+  {
+    "catatanRevisi": "",
+    "createdAt": "2026-08-03T08:48:52.519Z",
+    "kode": "",
+    "nama": "UPTD Satuan Pendidikan Formal (SMP Negeri)",
+    "parentId": "DISDIKBUD",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T04:39:35.057Z",
+    "urutan": 9,
+    "id": "-Oz5nwFrK50H9MpUNUa7"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_EKONOMI",
+    "nama": "Bagian Perekonomian",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T02:32:29.691Z",
+    "urutan": 2,
+    "id": "BAG_EKONOMI"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_HUKUM",
+    "nama": "Bagian Hukum",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T07:16:02.812Z",
+    "urutan": 3,
+    "id": "BAG_HUKUM"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_KERJASAMA",
+    "nama": "Bagian Kerjasama",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T02:32:17.792Z",
+    "urutan": 1,
+    "id": "BAG_KERJASAMA"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_KESRA",
+    "nama": "Bagian Kesejahteraan Rakyat",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T07:15:51.508Z",
+    "urutan": 2,
+    "id": "BAG_KESRA"
+  },
+  {
+    "catatanRevisi": "",
+    "historyValidasi": [
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "aayyyyyyyyyyyyyyyyy",
+        "id": "f40b344c-1d5f-4d34-993e-9f561ac49896",
+        "status": "Revisi",
+        "timestamp": "2026-06-24 12:08:01 WIB"
+      },
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "",
+        "id": "480e1393-894f-4eec-99d2-715692776296",
+        "status": "Disetujui",
+        "timestamp": "2026-06-24 12:22:44 WIB"
+      },
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "tes tes",
+        "id": "a53e921c-9fe3-4e4c-b4a5-7ecb7e49ed3f",
+        "status": "Revisi",
+        "timestamp": "2026-06-25 15:21:16 WIB"
+      },
+      {
+        "actor": "Operator (Bagian Organisasi)",
+        "catatan": "Disetujui oleh Pimpinan (NIP: 111111111111111111)",
+        "id": "b63c23b6-b6ba-4b38-9665-e19a191cb28f",
+        "status": "Diajukan",
+        "timestamp": "2026-06-25 15:21:41 WIB"
+      },
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "isi lah dengsn bijak",
+        "id": "e0aa3bc0-495a-430d-a0a5-448b62c57438",
+        "status": "Revisi",
+        "timestamp": "2026-06-26 06:48:41 WIB"
+      },
+      {
+        "actor": "Operator (Bagian Organisasi)",
+        "catatan": "Disetujui oleh Pimpinan (NIP: 111111111111111111)",
+        "id": "735f4c49-a040-4312-bcc3-b8b56027890e",
+        "status": "Diajukan",
+        "timestamp": "2026-06-26 06:50:01 WIB"
+      },
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "perbaiki",
+        "id": "2853b25d-ddb0-4d6e-8c13-ba6a3683bf33",
+        "status": "Revisi",
+        "timestamp": "2026-06-28 10:08:02 WIB"
+      },
+      {
+        "actor": "Admin Kabupaten",
+        "catatan": "",
+        "id": "2d81d0d4-74f7-4a3b-b7e6-70175a93831d",
+        "status": "Disetujui",
+        "timestamp": "2026-08-06 15:11:29 WIB"
+      }
+    ],
+    "kode": "BAG_ORGANISASI",
+    "nama": "Bagian Organisasi",
+    "parentId": "SETDA",
+    "statusValidasi": "Disetujui",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T06:52:41.690Z",
+    "urutan": 2,
+    "id": "BAG_ORGANISASI"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_PBJ",
+    "nama": "Bagian Pengadaan Barang dan Jasa",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T02:32:58.983Z",
+    "urutan": 4,
+    "id": "BAG_PBJ"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_PEMBANGUNAN",
+    "nama": "Bagian Pembangunan dan Sumber Daya Alam",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T02:32:45.218Z",
+    "urutan": 3,
+    "id": "BAG_PEMBANGUNAN"
+  },
+  {
+    "kode": "BAG_PROKOPIM",
+    "nama": "Bagian Protokol dan Komunikasi Pimpinan",
+    "parentId": "SETDA",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T06:53:11.701Z",
+    "urutan": 3,
+    "id": "BAG_PROKOPIM"
+  },
+  {
+    "kode": "BAG_RENKEU",
+    "nama": "Bagian Perencanaan dan Keuangan",
+    "parentId": "SETDA",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T06:53:34.322Z",
+    "urutan": 4,
+    "id": "BAG_RENKEU"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "BAG_TAPEM",
+    "nama": "Bagian Tata Pemerintahan",
+    "parentId": "SETDA",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T07:15:36.305Z",
+    "urutan": 1,
+    "id": "BAG_TAPEM"
+  },
+  {
+    "kode": "BAG_UMUM",
+    "nama": "Bagian Umum",
+    "parentId": "SETDA",
+    "tahun": "2026",
+    "updatedAt": "2026-08-19T06:52:51.559Z",
+    "urutan": 1,
+    "id": "BAG_UMUM"
+  },
+  {
+    "kode": "BAPPERIDA",
+    "nama": "Badan Perencanaan Pembanguan Dan Riset Inovasi Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:57:23.239Z",
+    "urutan": 26,
+    "id": "BAPPERIDA"
+  },
+  {
+    "kode": "BKPSDM",
+    "nama": "Badan Kepegawaian dan Pengembangan Sumber Daya Manusia",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:57:41.387Z",
+    "urutan": 27,
+    "id": "BKPSDM"
+  },
+  {
+    "kode": "BPBD",
+    "nama": "Badan Penanggulangan Bencana Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:58:42.556Z",
+    "urutan": 30,
+    "id": "BPBD"
+  },
+  {
+    "kode": "BPKAD",
+    "nama": "Badan Pengelola Keuangan dan Aset Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:56:07.557Z",
+    "urutan": 28,
+    "id": "BPKAD"
+  },
+  {
+    "kode": "BPPRD",
+    "nama": "Badan Pengelola Pajak dan Retribusi Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:58:23.891Z",
+    "urutan": 29,
+    "id": "BPPRD"
+  },
+  {
+    "kode": "DAMKAR",
+    "nama": "Dinas Pemadam Kebakaran dan Penyelamatan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:44:23.919Z",
+    "urutan": 25,
+    "id": "DAMKAR"
+  },
+  {
+    "kode": "DINKES",
+    "nama": "Dinas Kesehatan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:56:59.566Z",
+    "urutan": 6,
+    "id": "DINKES"
+  },
+  {
+    "kode": "DINSOS_P3A",
+    "nama": "Dinas Sosial, Pemberdayaan Perempuan dan Perlindungan Anak",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:57:37.007Z",
+    "urutan": 7,
+    "id": "DINSOS_P3A"
+  },
+  {
+    "kode": "DISBUNNAK",
+    "nama": "Dinas Perkebunan dan Peternakan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:27:35.800Z",
+    "urutan": 22,
+    "id": "DISBUNNAK"
+  },
+  {
+    "kode": "DISDIKBUD",
+    "nama": "Dinas Pendidikan dan Kebudayaan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T03:36:24.870Z",
+    "urutan": 4,
+    "id": "DISDIKBUD"
+  },
+  {
+    "kode": "DISHUB",
+    "nama": "Dinas Perhubungan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:26:18.191Z",
+    "urutan": 18,
+    "id": "DISHUB"
+  },
+  {
+    "kode": "DISKOMINFO",
+    "nama": "Dinas Komunikasi dan Informatika",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T08:09:07.296Z",
+    "urutan": 15,
+    "id": "DISKOMINFO"
+  },
+  {
+    "kode": "DISKOPERINDAG",
+    "nama": "Dinas Koperasi, Usaha Kecil Menengah, Perindustrian dan Perdagangan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T08:01:44.588Z",
+    "urutan": 13,
+    "id": "DISKOPERINDAG"
+  },
+  {
+    "kode": "DISNAKERTRANS",
+    "nama": "Dinas Tenaga Kerja dan Transmigrasi",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T08:02:53.133Z",
+    "urutan": 14,
+    "id": "DISNAKERTRANS"
+  },
+  {
+    "kode": "DISPARPORA",
+    "nama": "Dinas Pariwisata, Kepemudaan dan Olahraga",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:55:58.498Z",
+    "urutan": 5,
+    "id": "DISPARPORA"
+  },
+  {
+    "kode": "DKP",
+    "nama": "Dinas Ketahanan Pangan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T08:08:33.638Z",
+    "urutan": 21,
+    "id": "DKP"
+  },
+  {
+    "kode": "DLH",
+    "nama": "Dinas Lingkungan Hidup",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:25:28.259Z",
+    "urutan": 19,
+    "id": "DLH"
+  },
+  {
+    "kode": "DPAD",
+    "nama": "Dinas Perpustakaan dan Arsip Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:28:21.766Z",
+    "urutan": 24,
+    "id": "DPAD"
+  },
+  {
+    "kode": "DPMD",
+    "nama": "Dinas Pemberdayaan Masyarakat dan Desa",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:58:56.735Z",
+    "urutan": 10,
+    "id": "DPMD"
+  },
+  {
+    "kode": "DPMPTSP",
+    "nama": "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:59:40.510Z",
+    "urutan": 12,
+    "id": "DPMPTSP"
+  },
+  {
+    "kode": "DPPKB",
+    "nama": "Dinas Pengendalian Penduduk dan Keluarga Berencana",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:58:02.375Z",
+    "urutan": 8,
+    "id": "DPPKB"
+  },
+  {
+    "kode": "DTPH",
+    "nama": "Dinas Tanaman Pangan dan Hortikultura",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:26:59.511Z",
+    "urutan": 20,
+    "id": "DTPH"
+  },
+  {
+    "kode": "DUKCAPIL",
+    "nama": "Dinas Kependudukan dan Pencatatan Sipil",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:58:33.577Z",
+    "urutan": 9,
+    "id": "DUKCAPIL"
+  },
+  {
+    "kode": "INSPEKTORAT",
+    "nama": "Inspektorat Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T03:16:22.316Z",
+    "urutan": 3,
+    "id": "INSPEKTORAT"
+  },
+  {
+    "kode": "KEC_BAHAR_SELATAN",
+    "nama": "Kecamatan Bahar Selatan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:59:18.747Z",
+    "urutan": 32,
+    "id": "KEC_BAHAR_SELATAN"
+  },
+  {
+    "kode": "KEC_BAHAR_UTARA",
+    "nama": "Kecamatan Bahar Utara",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:59:56.416Z",
+    "urutan": 33,
+    "id": "KEC_BAHAR_UTARA"
+  },
+  {
+    "kode": "KEC_JALUKO",
+    "nama": "Kecamatan Jambi Luar Kota",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:00:10.871Z",
+    "urutan": 34,
+    "id": "KEC_JALUKO"
+  },
+  {
+    "kode": "KEC_KUMPEH",
+    "nama": "Kecamatan Kumpeh",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:01:17.849Z",
+    "urutan": 36,
+    "id": "KEC_KUMPEH"
+  },
+  {
+    "kode": "KEC_KUMPEH_ULU",
+    "nama": "Kecamatan Kumpeh Ulu",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:01:56.805Z",
+    "urutan": 37,
+    "id": "KEC_KUMPEH_ULU"
+  },
+  {
+    "kode": "KEC_MARO_SEBO",
+    "nama": "Kecamatan Maro Sebo",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:02:10.911Z",
+    "urutan": 38,
+    "id": "KEC_MARO_SEBO"
+  },
+  {
+    "kode": "KEC_MESTONG",
+    "nama": "Kecamatan Mestong",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:02:40.457Z",
+    "urutan": 39,
+    "id": "KEC_MESTONG"
+  },
+  {
+    "kode": "KEC_SEKERNAN",
+    "nama": "Kecamatan Sekernan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:02:59.465Z",
+    "urutan": 40,
+    "id": "KEC_SEKERNAN"
+  },
+  {
+    "kode": "KEC_SUNGAI_BAHAR",
+    "nama": "Kecamatan Sungai Bahar",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:03:35.580Z",
+    "urutan": 41,
+    "id": "KEC_SUNGAI_BAHAR"
+  },
+  {
+    "kode": "KEC_SUNGAI_GELAM",
+    "nama": "Kecamatan Sungai Gelam",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:03:43.202Z",
+    "urutan": 42,
+    "id": "KEC_SUNGAI_GELAM"
+  },
+  {
+    "kode": "KEC_TAMAN_RAJO",
+    "nama": "Kecamatan Taman Rajo",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T06:00:37.975Z",
+    "urutan": 35,
+    "id": "KEC_TAMAN_RAJO"
+  },
+  {
+    "catatanRevisi": "",
+    "kode": "KESBANGPOL",
+    "nama": "Badan Kesatuan Bangsa dan Politik",
+    "statusValidasi": "Draft",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:58:57.862Z",
+    "urutan": 31,
+    "id": "KESBANGPOL"
+  },
+  {
+    "kode": "PERIKANAN",
+    "nama": "Dinas Perikanan",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:28:00.979Z",
+    "urutan": 23,
+    "id": "PERIKANAN"
+  },
+  {
+    "kode": "PERKIM",
+    "nama": "Dinas Perumahan Dan Kawasan Permukiman",
+    "tahun": "2026",
+    "updatedAt": "2026-08-31T05:23:48.383Z",
+    "urutan": 16,
+    "id": "PERKIM"
+  },
+  {
+    "kode": "PKM_BAHAR_VII",
+    "nama": "Puskesmas Bahar VII",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:11:15.027Z",
+    "urutan": 10,
+    "id": "PKM_BAHAR_VII"
+  },
+  {
+    "kode": "PKM_JAMBI_KECIL",
+    "nama": "Puskesmas Jambi Kecil",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:11:25.334Z",
+    "urutan": 11,
+    "id": "PKM_JAMBI_KECIL"
+  },
+  {
+    "kode": "PKM_KASANG_PUDAK",
+    "nama": "Puskesmas Kasang Pudak",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:11:37.146Z",
+    "urutan": 12,
+    "id": "PKM_KASANG_PUDAK"
+  },
+  {
+    "kode": "PKM_KEBON_IX",
+    "nama": "Puskesmas Kebon IX",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:11:59.402Z",
+    "urutan": 14,
+    "id": "PKM_KEBON_IX"
+  },
+  {
+    "kode": "PKM_KEMINGKING_DALAM",
+    "nama": "Puskesmas Kemingking Dalam",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:12:12.874Z",
+    "urutan": 15,
+    "id": "PKM_KEMINGKING_DALAM"
+  },
+  {
+    "kode": "PKM_MARKANDING",
+    "nama": "Puskesmas Markanding",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:12:24.126Z",
+    "urutan": 16,
+    "id": "PKM_MARKANDING"
+  },
+  {
+    "kode": "PKM_MUARA_KUMPEH",
+    "nama": "Puskesmas Muara Kumpeh",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:12:33.595Z",
+    "urutan": 17,
+    "id": "PKM_MUARA_KUMPEH"
+  },
+  {
+    "kode": "PKM_PENYENGAT_OLAK",
+    "nama": "Puskesmas Penyengat Olak",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:12:44.243Z",
+    "urutan": 10,
+    "id": "PKM_PENYENGAT_OLAK"
+  },
+  {
+    "kode": "PKM_PETALING_JAYA",
+    "nama": "Puskesmas Petaling Jaya",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:12:57.988Z",
+    "urutan": 18,
+    "id": "PKM_PETALING_JAYA"
+  },
+  {
+    "kode": "PKM_PIR_II_BAJUBANG",
+    "nama": "Puskesmas Pir II Bajubang",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:08.175Z",
+    "urutan": 19,
+    "id": "PKM_PIR_II_BAJUBANG"
+  },
+  {
+    "kode": "PKM_PONDOK_MEJA",
+    "nama": "Puskesmas Pondok Meja",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:18.903Z",
+    "urutan": 20,
+    "id": "PKM_PONDOK_MEJA"
+  },
+  {
+    "kode": "PKM_PUDING",
+    "nama": "Puskesmas Puding",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:28.623Z",
+    "urutan": 21,
+    "id": "PKM_PUDING"
+  },
+  {
+    "kode": "PKM_SEKERNAN_ILIR",
+    "nama": "Puskesmas Sekernan Ilir",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:38.400Z",
+    "urutan": 22,
+    "id": "PKM_SEKERNAN_ILIR"
+  },
+  {
+    "kode": "PKM_SENGETI",
+    "nama": "Puskesmas Sengeti",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:46.446Z",
+    "urutan": 23,
+    "id": "PKM_SENGETI"
+  },
+  {
+    "kode": "PKM_SIMPANG_SUNG_DUREN",
+    "nama": "Puskesmas Simpang Sungai Duren",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:13:57.742Z",
+    "urutan": 24,
+    "id": "PKM_SIMPANG_SUNG_DUREN"
+  },
+  {
+    "kode": "PKM_SUKO_AWIN",
+    "nama": "Puskesmas Suko Awin",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:14:09.235Z",
+    "urutan": 25,
+    "id": "PKM_SUKO_AWIN"
+  },
+  {
+    "kode": "PKM_SUNGAI_BAHAR_I",
+    "nama": "Puskesmas Sungai Bahar I",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:14:18.534Z",
+    "urutan": 26,
+    "id": "PKM_SUNGAI_BAHAR_I"
+  },
+  {
+    "kode": "PKM_SUNGAI_BAHAR_IV",
+    "nama": "Puskesmas Sungai Bahar IV",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:14:40.941Z",
+    "urutan": 27,
+    "id": "PKM_SUNGAI_BAHAR_IV"
+  },
+  {
+    "kode": "PKM_TALANG_BUKIT",
+    "nama": "Puskesmas Talang Bukit",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:14:50.947Z",
+    "urutan": 28,
+    "id": "PKM_TALANG_BUKIT"
+  },
+  {
+    "kode": "PKM_TANGKIT",
+    "nama": "Puskesmas Tangkit",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:15:05.529Z",
+    "urutan": 29,
+    "id": "PKM_TANGKIT"
+  },
+  {
+    "kode": "PKM_TANJUNG",
+    "nama": "Puskesmas Tanjung",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:15:15.046Z",
+    "urutan": 30,
+    "id": "PKM_TANJUNG"
+  },
+  {
+    "kode": "PKM_TANTAN",
+    "nama": "Puskesmas Tantan",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:15:25.520Z",
+    "urutan": 31,
+    "id": "PKM_TANTAN"
+  },
+  {
+    "kode": "PKM_TEMPINO",
+    "nama": "Puskesmas Tempino",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:15:40.714Z",
+    "urutan": 32,
+    "id": "PKM_TEMPINO"
+  },
+  {
+    "kode": "PUPR",
+    "nama": "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T04:10:44.992Z",
+    "urutan": 18,
+    "id": "PUPR"
+  },
+  {
+    "kode": "RS_AHMAD_RIPIN",
+    "nama": "Rumah Sakit Ahmad Ripin",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:09:11.494Z",
+    "urutan": 2,
+    "id": "RS_AHMAD_RIPIN"
+  },
+  {
+    "kode": "RS_SUNGAI_BAHAR",
+    "nama": "Rumah Sakit Sungai Bahar",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:09:21.106Z",
+    "urutan": 3,
+    "id": "RS_SUNGAI_BAHAR"
+  },
+  {
+    "kode": "RS_SUNGAI_GELAM",
+    "nama": "Rumah Sakit Sungai Gelam",
+    "parentId": "DINKES",
+    "tahun": "2026",
+    "updatedAt": "2026-08-18T03:08:33.827Z",
+    "urutan": 3,
+    "id": "RS_SUNGAI_GELAM"
+  },
+  {
+    "kode": "SATPOL_PP",
+    "nama": "Satuan Polisi Pamong Praja",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T07:59:20.357Z",
+    "urutan": 11,
+    "id": "SATPOL_PP"
+  },
+  {
+    "kode": "SEKWAN",
+    "nama": "Sekretariat Dewan Perwakilan Rakyat Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-20T02:57:13.371Z",
+    "urutan": 2,
+    "id": "SEKWAN"
+  },
+  {
+    "kode": "SETDA",
+    "nama": "Sekretariat Daerah",
+    "tahun": "2026",
+    "updatedAt": "2026-08-03T08:39:27.743Z",
+    "urutan": 1,
+    "id": "SETDA"
+  }
+];
+
         if (!forceRefresh) {
           const cached = localStorage.getItem(cacheKey);
           if (cached) {
             try {
               const parsed = JSON.parse(cached);
               if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                // Return cache immediately (0ms!) & update in background
+                this.syncSianjabInBackground(cacheKey);
                 return { success: true, data: parsed, fromCache: true };
               }
             } catch(e) {}
+          } else if (seedUnits && seedUnits.length > 0) {
+            // No cache yet: use seed data immediately (0ms!)
+            localStorage.setItem(cacheKey, JSON.stringify(seedUnits));
+            this.syncSianjabInBackground(cacheKey);
+            return { success: true, data: seedUnits, fromCache: true, fromSeed: true };
           }
         }
+        return this.fetchSianjabDirect(cacheKey, seedUnits);
+      },
+
+      async syncSianjabInBackground(cacheKey) {
+        try {
+          const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=getBulkData&entities=unitKerja");
+          const json = await resp.json();
+          if (json && json.success && json.data) {
+            const list = Array.isArray(json.data.unitKerja) ? json.data.unitKerja : (Array.isArray(json.data) ? json.data : []);
+            if (list.length > 0) {
+              localStorage.setItem(cacheKey, JSON.stringify(list));
+              if (window.sianjabUnits && window.sianjabUnits.length !== list.length) {
+                window.sianjabUnits = list;
+                if (typeof renderAttendanceStatsAndAbsentOpd === 'function') renderAttendanceStatsAndAbsentOpd();
+                if (typeof renderComplianceReport === 'function') renderComplianceReport();
+              }
+            }
+          }
+        } catch(e) {
+          console.warn("Background SI-PRABU sync note:", e);
+        }
+      },
+
+      async fetchSianjabDirect(cacheKey, seedUnits) {
         try {
           const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=getBulkData&entities=unitKerja");
           const json = await resp.json();
@@ -726,9 +1541,8 @@
           throw new Error((json && json.error) || "Gagal memuat data SI-PRABU");
         } catch(err) {
           console.warn("Direct SI-PRABU fetch warning:", err);
-          const cached = localStorage.getItem(cacheKey);
-          if (cached) {
-            return { success: true, data: JSON.parse(cached), fromCache: true };
+          if (seedUnits && seedUnits.length > 0) {
+            return { success: true, data: seedUnits, fromSeed: true };
           }
           return { success: false, error: err.toString() };
         }

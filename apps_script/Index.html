@@ -1539,7 +1539,7 @@
       google.script.run
         .withSuccessHandler(function(res) {
           if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-            sianjabUnits = res.data;
+            window.sianjabUnits = sianjabUnits = res.data;
             const parents = sianjabUnits.filter(o => !o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
             const children = sianjabUnits.filter(o => o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
             
@@ -1578,9 +1578,12 @@
               badgeEl.innerText = `🟢 SI-PRABU (${sianjabUnits.length} Unit)`;
             }
             
-            // Re-render compliance report if admin dashboard is opened
+            // Re-render compliance & attendance reports
             if (authenticated) {
               renderComplianceReport();
+            }
+            if (typeof renderAttendanceStatsAndAbsentOpd === 'function') {
+              renderAttendanceStatsAndAbsentOpd();
             }
           } else {
             const errMsg = (res && res.error) ? res.error : "Data unit kerja tidak ditemukan di server SI-PRABU.";
@@ -1803,8 +1806,9 @@
 
       // 1. Dapatkan daftar master OPD utama dari SI-PRABU
       let allMainOpd = [];
-      if (window.sianjabUnits && Array.isArray(window.sianjabUnits)) {
-        allMainOpd = window.sianjabUnits.filter(u => !u.parentId).map(u => (u.nama || '').trim()).filter(Boolean);
+      const units = (window.sianjabUnits && window.sianjabUnits.length > 0) ? window.sianjabUnits : (typeof sianjabUnits !== 'undefined' ? sianjabUnits : []);
+      if (units && Array.isArray(units) && units.length > 0) {
+        allMainOpd = units.filter(u => !u.parentId).map(u => (u.nama || '').trim()).filter(Boolean);
       }
       allMainOpd.sort((a, b) => a.localeCompare(b));
 

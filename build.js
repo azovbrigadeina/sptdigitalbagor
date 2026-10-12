@@ -29,6 +29,10 @@ execSync('npx esbuild src/docx-generator.js --bundle --minify --outfile=public/d
 // 3. Read Index.html
 let html = fs.readFileSync(SRC_FILE, 'utf8');
 
+// Read SIANJAB unit kerja seed for instant 0ms load
+const SIANJAB_SEED_PATH = path.join(__dirname, 'src', 'sianjab-units-seed.json');
+const SIANJAB_SEED_JSON = fs.existsSync(SIANJAB_SEED_PATH) ? fs.readFileSync(SIANJAB_SEED_PATH, 'utf8') : '[]';
+
 // Replace GAS template tags and old labels
 html = html.replace(/<\?=\s*verifyToken\s*\?>/g, '');
 html = html.replace('Data ini akan dihapus secara permanen dari Google Sheets!', 'Data ini akan dihapus secara permanen dari Firebase Database!');
@@ -170,17 +174,50 @@ const firebaseSnippet = `
 
       async getSianjabUnitKerja(forceRefresh) {
         const cacheKey = "sianjab_unit_kerja_cache";
+        const seedUnits = ${SIANJAB_SEED_JSON};
+
         if (!forceRefresh) {
           const cached = localStorage.getItem(cacheKey);
           if (cached) {
             try {
               const parsed = JSON.parse(cached);
               if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                // Return cache immediately (0ms!) & update in background
+                this.syncSianjabInBackground(cacheKey);
                 return { success: true, data: parsed, fromCache: true };
               }
             } catch(e) {}
+          } else if (seedUnits && seedUnits.length > 0) {
+            // No cache yet: use seed data immediately (0ms!)
+            localStorage.setItem(cacheKey, JSON.stringify(seedUnits));
+            this.syncSianjabInBackground(cacheKey);
+            return { success: true, data: seedUnits, fromCache: true, fromSeed: true };
           }
         }
+        return this.fetchSianjabDirect(cacheKey, seedUnits);
+      },
+
+      async syncSianjabInBackground(cacheKey) {
+        try {
+          const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=getBulkData&entities=unitKerja");
+          const json = await resp.json();
+          if (json && json.success && json.data) {
+            const list = Array.isArray(json.data.unitKerja) ? json.data.unitKerja : (Array.isArray(json.data) ? json.data : []);
+            if (list.length > 0) {
+              localStorage.setItem(cacheKey, JSON.stringify(list));
+              if (window.sianjabUnits && window.sianjabUnits.length !== list.length) {
+                window.sianjabUnits = list;
+                if (typeof renderAttendanceStatsAndAbsentOpd === 'function') renderAttendanceStatsAndAbsentOpd();
+                if (typeof renderComplianceReport === 'function') renderComplianceReport();
+              }
+            }
+          }
+        } catch(e) {
+          console.warn("Background SI-PRABU sync note:", e);
+        }
+      },
+
+      async fetchSianjabDirect(cacheKey, seedUnits) {
         try {
           const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuHWzaPOMyEemDcUsYCboqWkE5g1Lq-FFKwA5eNyBbamd41686X1a2m7OIFI-h-yLWw/exec?action=getBulkData&entities=unitKerja");
           const json = await resp.json();
@@ -192,9 +229,8 @@ const firebaseSnippet = `
           throw new Error((json && json.error) || "Gagal memuat data SI-PRABU");
         } catch(err) {
           console.warn("Direct SI-PRABU fetch warning:", err);
-          const cached = localStorage.getItem(cacheKey);
-          if (cached) {
-            return { success: true, data: JSON.parse(cached), fromCache: true };
+          if (seedUnits && seedUnits.length > 0) {
+            return { success: true, data: seedUnits, fromSeed: true };
           }
           return { success: false, error: err.toString() };
         }
