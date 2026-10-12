@@ -2091,15 +2091,15 @@
             </thead>
             <tbody>
               ${rowsHtml}
-            </tbody>
           </table>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
         </body>
         </html>
       `);
       printWindow.document.close();
+      printWindow.focus();
+      setTimeout(function() {
+        try { printWindow.print(); } catch(e) {}
+      }, 250);
     }
 
     function handleKegiatanChange() {
