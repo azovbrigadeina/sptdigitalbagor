@@ -394,13 +394,18 @@
           return;
         }
 
-        let html = '<option value="">-- Pilih Kegiatan Resmi --</option>';
-        activeKegiatanList.forEach(k => {
-          const safeName = (k.nama || '').replace(/"/g, '&quot;');
-          html += `<option value="${safeName}">${safeName}</option>`;
-        });
+        select.innerHTML = '';
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = '-- Pilih Kegiatan Resmi --';
+        select.appendChild(defaultOpt);
 
-        select.innerHTML = html;
+        activeKegiatanList.forEach(k => {
+          const opt = document.createElement('option');
+          opt.value = k.nama || '';
+          opt.textContent = k.nama || '';
+          select.appendChild(opt);
+        });
         select.disabled = false;
 
         // Auto select if param provided

@@ -67,6 +67,25 @@ const firebaseSnippet = `
       return \`\${d.getFullYear()}-\${pad(d.getMonth() + 1)}-\${pad(d.getDate())} \${pad(d.getHours())}:\${pad(d.getMinutes())}:\${pad(d.getSeconds())}\`;
     }
 
+    function parseDeadlineIndo(str) {
+      if (!str || typeof str !== 'string' || str === "Tanpa Batas") return null;
+      const INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      const parts = str.trim().split(/\\s+/);
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = INDO_MONTHS.indexOf(parts[1]);
+        const year = parseInt(parts[2], 10);
+        if (day && month !== -1 && year) {
+          return new Date(year, month, day, 23, 59, 59);
+        }
+      }
+      const iso = new Date(str);
+      if (!isNaN(iso.getTime())) {
+        return new Date(iso.getFullYear(), iso.getMonth(), iso.getDate(), 23, 59, 59);
+      }
+      return null;
+    }
+
     const FirebaseService = {
       async getKegiatanList() {
         try {
@@ -92,6 +111,7 @@ const firebaseSnippet = `
           snap.forEach(doc => {
             const d = doc.data();
             list.push({
+              id: doc.id,
               nama: d.nama,
               integrasi: d.integrasi || "None",
               status: d.status || "Aktif",
@@ -109,7 +129,18 @@ const firebaseSnippet = `
       },
 
       async saveKegiatan(item) {
-        await db.collection('config_kegiatan').doc(item.nama).set({
+        let targetDocRef = null;
+        if (item.id) {
+          targetDocRef = db.collection('config_kegiatan').doc(item.id);
+        } else {
+          const existingSnap = await db.collection('config_kegiatan').where('nama', '==', item.nama).get();
+          if (!existingSnap.empty) {
+            targetDocRef = existingSnap.docs[0].ref;
+          } else {
+            targetDocRef = db.collection('config_kegiatan').doc(item.nama);
+          }
+        }
+        await targetDocRef.set({
           nama: item.nama,
           integrasi: item.integrasi || "None",
           status: item.status || "Aktif",
@@ -123,7 +154,11 @@ const firebaseSnippet = `
       },
 
       async deleteKegiatan(nama) {
-        await db.collection('config_kegiatan').doc(nama).delete();
+        const snap = await db.collection('config_kegiatan').where('nama', '==', nama).get();
+        const deletePromises = [];
+        snap.forEach(d => deletePromises.push(d.ref.delete()));
+        deletePromises.push(db.collection('config_kegiatan').doc(nama).delete().catch(() => {}));
+        await Promise.all(deletePromises);
         return { success: true };
       },
 
@@ -368,6 +403,32 @@ const firebaseSnippet = `
         const now = new Date();
         const currentYear = Number(data.tahun || now.getFullYear());
 
+        // Ambil konfigurasi kegiatan (B-5: support doc-ID acak via query nama)
+        let kegData = null;
+        if (data.perihal) {
+          try {
+            const kegSnap = await db.collection('config_kegiatan')
+              .where('nama', '==', String(data.perihal).trim())
+              .get();
+            if (!kegSnap.empty) {
+              kegData = kegSnap.docs[0].data();
+            } else {
+              const fallbackDoc = await db.collection('config_kegiatan').doc(data.perihal).get();
+              if (fallbackDoc.exists) kegData = fallbackDoc.data();
+            }
+          } catch(e) {
+            console.warn("Gagal mengambil config_kegiatan:", e);
+          }
+        }
+
+        // B-7: Validasi deadline kegiatan
+        if (kegData && kegData.deadline && kegData.deadline !== "Tanpa Batas") {
+          const deadlineDate = parseDeadlineIndo(kegData.deadline);
+          if (deadlineDate && now > deadlineDate) {
+            throw new Error("Batas waktu (deadline) pengiriman SPT untuk kegiatan \\"" + (data.perihal || "") + "\\" telah berakhir pada " + kegData.deadline + ".");
+          }
+        }
+
         // S-8: Cek duplikasi pengajuan berdasarkan NIP + Perihal/Kegiatan di tahun berjalan
         if (data.nip && data.perihal) {
           try {
@@ -393,13 +454,17 @@ const firebaseSnippet = `
           }
         }
 
-        // 1. Hitung nomor urut pendaftaran per kegiatan (FCFS)
+        // 1. Hitung nomor urut pendaftaran per kegiatan (FCFS) diskop tahun
         let countPerihal = 0;
         try {
           const countSnap = await db.collection('submissions')
             .where('perihal', '==', String(data.perihal).trim())
             .get();
-          countPerihal = countSnap.size;
+          const sameYearDocs = countSnap.docs.filter(d => {
+            const docYear = d.data().tahun ? Number(d.data().tahun) : null;
+            return !docYear || docYear === currentYear;
+          });
+          countPerihal = sameYearDocs.length;
         } catch(e) {
           console.warn("Gagal menghitung nomor urut pendaftaran:", e);
         }
@@ -433,17 +498,13 @@ const firebaseSnippet = `
         }
         if (!kodeOpd) kodeOpd = "OPD";
 
-        // 3. Konfigurasi Penomoran Kegiatan
+        // 3. Konfigurasi Penomoran Kegiatan (dari kegData yang sudah diambil di awal)
         let isAutoNomor = true;
         let formatTemplate = "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
-        try {
-          const kegDoc = await db.collection('config_kegiatan').doc(data.perihal).get();
-          if (kegDoc.exists) {
-            const kd = kegDoc.data();
-            if (kd.autoNomor === false) isAutoNomor = false;
-            if (kd.formatNomor) formatTemplate = kd.formatNomor;
-          }
-        } catch(e) {}
+        if (kegData) {
+          if (kegData.autoNomor === false) isAutoNomor = false;
+          if (kegData.formatNomor) formatTemplate = kegData.formatNomor;
+        }
 
         let nomorSpt = "";
         if (isAutoNomor) {
@@ -650,6 +711,7 @@ const firebaseSnippet = `
             nomorSpt: matchedSub.nomorSpt || matchedSub.nomor_spt || "-",
             waktuCheckIn: formatIndoDateTime(new Date()),
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
             source: "web_presensi"
           };
 

@@ -17,7 +17,11 @@ export const SYSTEM_TAG_LIST = [
   { tag: "NAMA_ATASAN", label: "Nama Atasan", desc: "Nama lengkap atasan penandatangan", example: "Drs. H. Ahmad Fauzi, M.Si" },
   { tag: "NIP_ATASAN", label: "NIP Atasan", desc: "NIP 18 digit atasan penandatangan", example: "197508152000031002" },
   { tag: "JABATAN_ATASAN", label: "Jabatan Atasan", desc: "Nama jabatan atasan penandatangan", example: "Kepala Bagian Organisasi" },
-  { tag: "PANGKAT_GOL_ATASAN", label: "Pangkat / Golongan Atasan", desc: "Pangkat dan golongan ruang atasan", example: "Pembina Tingkat I - IV/b" },
+  { tag: "PANGKAT_GOL_ATASAN", label: "Pangkat / Golongan Atasan", desc: "Pangkat dan golongan ruang atasan penandatangan", example: "Pembina Tingkat I - IV/b" },
+  { tag: "nomor_spt", label: "Nomor SPT Lengkap", desc: "Nomor registrasi SPT otomatis berdasarkan urutan pendaftaran", example: "NOMOR : 090/001/SPT/SETDA/2026" },
+  { tag: "nomor_urut", label: "Nomor Urut Pendaftaran", desc: "Nomor urut 3 digit pendaftaran per kegiatan", example: "001" },
+  { tag: "kode_opd", label: "Kode Singkatan OPD", desc: "Kode singkatan resmi OPD pemohon", example: "SETDA" },
+  { tag: "tahun", label: "Tahun Dokumen", desc: "Tahun penerbitan dokumen", example: "2026" },
   { tag: "ttd", label: "QR Code Verifikasi Resmi", desc: "Gambar QR Code verifikasi keaslian dokumen otomatis", example: "[QR Code Verifikasi TTE]" }
 ];
 
@@ -196,6 +200,11 @@ window.generateSptDocx = async function(data, customTemplate) {
   const verifyTargetUrl = data.verify_url || (data.docId ? ("https://tugasku-bagor.web.app/?v=" + data.docId) : "https://tugasku-bagor.web.app");
   const qrCodeImageBase64 = await generateQrCodeBase64(verifyTargetUrl);
 
+  const currentYearStr = String(data.tahun || d.getFullYear());
+  const fallbackNomorUrut = data.nomor_urut || "001";
+  const fallbackKodeOpd = data.kode_opd || "SETDA";
+  const finalNomorSpt = data.nomor_spt || `NOMOR : 090/${fallbackNomorUrut}/SPT/${fallbackKodeOpd}/${currentYearStr}`;
+
   doc.render({
     unitkerja: data.unit_kerja || "",
     nama_admin: data.nama || "",
@@ -211,6 +220,10 @@ window.generateSptDocx = async function(data, customTemplate) {
     perihal: data.perihal || "",
     TTL: indoDate,
     dasar_spt: data.dasar_spt || "",
+    nomor_spt: finalNomorSpt,
+    nomor_urut: fallbackNomorUrut,
+    kode_opd: fallbackKodeOpd,
+    tahun: currentYearStr,
     ttd: qrCodeImageBase64,
     qrcode: qrCodeImageBase64
   });
@@ -241,6 +254,10 @@ window.generateSampleSptDocx = async function(customTemplate) {
     nip_atasan: "197508152000031002",
     p_atasan: "Pembina Tingkat I - IV/b",
     perihal: "Uji Coba Preview Format Template SPT SIMONA",
+    nomor_spt: "NOMOR : 090/001/SPT/SETDA/2026",
+    nomor_urut: "001",
+    kode_opd: "SETDA",
+    tahun: "2026",
     dasar_spt: "1. Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 1 Tahun 2023 tentang Jabatan Fungsional;\n2. Peraturan Daerah Kabupaten Muaro Jambi Nomor 5 Tahun 2021 tentang Perangkat Daerah.",
     verify_url: "https://tugasku-bagor.web.app/?v=SAMPLE_PREVIEW"
   };

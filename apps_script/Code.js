@@ -1,5 +1,13 @@
+// ============================================================================
+// DEPRECATED / PENSIUN (2026-10-12):
+// Backend Google Apps Script (GAS) dan Google Sheets ini resmi DIPENSIUNKAN.
+// Arsitektur sistem telah beralih 100% ke Pure Firebase (Firestore & Hosting).
+// Berkas ini dipertahankan hanya sebagai arsip riwayat teknis.
+// Source of truth runtime berada di: build.js, public/index.html, public/presensi.html.
+// ============================================================================
+
 // ==========================================
-// CONFIGURATION
+// CONFIGURATION (HISTORICAL / ARCHIVED)
 // ==========================================
 var SPREADSHEET_ID = "1hA68rgMDtbX9ySdOI5TF5CUypzO5vJKHHIPAVjTk798";
 
@@ -153,28 +161,45 @@ function initSheets() {
     var headers = [
       "Waktu", "Perihal", "Unit Kerja", "Nama Admin", "NIP Admin", 
       "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan", 
-      "NIP Atasan", "TTD", "Integrasi", "Tahun"
+      "NIP Atasan", "TTD", "Integrasi", "Tahun", "Nomor SPT", "Nomor Urut", "Kode OPD"
     ];
     sheet1.appendRow(headers);
     sheet1.getRange("1:1").setFontWeight("bold").setBackground("#f1f5f9");
+  } else {
+    // Pastikan header baru ada jika sheet sudah dibuat sebelumnya
+    var lastCol = sheet1.getLastColumn();
+    if (lastCol <= 13) {
+      sheet1.getRange(1, 14).setValue("Nomor SPT");
+      sheet1.getRange(1, 15).setValue("Nomor Urut");
+      sheet1.getRange(1, 16).setValue("Kode OPD");
+    }
   }
   
   // 2. Init Config_Kegiatan
   var configSheet = ss.getSheetByName("Config_Kegiatan");
   if (!configSheet) {
     configSheet = ss.insertSheet("Config_Kegiatan");
-    var headers = ["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal / Deadline", "Dasar SPT"];
+    var headers = ["Nama Kegiatan", "Integrasi", "Status", "Batas Tanggal / Deadline", "Dasar SPT", "Auto Nomor", "Format Nomor"];
     configSheet.appendRow(headers);
     configSheet.getRange("1:1").setFontWeight("bold").setBackground("#f1f5f9");
     
     // Add default values
     var defaults = [
-      ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026", "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA"],
-      ["Lainnya", "None", "Aktif", "Tanpa Batas", ""]
+      ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026", "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA", "Aktif", "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"],
+      ["Lainnya", "None", "Aktif", "Tanpa Batas", "", "Aktif", "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"]
     ];
     for (var i = 0; i < defaults.length; i++) {
       configSheet.appendRow(defaults[i]);
     }
+  }
+
+  // 3. Init Config_OPD (Hybrid Mapping)
+  var opdSheet = ss.getSheetByName("Config_OPD");
+  if (!opdSheet) {
+    opdSheet = ss.insertSheet("Config_OPD");
+    var opdHeaders = ["ID OPD", "Nama OPD", "Kode SIANJAB", "Kode Custom", "Waktu Update"];
+    opdSheet.appendRow(opdHeaders);
+    opdSheet.getRange("1:1").setFontWeight("bold").setBackground("#f1f5f9");
   }
 }
 
@@ -190,28 +215,52 @@ function getKegiatanList() {
   var list = [];
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
+    var isAuto = (row[5] === undefined || row[5] === "" || row[5] === "Aktif" || row[5] === true || row[5] === "true");
     list.push({
       nama: row[0],
       integrasi: row[1],
       status: row[2],
       deadline: row[3],
-      dasar: row[4]
+      dasar: row[4],
+      autoNomor: isAuto,
+      formatNomor: row[6] || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"
     });
   }
   return list;
 }
 
 function saveKegiatan(kegiatan) {
+  initSheets();
   var ss = getDb();
   var sheet = ss.getSheetByName("Config_Kegiatan");
+  var data = sheet.getDataRange().getValues();
+  var autoVal = kegiatan.autoNomor !== false ? "Aktif" : "Nonaktif";
+  var formatVal = kegiatan.formatNomor || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
   
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === kegiatan.nama) {
+      sheet.getRange(i + 1, 1, 1, 7).setValues([[
+        kegiatan.nama,
+        kegiatan.integrasi || "None",
+        kegiatan.status || "Aktif",
+        kegiatan.deadline || "Tanpa Batas",
+        kegiatan.dasar || "",
+        autoVal,
+        formatVal
+      ]]);
+      return { status: "success" };
+    }
+  }
+
   // Append new kegiatan
   sheet.appendRow([
     kegiatan.nama,
-    kegiatan.integrasi,
-    kegiatan.status,
-    kegiatan.deadline,
-    kegiatan.dasar
+    kegiatan.integrasi || "None",
+    kegiatan.status || "Aktif",
+    kegiatan.deadline || "Tanpa Batas",
+    kegiatan.dasar || "",
+    autoVal,
+    formatVal
   ]);
   return { status: "success" };
 }
@@ -228,6 +277,77 @@ function deleteKegiatan(nama) {
     }
   }
   return { status: "error", message: "Kegiatan tidak ditemukan" };
+}
+
+// ==========================================
+// CONFIG OPD (HYBRID: SIANJAB + OVERRIDE)
+// ==========================================
+function getOpdConfigList() {
+  initSheets();
+  var ss = getDb();
+  var sheet = ss.getSheetByName("Config_OPD");
+  var data = sheet.getDataRange().getValues();
+  
+  var list = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    list.push({
+      id: String(row[0] || ''),
+      nama: String(row[1] || ''),
+      kodeSianjab: String(row[2] || ''),
+      kodeCustom: String(row[3] || ''),
+      updatedAt: String(row[4] || '')
+    });
+  }
+  return list;
+}
+
+function saveOpdConfig(items) {
+  initSheets();
+  var ss = getDb();
+  var sheet = ss.getSheetByName("Config_OPD");
+  var now = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss");
+  
+  if (!Array.isArray(items)) {
+    items = [items];
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var mapIndex = {};
+  for (var i = 1; i < data.length; i++) {
+    var existingId = String(data[i][0] || '').trim();
+    var existingName = String(data[i][1] || '').trim();
+    if (existingId) mapIndex[existingId] = i + 1;
+    if (existingName) mapIndex[existingName] = i + 1;
+  }
+
+  items.forEach(function(item) {
+    var keyId = String(item.id || '').trim();
+    var keyName = String(item.nama || '').trim();
+    var rowIndex = (keyId && mapIndex[keyId]) || (keyName && mapIndex[keyName]);
+
+    if (rowIndex) {
+      // Update baris yang sudah ada
+      sheet.getRange(rowIndex, 1, 1, 5).setValues([[
+        item.id || "",
+        item.nama || "",
+        item.kodeSianjab || "",
+        item.kodeCustom || "",
+        now
+      ]]);
+    } else {
+      // Baris baru
+      sheet.appendRow([
+        item.id || "",
+        item.nama || "",
+        item.kodeSianjab || "",
+        item.kodeCustom || "",
+        now
+      ]);
+    }
+  });
+
+  return { status: "success" };
 }
 
 // ==========================================
@@ -299,6 +419,70 @@ function getSianjabUnitKerja(forceRefresh) {
 }
 
 // ==========================================
+// OPD RESOLUTION HELPER
+// ==========================================
+function resolveOpdCode_(unitKerjaName, unitKerjaId) {
+  try {
+    var opdConfigs = getOpdConfigList();
+    // 1. Cek langsung di custom config berdasarkan ID atau Nama
+    for (var i = 0; i < opdConfigs.length; i++) {
+      var c = opdConfigs[i];
+      if ((unitKerjaId && String(c.id).trim() === String(unitKerjaId).trim()) || 
+          (c.nama && String(c.nama).trim() === String(unitKerjaName).trim())) {
+        if (c.kodeCustom && c.kodeCustom.trim()) return c.kodeCustom.trim();
+        if (c.kodeSianjab && c.kodeSianjab.trim()) return c.kodeSianjab.trim();
+      }
+    }
+
+    // 2. Cari di daftar SIANJAB unit kerja dan telusuri parent jika merupakan sub unit
+    var sianjabRes = getSianjabUnitKerja();
+    if (sianjabRes && sianjabRes.success && Array.isArray(sianjabRes.data)) {
+      var units = sianjabRes.data;
+      var target = null;
+      for (var u = 0; u < units.length; u++) {
+        var un = units[u];
+        if ((unitKerjaId && String(un.id).trim() === String(unitKerjaId).trim()) || 
+            (un.nama && String(un.nama).trim() === String(unitKerjaName).trim())) {
+          target = un;
+          break;
+        }
+      }
+
+      // Telusuri ke parent root OPD jika ada parentId
+      var depth = 0;
+      while (target && target.parentId && depth < 5) {
+        var foundParent = false;
+        for (var p = 0; p < units.length; p++) {
+          if (String(units[p].id).trim() === String(target.parentId).trim() || 
+              String(units[p].nama).trim() === String(target.parentId).trim()) {
+            target = units[p];
+            foundParent = true;
+            break;
+          }
+        }
+        if (!foundParent) break;
+        depth++;
+      }
+
+      if (target) {
+        // Cek kembali apakah root OPD ini memiliki custom override di Config_OPD
+        for (var k = 0; k < opdConfigs.length; k++) {
+          var cfg = opdConfigs[k];
+          if (String(cfg.id).trim() === String(target.id).trim() || 
+              String(cfg.nama).trim() === String(target.nama).trim()) {
+            if (cfg.kodeCustom && cfg.kodeCustom.trim()) return cfg.kodeCustom.trim();
+          }
+        }
+        if (target.kode && target.kode.trim()) return target.kode.trim();
+      }
+    }
+  } catch(err) {
+    Logger.log("Error resolveOpdCode_: " + err.toString());
+  }
+  return "OPD";
+}
+
+// ==========================================
 // SUBMISSIONS DATA (ADMIN PANEL)
 // ==========================================
 function getSubmissionsData() {
@@ -335,28 +519,93 @@ function submitSptData(data) {
   var now = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss");
   var currentYear = Utilities.formatDate(new Date(), "GMT+7", "yyyy");
   
-  // Extract Base64 Signature Content for spreadsheet row
-  var ttdB64 = "";
-  if (data.signature_data && data.signature_data.indexOf("data:image/png;base64,") === 0) {
-    ttdB64 = data.signature_data.split(",")[1];
+  // Lock mechanism untuk menjamin nomor urut FCFS tanpa race condition
+  var lock = LockService.getScriptLock();
+  var hasLock = false;
+  try {
+    hasLock = lock.tryLock(15000);
+  } catch(e) {
+    Logger.log("Gagal memperoleh script lock: " + e.toString());
   }
-  
-  // Append to spreadsheet row
-  sheet.appendRow([
-    now,
-    data.perihal,
-    data.unit_kerja,
-    "(" + data.status_pegawai + ") " + data.nama,
-    "'" + data.nip,
-    data.email,
-    data.n_atasan,
-    data.j_atasan,
-    data.p_atasan,
-    "'" + data.nip_atasan,
-    ttdB64,
-    data.integrasi,
-    currentYear
-  ]);
+
+  var nomorUrutPad = "001";
+  var kodeOpd = "OPD";
+  var nomorSpt = "";
+
+  try {
+    // Hitung nomor urut pendaftaran per 1 kegiatan (FCFS)
+    var allValues = sheet.getDataRange().getValues();
+    var countPerihal = 0;
+    for (var r = 1; r < allValues.length; r++) {
+      if (String(allValues[r][1]).trim() === String(data.perihal).trim()) {
+        countPerihal++;
+      }
+    }
+    var seqNum = countPerihal + 1;
+    nomorUrutPad = ("000" + seqNum).slice(-3); // Format 3-digit: 001, 002, dst.
+
+    // Selesaikan Kode OPD (Hybrid SIANJAB + Override)
+    kodeOpd = resolveOpdCode_(data.unit_kerja, data.unit_kerja_id);
+
+    // Dapatkan konfigurasi kegiatan terpilih
+    var kegiatanList = getKegiatanList();
+    var selectedKegiatan = null;
+    for (var k = 0; k < kegiatanList.length; k++) {
+      if (kegiatanList[k].nama === data.perihal) {
+        selectedKegiatan = kegiatanList[k];
+        break;
+      }
+    }
+
+    var isAuto = (!selectedKegiatan || selectedKegiatan.autoNomor !== false);
+    var templatePola = (selectedKegiatan && selectedKegiatan.formatNomor) ? selectedKegiatan.formatNomor : "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
+
+    if (isAuto) {
+      nomorSpt = templatePola
+        .replace(/{nomor}/g, nomorUrutPad)
+        .replace(/{kode_opd}/g, kodeOpd)
+        .replace(/{tahun}/g, currentYear);
+    } else {
+      nomorSpt = data.nomor_spt || "";
+    }
+
+    data.nomor_spt = nomorSpt;
+    data.nomor_urut = nomorUrutPad;
+    data.kode_opd = kodeOpd;
+    data.tahun = currentYear;
+
+    // Extract Base64 Signature Content for spreadsheet row
+    var ttdB64 = "";
+    if (data.signature_data && data.signature_data.indexOf("data:image/png;base64,") === 0) {
+      ttdB64 = data.signature_data.split(",")[1];
+    }
+    
+    // Append to spreadsheet row (termasuk Nomor SPT, Nomor Urut, Kode OPD)
+    sheet.appendRow([
+      now,
+      data.perihal,
+      data.unit_kerja,
+      "(" + data.status_pegawai + ") " + data.nama,
+      "'" + data.nip,
+      data.email,
+      data.n_atasan,
+      data.j_atasan,
+      data.p_atasan,
+      "'" + data.nip_atasan,
+      ttdB64,
+      data.integrasi,
+      currentYear,
+      nomorSpt,
+      nomorUrutPad,
+      kodeOpd
+    ]);
+  } finally {
+    if (hasLock) {
+      try {
+        lock.releaseLock();
+      } catch(e) {}
+    }
+  }
   
   // If integration is SI-PRABU or SIANJAB, register user automatically
   var registerResult = null;
@@ -395,6 +644,10 @@ function submitSptData(data) {
 
   // Handle DOCX document generation
   var resBlob = generateDocxBlob(data);
+  resBlob.nomor_spt = nomorSpt;
+  resBlob.nomor_urut = nomorUrutPad;
+  resBlob.kode_opd = kodeOpd;
+
   if (registerResult && registerResult.success) {
     resBlob.sianjabCreated = true;
     resBlob.sianjabStatus = registerResult.data.status; // "created" or "updated"
@@ -434,6 +687,10 @@ function generateDocxBlob(data) {
       '{{NIP_ATASAN}}': data.nip_atasan || "",
       '{{PANGKAT_GOL_ATASAN}}': data.p_atasan || "",
       '{{perihal}}': data.perihal || "",
+      '{{nomor_spt}}': data.nomor_spt || ("NOMOR : 090/" + (data.nomor_urut || "001") + "/SPT/" + (data.kode_opd || "SETDA") + "/2026"),
+      '{{nomor_urut}}': data.nomor_urut || "001",
+      '{{kode_opd}}': data.kode_opd || "SETDA",
+      '{{tahun}}': data.tahun || "2026",
       '{{TTL}}': getIndoDateString(),
       '{{dasar_spt}}': data.dasar_spt || ""
     };

@@ -1,8 +1,11 @@
-# 🚀 Panduan Setup & Deployment Google Apps Script (GAS)
+# ⚠️ [ARSIP / DEPRECATED] Panduan Google Apps Script (GAS)
 
-Guna memastikan aplikasi berjalan **100% stabil, bebas crash, dan gratis selamanya**, seluruh aplikasi telah dimigrasikan ke Google Apps Script. 
+> **PENTING (Per 12 Oktober 2026):**
+> Jalur Google Apps Script (GAS) dan Google Sheets ini **resmi dipensiunkan**.
+> Aplikasi **Tugasku (SPT Digital + Presensi)** saat ini 100% menggunakan arsitektur **Pure Firebase (Firestore + Firebase Hosting)** dengan script build lokal (`build.js`).
+> Panduan di bawah ini dipertahankan hanya sebagai catatan arsip historis. Untuk pengembangan aktif, jalankan `node build.js` dan deploy melalui Firebase CLI (`firebase deploy`).
 
-Ikuti langkah-langkah di bawah ini untuk mengaktifkan aplikasi Anda:
+---
 
 ---
 
