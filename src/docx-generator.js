@@ -2,6 +2,8 @@ import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import ImageModule from 'docxtemplater-image-module-free';
 import QRCode from 'qrcode';
+import { jsPDF } from 'jspdf';
+import { LOGO_MUARO_JAMBI_BASE64 } from './logo-muarojambi.js';
 
 export const SYSTEM_TAG_LIST = [
   { tag: "unitkerja", label: "Unit Kerja / OPD", desc: "Nama Unit Kerja atau Instansi dari SI-PRABU", example: "Bagian Organisasi Setda" },
@@ -168,12 +170,27 @@ window.generateSptDocx = async function(data, customTemplate) {
     }
   }
 
-  // Fallback to active template cache if set on window, or default template
+  // Fallback to active template cache if set on window
   if (!arrayBuffer && window.__activeCustomTemplateBase64) {
     const clean = window.__activeCustomTemplateBase64.replace(/^data:[^;]+;base64,/, "");
     arrayBuffer = base64ToUint8Array(clean).buffer;
   }
 
+  // If not yet loaded in memory, fetch active template from Firestore
+  if (!arrayBuffer && typeof window.FirebaseService !== 'undefined' && window.FirebaseService.getActiveTemplate) {
+    try {
+      const activeTpl = await window.FirebaseService.getActiveTemplate();
+      if (activeTpl && activeTpl.contentBase64) {
+        window.__activeCustomTemplateBase64 = activeTpl.contentBase64;
+        const clean = activeTpl.contentBase64.replace(/^data:[^;]+;base64,/, "");
+        arrayBuffer = base64ToUint8Array(clean).buffer;
+      }
+    } catch(err) {
+      console.warn("Gagal memuat active template dari Firestore:", err);
+    }
+  }
+
+  // Default system template if no custom template in database
   if (!arrayBuffer) {
     const resp = await fetch('/template_spt_simona.docx');
     if (!resp.ok) {
@@ -228,18 +245,285 @@ window.generateSptDocx = async function(data, customTemplate) {
     qrcode: qrCodeImageBase64
   });
 
-  const base64 = doc.getZip().generate({
-    type: "base64",
+  const uint8 = doc.getZip().generate({
+    type: "uint8array",
     compression: "DEFLATE"
   });
 
+  let binary = "";
+  const len = uint8.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(uint8[i]);
+  }
+  const base64 = btoa(binary);
+
   return {
     fileContent: base64,
+    uint8Array: uint8,
+    docZip: doc.getZip(),
+    rawZip: zip,
+    finalNomorSpt: finalNomorSpt,
+    indoDate: indoDate,
+    qrCodeImageBase64: qrCodeImageBase64,
     filename: "SPT_" + (data.nama || "Dokumen").replace(/\s+/g, "_") + ".docx"
   };
 };
 
-// 3. Sample / Preview Generator for Admin Testing (Generates QR Code preview)
+// 3. Official Vector PDF Generator strictly derived from active template & tags
+async function renderTemplateDrivenVectorPdf(data, docxRes) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  
+  const ml = 20;
+  const mr = 20;
+  const mt = 13;
+  const pageW = 210;
+  const contentW = pageW - ml - mr; // 170mm
+
+  // Deteksi judul dokumen langsung dari template XML
+  let docTitle = "SURAT TUGAS";
+  try {
+    const xml = docxRes.rawZip.files["word/document.xml"].asText();
+    if (/SURAT\s+PERINTAH\s+TUGAS/i.test(xml)) {
+      docTitle = "SURAT PERINTAH TUGAS";
+    }
+  } catch(e) {}
+
+  // 1. Kop Surat - Disesuaikan secara dinamis dengan Unit Kerja / OPD pengaju
+  const logoW = 22;
+  const logoH = 27.8; // Rasio presisi lambang resmi Muaro Jambi
+  if (LOGO_MUARO_JAMBI_BASE64) {
+    try {
+      doc.addImage("data:image/png;base64," + LOGO_MUARO_JAMBI_BASE64, "PNG", ml, mt, logoW, logoH);
+    } catch(err) {
+      console.warn("Logo Muaro Jambi tidak dapat dimuat:", err);
+    }
+  }
+
+  const headerLeftX = ml + logoW + 4; // 46mm
+  const headerCenterX = headerLeftX + (pageW - mr - headerLeftX) / 2; // 118mm
+  const headerMaxW = pageW - mr - headerLeftX; // 144mm
+
+  // Tingkat 1: PEMERINTAH KABUPATEN MUARO JAMBI (Font 15)
+  doc.setFont("times", "bold");
+  doc.setFontSize(15);
+  doc.text("PEMERINTAH KABUPATEN MUARO JAMBI", headerCenterX, mt + 6, { align: "center" });
+
+  const rawUnitKerja = (data.unit_kerja || "UNIT KERJA").trim();
+  const isSetdaSubUnit = rawUnitKerja.toLowerCase().includes("bagian ") && !rawUnitKerja.toLowerCase().includes("dinas");
+
+  let kopBottomY;
+  if (isSetdaSubUnit) {
+    // Tingkat 2: SEKRETARIAT DAERAH (Font 20)
+    doc.setFontSize(20);
+    doc.text("SEKRETARIAT DAERAH", headerCenterX, mt + 14.5, { align: "center" });
+    
+    // Tingkat 3: Sub-unit / Bagian (Font 15)
+    let subUnitText = rawUnitKerja.replace(/sekretariat\s+daerah/gi, "").trim();
+    if (!subUnitText) subUnitText = rawUnitKerja;
+    doc.setFontSize(15);
+    doc.text(subUnitText.toUpperCase(), headerCenterX, mt + 21.5, { align: "center" });
+    kopBottomY = mt + 23.5;
+  } else {
+    // Tingkat 2: OPD / Instansi (Font 20 - lebih besar dan proporsional)
+    doc.setFontSize(20);
+    
+    function getBalancedLines(text, maxW) {
+      const fullW = doc.getTextWidth(text);
+      if (fullW <= maxW) return [text];
+      const words = text.split(/\s+/);
+      if (words.length <= 1) return [text];
+      let bestSplit = null;
+      let minDiff = Infinity;
+      for (let i = 1; i < words.length; i++) {
+        const line1 = words.slice(0, i).join(" ");
+        const line2 = words.slice(i).join(" ");
+        const w1 = doc.getTextWidth(line1);
+        const w2 = doc.getTextWidth(line2);
+        if (w1 <= maxW && w2 <= maxW) {
+          const diff = Math.abs(w1 - w2);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestSplit = [line1, line2];
+          }
+        }
+      }
+      return bestSplit || doc.splitTextToSize(text, maxW);
+    }
+
+    const unitLines = getBalancedLines(rawUnitKerja.toUpperCase(), headerMaxW);
+    let uY = (unitLines.length === 1) ? (mt + 16) : (mt + 14.5);
+    unitLines.forEach((line, idx) => {
+      doc.text(line, headerCenterX, uY, { align: "center" });
+      if (idx < unitLines.length - 1) uY += 7.8;
+    });
+    kopBottomY = uY + 2;
+  }
+
+  // Garis Pembatas Kop Resmi (Garis Ganda Berjarak Presisi)
+  const lineY = Math.max(mt + logoH + 2.5, kopBottomY + 3);
+  doc.setLineWidth(0.9);
+  doc.line(ml, lineY, pageW - mr, lineY);
+  doc.setLineWidth(0.25);
+  doc.line(ml, lineY + 0.8, pageW - mr, lineY + 0.8);
+
+  // 2. Judul & Nomor Surat - Dinamis sesuai template
+  let curY = lineY + 7.5;
+  doc.setFont("times", "bold");
+  doc.setFontSize(12.5);
+  doc.text(docTitle, pageW / 2, curY, { align: "center" });
+  const titleW = doc.getTextWidth(docTitle);
+  doc.setLineWidth(0.3);
+  doc.line(pageW / 2 - titleW / 2, curY + 0.8, pageW / 2 + titleW / 2, curY + 0.8);
+
+  curY += 5.5;
+  doc.setFont("times", "normal");
+  doc.setFontSize(10.5);
+
+  // Sanitasi nomor agar TIDAK ADA double 'NOMOR : NOMOR :'
+  let rawNomor = docxRes.finalNomorSpt || data.nomor_spt || "";
+  let cleanNomor = rawNomor.replace(/^(NOMOR\s*:\s*)+/i, "").trim();
+  const finalNomor = cleanNomor ? ("NOMOR : " + cleanNomor) : `NOMOR : 090/${data.nomor_urut || "001"}/SPT/${data.kode_opd || "SETDA"}/${data.tahun || "2026"}`;
+  doc.text(finalNomor, pageW / 2, curY, { align: "center" });
+
+  const labelX = ml;
+  const colonX = ml + 18;
+  const bodyX = ml + 22;
+  const bodyW = pageW - mr - bodyX;
+
+  // 3. Dasar
+  curY += 8;
+  doc.setFont("times", "bold");
+  doc.text("Dasar", labelX, curY);
+  doc.text(":", colonX, curY);
+
+  doc.setFont("times", "normal");
+  const dasarText = data.dasar_spt || data.dasar || "Surat Perintah Tugas resmi di lingkungan Pemerintah Kabupaten Muaro Jambi.";
+  const dasarLines = doc.splitTextToSize(dasarText, bodyW);
+  doc.text(dasarLines, bodyX, curY);
+  curY += (dasarLines.length * 4.6) + 4.5;
+
+  // 4. Memerintahkan
+  doc.setFont("times", "bold");
+  doc.setFontSize(11);
+  doc.text("MEMERINTAHKAN :", pageW / 2, curY, { align: "center" });
+  curY += 6;
+
+  // 5. Kepada
+  doc.setFont("times", "bold");
+  doc.setFontSize(10.5);
+  doc.text("Kepada", labelX, curY);
+  doc.text(":", colonX, curY);
+
+  const pegawai = [
+    { num: "1.", label: "Nama", val: data.nama || "-", bold: true },
+    { num: "2.", label: "Pangkat / Gol", val: data.pangkat || "-" },
+    { num: "3.", label: "NIP", val: data.nip || "-" },
+    { num: "4.", label: "Jabatan", val: data.jabatan || "-" },
+    { num: "5.", label: "Unit Kerja", val: data.unit_kerja || "-", bold: true }
+  ];
+  if (data.no_hp) pegawai.push({ num: "6.", label: "Nomor Telepon", val: data.no_hp });
+  if (data.email) pegawai.push({ num: String(pegawai.length + 1) + ".", label: "Alamat E-mail", val: data.email });
+
+  const subLabelX = bodyX;       // 42mm
+  const subTextX = bodyX + 6;    // 48mm
+  const subColonX = bodyX + 34;  // 76mm
+  const subValX = bodyX + 37;    // 79mm
+  const subValW = pageW - mr - subValX; // 111mm
+
+  let pY = curY;
+  pegawai.forEach(item => {
+    doc.setFont("times", "normal");
+    doc.text(item.num, subLabelX, pY);
+    doc.text(item.label, subTextX, pY);
+    doc.text(":", subColonX, pY);
+    if (item.bold) doc.setFont("times", "bold");
+    
+    const valLines = doc.splitTextToSize(item.val, subValW);
+    doc.text(valLines, subValX, pY);
+    pY += Math.max(4.6, valLines.length * 4.4);
+  });
+  curY = pY + 3.5;
+
+  // 6. Untuk
+  doc.setFont("times", "bold");
+  doc.text("Untuk", labelX, curY);
+  doc.text(":", colonX, curY);
+  doc.setFont("times", "normal");
+  const untukText = data.perihal ? `Melaksanakan tugas dalam rangka ${data.perihal} di lingkungan Pemerintah Kabupaten Muaro Jambi.` : "Melaksanakan tugas kedinasan sebagaimana ditugaskan.";
+  const untukLines = doc.splitTextToSize(untukText, bodyW);
+  doc.text(untukLines, bodyX, curY);
+  curY += (untukLines.length * 4.6) + 4.5;
+
+  // 7. Penutup
+  const penutupText = (docTitle === "SURAT TUGAS")
+    ? "Demikian surat tugas ini dibuat untuk dilaksanakan sebagaimana mestinya dengan penuh rasa tanggung jawab."
+    : "Demikian surat perintah tugas ini dibuat untuk dilaksanakan sebagaimana mestinya dengan penuh rasa tanggung jawab.";
+  const penutupLines = doc.splitTextToSize(penutupText, contentW);
+  doc.text(penutupLines, ml, curY);
+  curY += (penutupLines.length * 4.6) + 8;
+
+  // 8. Tanda Tangan Atasan & Pure QR Code
+  const ttdLeft = pageW - mr - 78;
+  doc.text("Ditetapkan di : Sengeti", ttdLeft, curY);
+  curY += 4.6;
+  const tglIndo = docxRes.indoDate || data.TTL || data.tanggal || "";
+  doc.text("Pada tanggal  : " + tglIndo, ttdLeft, curY);
+  curY += 5;
+
+  doc.setFont("times", "bold");
+  const jabAtasan = (data.j_atasan || "KEPALA OPD").toUpperCase();
+  const jabLines = doc.splitTextToSize(jabAtasan, 78);
+  doc.text(jabLines, ttdLeft, curY);
+  curY += (jabLines.length * 4.4) + 2;
+
+  // Pure QR Code TTE Verification (25x25mm)
+  const qrSize = 25;
+  const qrX = ttdLeft + 8;
+  const targetVerifyUrl = data.verify_url || (data.docId ? ("https://tugasku-bagor.web.app/?v=" + data.docId) : "https://tugasku-bagor.web.app");
+  const qrBase64 = docxRes.qrCodeImageBase64 || await generateQrCodeBase64(targetVerifyUrl);
+  doc.addImage(qrBase64, "PNG", qrX, curY, qrSize, qrSize);
+  // Tambahkan tautan interaktif pada dokumen PDF agar bisa diklik langsung saat dibuka di layar komputer/HP
+  doc.link(qrX, curY, qrSize, qrSize, { url: targetVerifyUrl });
+  curY += qrSize + 4;
+
+  // Nama Atasan
+  doc.setFontSize(10.5);
+  doc.setFont("times", "bold");
+  const namaAtasan = data.n_atasan || "Nama Atasan";
+  doc.text(namaAtasan, ttdLeft, curY);
+  const namaAtasanW = doc.getTextWidth(namaAtasan);
+  doc.setLineWidth(0.3);
+  doc.line(ttdLeft, curY + 0.8, ttdLeft + namaAtasanW, curY + 0.8);
+
+  curY += 4.5;
+  doc.setFont("times", "normal");
+  if (data.p_atasan) {
+    doc.text(data.p_atasan, ttdLeft, curY);
+    curY += 4.5;
+  }
+  const rawNip = data.nip_atasan || "";
+  const nipAtasan = rawNip ? (rawNip.startsWith("NIP") ? rawNip : "NIP. " + rawNip) : "-";
+  doc.text(nipAtasan, ttdLeft, curY);
+
+  const uri = doc.output("datauristring");
+  const base64 = uri.split(",")[1];
+
+  return {
+    fileContent: base64,
+    filename: "Surat_Tugas_" + (data.nama || "Dokumen").replace(/\s+/g, "_") + ".pdf"
+  };
+}
+
+// 4. Official PDF Generator for Surat Tugas (strictly from ACTIVE template)
+window.generateSptPdf = async function(data, customTemplate) {
+  // 1. Dapatkan berkas Word yang sudah diisi seluruh tag template aktif
+  const docxRes = await window.generateSptDocx(data, customTemplate);
+  
+  // 2. Render ke format resmi PDF berbasis vektor berpresisi tinggi
+  return await renderTemplateDrivenVectorPdf(data, docxRes);
+};
+
+// 4. Sample / Preview Generator for Admin Testing (Generates QR Code preview)
 window.generateSampleSptDocx = async function(customTemplate) {
   const sampleData = {
     unit_kerja: "Bagian Organisasi Sekretariat Daerah",

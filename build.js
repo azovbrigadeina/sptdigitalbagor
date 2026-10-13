@@ -569,9 +569,9 @@ const firebaseSnippet = `
           }
         }
 
-        // SiTPP RTDB Integration (S-4: hanya jika konfigurasi kegiatan bernilai SITPP)
+        // Gentala TPP EM-JE (SiTPP) RTDB Integration (S-4: jika konfigurasi kegiatan bernilai SITPP atau Gentala TPP EM-JE)
         let sitppResult = null;
-        const isSitpp = data.integrasi === "SITPP";
+        const isSitpp = data.integrasi === "SITPP" || data.integrasi === "Gentala TPP EM-JE";
         if (isSitpp) {
           try {
             const sitppPayload = {
@@ -619,17 +619,30 @@ const firebaseSnippet = `
           }
         }
 
-        // Pass docId & verification URL to data object so generateSptDocx embeds QR Code verification link
+        // Pass docId & verification URL to data object so generator embeds QR Code verification link
         data.docId = docRef.id;
         data.verify_url = "https://tugasku-bagor.web.app/?v=" + docRef.id;
 
-        // Generate Word DOCX client-side (menggunakan template aktif kustom jika ada)
-        if (!window.__activeCustomTemplateBase64) {
+        // Pastikan active template dari Firestore termuat
+        if (!window.__activeCustomTemplateBase64 && typeof FirebaseService !== 'undefined' && FirebaseService.getActiveTemplate) {
           try {
             await FirebaseService.getActiveTemplate();
           } catch(e) {}
         }
-        const docxRes = await window.generateSptDocx(data, window.__activeCustomTemplateBase64);
+
+        // Generate PDF client-side strictly dari template aktif
+        let fileContent = "";
+        let filename = "Surat_Tugas_" + (data.nama || "Dokumen").replace(/\s+/g, "_") + ".pdf";
+
+        if (typeof window.generateSptPdf === 'function') {
+          const pdfRes = await window.generateSptPdf(data, window.__activeCustomTemplateBase64);
+          fileContent = pdfRes.fileContent;
+          filename = pdfRes.filename;
+        } else {
+          const docxRes = await window.generateSptDocx(data, window.__activeCustomTemplateBase64);
+          fileContent = docxRes.fileContent;
+          filename = docxRes.filename;
+        }
 
         const result = {
           status: "success",
@@ -637,8 +650,8 @@ const firebaseSnippet = `
           nomor_spt: nomorSpt,
           nomor_urut: nomorUrutPad,
           kode_opd: kodeOpd,
-          fileContent: docxRes.fileContent,
-          filename: docxRes.filename
+          fileContent: fileContent,
+          filename: filename
         };
 
         if (sianjabResult && sianjabResult.success) {

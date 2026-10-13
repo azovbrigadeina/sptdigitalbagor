@@ -675,7 +675,7 @@
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Integrasi Sistem</label>
                   <select id="keg-integrasi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                     <option value="None">None (Tanpa Integrasi)</option>
-                    <option value="SITPP">SITPP</option>
+                    <option value="SITPP">Gentala TPP EM-JE</option>
                     <option value="SI-PRABU">SI-PRABU</option>
                   </select>
                 </div>
@@ -1151,6 +1151,7 @@
         </div>
       </div>
     </div>
+    </div>
 
   <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
   <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-4 py-1 flex items-center justify-around shadow-md" style="padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0.25rem));" aria-label="Navigasi Utama">
@@ -1267,10 +1268,16 @@
               <p class="text-[11px] text-slate-600 mb-2">Pada tanggal : <span id="prev-tanggal">-</span></p>
               <p id="prev-jatasan" class="font-bold text-xs uppercase text-slate-900 mb-1">[Jabatan Atasan]</p>
               
-              <!-- Signature Area in Preview -->
-              <div id="prev-sig-box" class="h-24 flex items-center justify-center my-1.5 border border-dashed border-slate-300 rounded-xl bg-slate-50/80 overflow-hidden">
-                <img id="prev-sig-img" src="" alt="Tanda Tangan Atasan" class="hidden max-h-24 max-w-full object-contain">
-                <span id="prev-sig-empty" class="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded-md font-semibold border border-amber-200">⚠️ Belum Ada Tanda Tangan</span>
+              <!-- Signature Area in Preview (QR Code TTE Resmi) -->
+              <div id="prev-sig-box" class="h-24 flex flex-col items-center justify-center my-1.5">
+                <div class="w-16 h-16 p-1.5 border-2 border-[#004899] rounded-xl bg-white flex items-center justify-center shadow-xs">
+                  <svg class="w-12 h-12 text-[#004899]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm8-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm11-2h2v2h-2v-2zm-3 0h2v4h-2v-4zm6 0h2v4h-2v-4zm-3 2h2v2h-2v-2zm-3 2h2v4h-2v-4zm3 2h2v2h-2v-2zm3 0h2v2h-2v-2z"/>
+                  </svg>
+                </div>
+                <span class="text-[9px] font-bold text-[#004899] mt-1 tracking-wider uppercase">QR Code TTE Resmi</span>
+                <img id="prev-sig-img" src="" alt="" class="hidden">
+                <span id="prev-sig-empty" class="hidden"></span>
               </div>
               
               <p id="prev-natasan" class="font-bold text-xs underline text-slate-900 mt-2">[Nama Atasan]</p>
@@ -1309,11 +1316,15 @@
       </div>
       
       <h2 class="text-2xl font-extrabold text-slate-800 mb-1">DOKUMEN ASLI TERVERIFIKASI</h2>
-      <p class="text-sm font-bold text-emerald-600 tracking-wider uppercase mb-8">Aplikasi Srikandi - BSrE BSSN</p>
+      <p class="text-sm font-bold text-emerald-600 tracking-wider uppercase mb-8">Surat Tugas Digital via Bagian Organisasi Setda Kabupaten Muaro Jambi</p>
       
       <div class="w-full bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm mb-6 text-left">
         <table class="w-full text-sm">
           <tbody>
+            <tr class="border-b border-slate-50 bg-blue-50/50">
+              <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Nomor Registrasi SPT</td>
+              <td id="v-nomor-spt" class="px-6 py-4 font-bold text-[#0057B7] font-mono text-base"></td>
+            </tr>
             <tr class="border-b border-slate-50">
               <td class="px-6 py-4 font-semibold text-slate-500 w-1/3">Penandatangan (Atasan)</td>
               <td id="v-nama" class="px-6 py-4 font-bold text-slate-800"></td>
@@ -1339,11 +1350,11 @@
               <td id="v-perihal" class="px-6 py-4 text-slate-800 italic"></td>
             </tr>
             <tr class="border-b border-slate-50">
-              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal TTE / Submisi</td>
+              <td class="px-6 py-4 font-semibold text-slate-500">Tanggal Submisi</td>
               <td id="v-tanggal" class="px-6 py-4 text-slate-800"></td>
             </tr>
             <tr>
-              <td class="px-6 py-4 font-semibold text-slate-500">Status Sertifikasi</td>
+              <td class="px-6 py-4 font-semibold text-slate-500">Status Dokumen</td>
               <td class="px-6 py-4 text-emerald-600 font-bold flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block animate-ping"></span>
                 <span>VALID & AKTIF</span>
@@ -1353,8 +1364,8 @@
         </table>
       </div>
       
-      <p class="text-xs text-slate-400 mb-8 leading-relaxed max-w-md">
-        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), BSSN.
+      <p class="text-xs text-slate-500 mb-8 leading-relaxed max-w-md font-medium">
+        Dokumen ini sudah masuk dan tercatat secara resmi di Bagian Organisasi Sekretariat Daerah Kabupaten Muaro Jambi.
       </p>
       
       <button onclick="exitVerification()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md">
@@ -1514,6 +1525,15 @@
           opdConfigDb = Array.isArray(list) ? list : [];
         })
         .getOpdConfigList();
+
+      // 6. Preload active template from Firestore
+      google.script.run
+        .withSuccessHandler(function(tpl) {
+          if (tpl && tpl.contentBase64) {
+            window.__activeCustomTemplateBase64 = tpl.contentBase64;
+          }
+        })
+        .getActiveTemplate();
     };
 
     function loadOpdFromSianjab(forceRefresh) {
@@ -1627,8 +1647,10 @@
 
       document.getElementById('main-app-container').classList.add('hidden');
       document.getElementById('verification-container').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (token === "SAMPLE_PREVIEW") {
+        if (document.getElementById('v-nomor-spt')) document.getElementById('v-nomor-spt').innerText = "090/001/SPT/SETDA/2026";
         document.getElementById('v-nama').innerText = "Drs. H. Ahmad Fauzi, M.Si";
         document.getElementById('v-nip').innerText = "197508152000031002";
         document.getElementById('v-jabatan').innerText = "Kepala Bagian Organisasi";
@@ -1645,6 +1667,9 @@
           const docSnap = await window.db.collection('submissions').doc(token).get();
           if (docSnap.exists) {
             const data = docSnap.data();
+            if (document.getElementById('v-nomor-spt')) {
+              document.getElementById('v-nomor-spt').innerText = data.nomorSpt || data.nomor_spt || "-";
+            }
             document.getElementById('v-nama').innerText = data.namaAtasan || data.namaAdmin || "-";
             document.getElementById('v-nip').innerText = data.nipAtasan || data.nipAdmin || "-";
             document.getElementById('v-jabatan').innerText = data.jabatanAtasan || data.jabatanAdmin || "-";
@@ -2318,7 +2343,7 @@
         .withSuccessHandler(function(response) {
           Swal.close();
           if (response.status === "success") {
-            let successHtml = 'SPT Anda berhasil digenerate.';
+            let successHtml = 'Surat Tugas Anda berhasil dibuat dalam format PDF.';
             if (response.nomor_spt) {
               successHtml = '<div style="margin-bottom: 12px; padding: 12px 14px; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; text-align: center;">' +
                 '<div style="font-size: 11px; font-weight: bold; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">Nomor Registrasi SPT Resmi</div>' +
@@ -2342,21 +2367,23 @@
             }
             if (response.sitppEnqueued) {
               successHtml += '<br><br><div style="text-align: left; background: #fefce8; border: 1px solid #fef08a; padding: 12px; border-radius: 8px; color: #854d0e; font-size: 0.9rem;">' +
-                '⏳ <strong>Terkirim ke Antrean Verifikasi SiTPP!</strong><br>' +
-                'Data pengajuan SPT Anda telah diteruskan ke antrean verifikasi Admin SiTPP.<br>' +
+                '⏳ <strong>Terkirim ke Antrean Verifikasi Gentala TPP EM-JE!</strong><br>' +
+                'Data pengajuan SPT Anda telah diteruskan ke antrean verifikasi Admin Gentala TPP EM-JE.<br>' +
                 '• <strong>Status</strong>: Menunggu Approval Admin<br>' +
                 '• <strong>Email Terdaftar</strong>: ' + (data.email || '-') + '<br>' +
                 '• <strong>Password Default</strong>: <code style="background: #fef9c3; padding: 2px 4px; border-radius: 4px; font-weight: bold;">MuaroJambi2027!</code><br>' +
-                '<small style="color: #713f12;">Setelah disetujui Admin SiTPP, Anda dapat login ke portal SiTPP untuk menyusun data usulan TPP OPD Anda.</small>' +
+                '<small style="color: #713f12;">Setelah disetujui Admin Gentala TPP EM-JE, Anda dapat login ke portal Gentala TPP EM-JE untuk menyusun data usulan TPP OPD Anda.</small>' +
                 '</div>';
             }
             Swal.fire({
               icon: 'success',
               title: 'Berhasil Terkirim!',
               html: successHtml,
-              confirmButtonText: 'Download SPT'
+              confirmButtonText: 'Unduh Surat Tugas'
             }).then(() => {
-              downloadFile(response.fileContent, response.filename, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+              const isPdf = response.filename && response.filename.endsWith('.pdf');
+              const mime = isPdf ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+              downloadFile(response.fileContent, response.filename, mime);
             });
             form.reset();
             clearCanvas();
@@ -2771,11 +2798,18 @@
               <div class="text-xs text-slate-400">NIP: ${nipAtasan || '-'}</div>
             </td>
             <td class="px-6 py-4 text-center">
-              <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="reprintSubmissionSpt(${actualIdx})" class="p-2 text-[#0057B7] hover:bg-blue-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Cetak / Unduh Ulang Surat Tugas (PDF)">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                </button>
+                <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Submisi">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -2814,12 +2848,20 @@
                   <span class="font-medium text-slate-700">${namaAtasan}</span>
                   ${nipAtasan ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${nipAtasan}</span>` : ''}
                 </div>
-                <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>Hapus</span>
-                </button>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="reprintSubmissionSpt(${actualIdx})" class="px-2.5 py-1.5 text-xs font-bold text-[#0057B7] bg-blue-50 hover:bg-blue-100 rounded-xl transition-all flex items-center gap-1 border border-blue-200 min-touch-target" title="Cetak Ulang Surat Tugas (PDF)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span>Cetak</span>
+                  </button>
+                  <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Hapus</span>
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -2853,6 +2895,82 @@
           card.classList.add('hidden');
         }
       });
+    }
+
+    // --- Cetak / Unduh Ulang Surat Tugas PDF (Admin) ---
+    function reprintSubmissionSpt(actualIdx) {
+      if (!submissionsDb || !submissionsDb[actualIdx]) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Data Tidak Ditemukan',
+          text: 'Gagal membaca rincian data submisi.'
+        });
+        return;
+      }
+      const row = submissionsDb[actualIdx];
+      const docId = row[13] || '';
+      const perihal = row[1] || '';
+      const keg = (typeof kegiatanDb !== 'undefined' && Array.isArray(kegiatanDb)) ? kegiatanDb.find(k => k.nama === perihal) : null;
+      const dasarSpt = keg ? (keg.dasar || "") : "";
+
+      const sptData = {
+        waktu: row[0] || "",
+        perihal: perihal,
+        unit_kerja: row[2] || "",
+        nama: row[3] || "",
+        nip: row[4] || "",
+        email: row[5] || "",
+        n_atasan: row[6] || "",
+        j_atasan: row[7] || "",
+        p_atasan: row[8] || "",
+        nip_atasan: row[9] || "",
+        tahun: row[12] || "",
+        docId: docId,
+        status_pegawai: row[14] || "",
+        jabatan: row[15] || "",
+        pangkat: row[16] || "",
+        no_hp: row[17] || "",
+        unit_kerja_id: row[18] || "",
+        nomor_spt: (row[19] && row[19] !== '-') ? row[19] : "",
+        nomor_urut: row[20] || "",
+        kode_opd: row[21] || "",
+        dasar_spt: dasarSpt,
+        verify_url: docId ? ("https://tugasku-bagor.web.app/?v=" + docId) : "https://tugasku-bagor.web.app"
+      };
+
+      Swal.fire({
+        title: 'Mencetak Surat Tugas...',
+        text: 'Sedang membuat berkas PDF Surat Tugas resmi untuk ' + (sptData.nama || 'pegawai') + '...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      if (typeof window.generateSptPdf !== 'function') {
+        Swal.fire('Error', 'Modul pembuat PDF belum siap. Silakan muat ulang halaman.', 'error');
+        return;
+      }
+
+      window.generateSptPdf(sptData, window.__activeCustomTemplateBase64)
+        .then(res => {
+          Swal.close();
+          downloadFile(res.fileContent, res.filename, "application/pdf");
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Dicetak / Diunduh',
+            html: `Surat Tugas resmi untuk <strong>${escapeHtml(sptData.nama)}</strong><br><span style="font-family: monospace; font-size: 13px; color: #004899; font-weight: bold;">${escapeHtml(sptData.nomor_spt || 'Tanpa Nomor')}</span><br><br>Berkas PDF berhasil dibuat dan langsung diunduh ke komputer Anda.`,
+            confirmButtonText: 'Selesai',
+            confirmButtonColor: '#0057B7'
+          });
+        })
+        .catch(err => {
+          Swal.close();
+          console.error("Gagal mencetak ulang SPT:", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Mencetak',
+            text: 'Terjadi kesalahan saat memproses dokumen PDF: ' + (err.message || err.toString())
+          });
+        });
     }
 
     function deleteSubmissionData(rowIdx, docId) {
@@ -2942,7 +3060,7 @@
               <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
                 <td class="px-6 py-4">
                   <div class="font-bold text-slate-800">${escapeHtml(keg.nama)}</div>
-                  <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi)}</div>
+                  <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi === 'SITPP' ? 'Gentala TPP EM-JE' : keg.integrasi)}</div>
                   ${keg.autoNomor !== false ? `<div class="text-[11px] text-blue-600 font-mono mt-0.5 font-medium">⚡ Auto-Nomor: ${escapeHtml(keg.formatNomor || '090/{nomor}/SPT/{kode_opd}/{tahun}')}</div>` : `<div class="text-[11px] text-slate-400 mt-0.5">Manual (Tanpa Auto-Nomor)</div>`}
                 </td>
                 <td class="px-6 py-4 font-medium text-slate-600">${escapeHtml(keg.deadline || 'Tanpa Batas')}</td>

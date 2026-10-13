@@ -185,7 +185,7 @@ function initSheets() {
     
     // Add default values
     var defaults = [
-      ["SPT Rekon TPP dan SIMONA", "SITPP", "Aktif", "6 Februari 2026", "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA", "Aktif", "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"],
+      ["SPT Rekon TPP dan SIMONA", "Gentala TPP EM-JE", "Aktif", "6 Februari 2026", "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA", "Aktif", "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"],
       ["Lainnya", "None", "Aktif", "Tanpa Batas", "", "Aktif", "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"]
     ];
     for (var i = 0; i < defaults.length; i++) {
