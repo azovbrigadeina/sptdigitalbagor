@@ -23,9 +23,17 @@ export const SYSTEM_TAG_LIST = [
   { tag: "nomor_spt", label: "Nomor SPT Lengkap", desc: "Nomor registrasi SPT otomatis berdasarkan urutan pendaftaran", example: "NOMOR : 090/001/SPT/SETDA/2026" },
   { tag: "nomor_urut", label: "Nomor Urut Pendaftaran", desc: "Nomor urut 3 digit pendaftaran per kegiatan", example: "001" },
   { tag: "kode_opd", label: "Kode Singkatan OPD", desc: "Kode singkatan resmi OPD pemohon", example: "SETDA" },
+  { tag: "mode_nomor", label: "Mode Penomoran", desc: "Asal nomor SPT: otomatis sistem atau nomor instansi sendiri", example: "(Penomoran: Otomatis Sistem)" },
   { tag: "tahun", label: "Tahun Dokumen", desc: "Tahun penerbitan dokumen", example: "2026" },
   { tag: "ttd", label: "QR Code Verifikasi Resmi", desc: "Gambar QR Code verifikasi keaslian dokumen otomatis", example: "[QR Code Verifikasi TTE]" }
 ];
+
+// Label asal nomor SPT agar dokumen cetak menjelaskan sendiri mode penomorannya
+function nomorModeLabel(nomorMode) {
+  return String(nomorMode || "auto").toLowerCase() === "manual"
+    ? "(Penomoran: Nomor Instansi Sendiri)"
+    : "(Penomoran: Otomatis Sistem)";
+}
 
 const emptyPngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
@@ -201,6 +209,8 @@ window.generateSptDocx = async function(data, customTemplate) {
 
   const zip = new PizZip(arrayBuffer);
   const imageModule = new ImageModule(imageOpts);
+  // Tag yang benar-benar ada di template aktif — PDF ikut tunduk pada keputusan template
+  const templateTags = extractTagsFromDocxZip(zip);
 
   const doc = new Docxtemplater(zip, {
     modules: [imageModule],
@@ -240,6 +250,7 @@ window.generateSptDocx = async function(data, customTemplate) {
     nomor_spt: finalNomorSpt,
     nomor_urut: fallbackNomorUrut,
     kode_opd: fallbackKodeOpd,
+    mode_nomor: nomorModeLabel(data.nomor_mode),
     tahun: currentYearStr,
     ttd: qrCodeImageBase64,
     qrcode: qrCodeImageBase64
@@ -262,6 +273,7 @@ window.generateSptDocx = async function(data, customTemplate) {
     uint8Array: uint8,
     docZip: doc.getZip(),
     rawZip: zip,
+    hasModeNomorTag: templateTags.includes("mode_nomor"),
     finalNomorSpt: finalNomorSpt,
     indoDate: indoDate,
     qrCodeImageBase64: qrCodeImageBase64,
@@ -384,6 +396,17 @@ async function renderTemplateDrivenVectorPdf(data, docxRes) {
   let cleanNomor = rawNomor.replace(/^(NOMOR\s*:\s*)+/i, "").trim();
   const finalNomor = cleanNomor ? ("NOMOR : " + cleanNomor) : `NOMOR : 090/${data.nomor_urut || "001"}/SPT/${data.kode_opd || "SETDA"}/${data.tahun || "2026"}`;
   doc.text(finalNomor, pageW / 2, curY, { align: "center" });
+
+  // Penanda mode hanya dicetak bila template aktif memuat tag {{mode_nomor}},
+  // supaya PDF tetap tunduk pada format template (tanpa elemen hardcoded tambahan).
+  if (docxRes.hasModeNomorTag) {
+    curY += 4.4;
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.text(nomorModeLabel(data.nomor_mode), pageW / 2, curY, { align: "center" });
+    doc.setFont("times", "normal");
+    doc.setFontSize(10.5);
+  }
 
   const labelX = ml;
   const colonX = ml + 18;
@@ -541,6 +564,7 @@ window.generateSampleSptDocx = async function(customTemplate) {
     nomor_spt: "NOMOR : 090/001/SPT/SETDA/2026",
     nomor_urut: "001",
     kode_opd: "SETDA",
+    nomor_mode: "auto",
     tahun: "2026",
     dasar_spt: "1. Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 1 Tahun 2023 tentang Jabatan Fungsional;\n2. Peraturan Daerah Kabupaten Muaro Jambi Nomor 5 Tahun 2021 tentang Perangkat Daerah.",
     verify_url: "https://tugasku-bagor.web.app/?v=SAMPLE_PREVIEW"

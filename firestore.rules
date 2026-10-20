@@ -24,5 +24,15 @@ service cloud.firestore {
     match /config_templates/{docId} {
       allow read, write: if true;
     }
+
+    // Pengaturan unit kerja yang dikecualikan dari monitoring SPT
+    match /config_monitoring/{docId} {
+      allow read, write: if true;
+    }
+
+    // Branding aplikasi (nama aplikasi & teks footer laporan)
+    match /config_branding/{docId} {
+      allow read, write: if true;
+    }
   }
 }

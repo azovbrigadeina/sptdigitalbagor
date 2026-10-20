@@ -66,13 +66,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span>Aplikasi Tugasku</span>
+        <span id="presensi-brand-link">Aplikasi Tugasku</span>
       </a>
 
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-ukr-blue text-white shadow-xs">
           <span class="w-2 h-2 rounded-full bg-ukr-yellow animate-ping"></span>
-          <span>Presensi Tugasku</span>
+          <span id="presensi-brand-badge">Presensi Tugasku</span>
         </span>
       </div>
     </div>
@@ -91,7 +91,7 @@
           <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Muaro_Jambi.png" alt="Logo Pemkab Muaro Jambi" class="w-full h-full object-contain filter drop-shadow">
         </div>
         <div>
-          <span class="text-ukr-yellow text-xs font-extrabold tracking-wider uppercase block">Tugasku • Bagian Organisasi Setda Kab. Muaro Jambi</span>
+          <span id="presensi-brand-hero" class="text-ukr-yellow text-xs font-extrabold tracking-wider uppercase block">Tugasku • Bagian Organisasi Setda Kab. Muaro Jambi</span>
           <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">Daftar Hadir Kegiatan Resmi</h1>
           <p class="text-white/80 text-xs sm:text-sm mt-1 leading-relaxed">
             Konfirmasi kehadiran acara kedinasan. Kehadiran diakui jika Anda telah terdaftar pada Surat Perintah Tugas (SPT).
@@ -336,7 +336,7 @@
   <footer class="mt-8 border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
     <div class="max-w-2xl mx-auto px-4 space-y-1">
       <p class="font-bold text-slate-600">Bagian Organisasi Sekretariat Daerah Kabupaten Muaro Jambi</p>
-      <p>© 2026 Tugasku • Layanan Penugasan & Presensi Digital</p>
+      <p id="presensi-footer-brand">© 2026 Tugasku • Layanan Penugasan</p>
     </div>
   </footer>
 
@@ -348,7 +348,30 @@
     document.addEventListener('DOMContentLoaded', function() {
       loadKegiatanDropdown();
       setupUrlParams();
+      applyPresensiBranding();
     });
+
+    // Nama aplikasi pada judul & footer mengikuti branding yang diatur admin.
+    async function applyPresensiBranding() {
+      try {
+        const cfg = (window.FirebaseService && typeof window.FirebaseService.getBrandingConfig === 'function')
+          ? await window.FirebaseService.getBrandingConfig()
+          : null;
+        const appName = (cfg && cfg.appName) ? String(cfg.appName).trim() : 'Tugasku';
+        if (!appName) return;
+        document.title = appName + ' - Presensi Kegiatan Resmi';
+        const link = document.getElementById('presensi-brand-link');
+        if (link) link.textContent = 'Aplikasi ' + appName;
+        const badge = document.getElementById('presensi-brand-badge');
+        if (badge) badge.textContent = 'Presensi ' + appName;
+        const hero = document.getElementById('presensi-brand-hero');
+        if (hero) hero.textContent = appName + ' • Bagian Organisasi Setda Kab. Muaro Jambi';
+        const footer = document.getElementById('presensi-footer-brand');
+        if (footer) footer.textContent = '© 2026 ' + appName + ' • Layanan Penugasan';
+      } catch (err) {
+        // Biarkan branding default bila konfigurasi tidak dapat dimuat.
+      }
+    }
 
     // Check URL params (e.g. ?kegiatan=...&nip=...)
     function setupUrlParams() {
