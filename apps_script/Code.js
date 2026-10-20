@@ -351,6 +351,27 @@ function saveOpdConfig(items) {
 }
 
 // ==========================================
+// PENGATURAN PANTAUAN SPT (EXCLUDE UNIT)
+// ==========================================
+function getMonitoringExclusions() {
+  var props = PropertiesService.getScriptProperties();
+  var raw = props.getProperty("MONITORING_EXCLUDED_UNITS");
+  if (!raw) return [];
+  try {
+    var keys = JSON.parse(raw);
+    return Array.isArray(keys) ? keys : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveMonitoringExclusions(keys) {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty("MONITORING_EXCLUDED_UNITS", JSON.stringify(Array.isArray(keys) ? keys : []));
+  return { success: true };
+}
+
+// ==========================================
 // SIANJAB INTEGRATION PROXY
 // ==========================================
 function getSianjabUnitKerja(forceRefresh) {

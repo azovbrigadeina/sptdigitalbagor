@@ -2,9 +2,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Tugasku - Layanan Penugasan & Presensi Digital</title>
+  <title>Tugasku - Layanan Penugasan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Tailwind CSS & Google Fonts Outfit -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -32,7 +33,6 @@
       }
     };
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- SweetAlert2 for beautiful alerts -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -242,8 +242,8 @@
           </div>
           <div>
             <div class="flex items-center gap-1.5">
-              <h1 class="text-base md:text-xl font-extrabold text-white tracking-tight leading-tight drop-shadow-sm">TUGASKU</h1>
-              <span class="inline-block text-[9px] uppercase font-black tracking-widest px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-900 shadow-sm border border-amber-300">Setda</span>
+              <h1 id="app-brand-name" class="text-base md:text-xl font-extrabold text-white tracking-tight leading-tight drop-shadow-sm uppercase">Tugasku</h1>
+              <span class="inline-block text-[9px] uppercase font-black tracking-widest px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-900 shadow-sm border border-amber-300">Uji Coba!</span>
             </div>
             <p class="text-[11px] md:text-xs text-blue-100 font-medium leading-tight">Bagian Organisasi Kabupaten Muaro Jambi</p>
           </div>
@@ -305,6 +305,35 @@
           <div class="mt-4">
             <label class="block text-sm font-bold text-slate-700 mb-2">Dasar Surat Perintah Tugas (SPT)</label>
             <textarea name="dasar_spt" id="dasar-textarea" rows="3" readonly placeholder="Dasar SPT akan muncul otomatis berdasarkan kegiatan yang dipilih" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 bg-slate-50 outline-none resize-none transition-all"></textarea>
+          </div>
+
+          <!-- Mode Penomoran SPT: otomatis sistem atau nomor agenda instansi sendiri -->
+          <div class="mt-4" id="nomor-mode-wrapper">
+            <label class="block text-sm font-bold text-slate-700 mb-2">Mode Penomoran SPT <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label id="nomor-auto-option" class="flex items-start gap-3 px-4 py-3 min-h-[48px] rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 cursor-pointer transition-all">
+                <input type="radio" name="nomor_mode" value="auto" onchange="handleNomorModeChange()" class="mt-1 w-5 h-5 text-[#0057B7] accent-[#0057B7] focus:ring-[#0057B7]">
+                <span>
+                  <span class="block text-base font-semibold text-slate-800">Otomatis (Sistem)</span>
+                  <span class="block text-xs text-slate-500 mt-0.5" id="nomor-auto-hint">Nomor dibuat otomatis oleh sistem</span>
+                </span>
+              </label>
+              <label id="nomor-manual-option" class="flex items-start gap-3 px-4 py-3 min-h-[48px] rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 cursor-pointer transition-all">
+                <input type="radio" name="nomor_mode" value="manual" onchange="handleNomorModeChange()" class="mt-1 w-5 h-5 text-[#0057B7] accent-[#0057B7] focus:ring-[#0057B7]">
+                <span>
+                  <span class="block text-base font-semibold text-slate-800">Nomor Instansi Sendiri</span>
+                  <span class="block text-xs text-slate-500 mt-0.5">Pakai nomor agenda/registrasi internal OPD Anda</span>
+                </span>
+              </label>
+            </div>
+            <p id="nomor-pilih-note" class="hidden text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+              ⚠️ Wajib dipilih — tentukan mode penomoran sebelum mengirim SPT.
+            </p>
+            <div id="nomor-manual-input-wrap" class="hidden mt-3">
+              <input type="text" name="nomor_spt" id="nomor-manual-input" maxlength="120" class="w-full min-h-[48px] py-3.5 px-4 text-base text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] outline-none transition-all font-mono" placeholder="Contoh: 090/123/SPT/SETDA/2026">
+              <p class="text-[11px] text-slate-500 mt-1">Nomor ini dicetak apa adanya pada Surat Tugas dan tidak diubah sistem.</p>
+            </div>
+            <p id="nomor-status-note" class="text-[11px] text-blue-700 mt-2"></p>
           </div>
 
           <div class="flex items-center gap-3 p-3 sm:p-3.5 bg-gradient-to-r from-blue-50 via-sky-50 to-amber-50/60 rounded-2xl border border-blue-100/90 mt-8 mb-6 shadow-xs">
@@ -563,6 +592,49 @@
           <button onclick="switchAdminTab('template-panel')" id="btn-template-panel" class="px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center whitespace-nowrap">
             📝 Template & Tag
           </button>
+          <button onclick="switchAdminTab('branding-panel')" id="btn-branding-panel" class="px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center whitespace-nowrap">
+            🎨 Branding
+          </button>
+        </div>
+
+        <!-- ==================== SUB-TAB: BRANDING APLIKASI ==================== -->
+        <div id="branding-panel" class="admin-sub-tab hidden space-y-6">
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🎨</span>
+                <h3 class="font-extrabold text-slate-800 text-lg">Branding Aplikasi & Laporan</h3>
+              </div>
+              <p class="text-xs text-slate-500">Ubah nama aplikasi dan teks footer laporan tanpa mengedit kode. Pengaturan tersimpan di database dan berlaku untuk semua perangkat.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label for="branding-app-name" class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Aplikasi</label>
+                <input type="text" id="branding-app-name" maxlength="40" oninput="updateBrandingPreview()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Tugasku">
+                <p class="text-[11px] text-slate-400 mt-1.5">Dipakai di judul tab browser dan nama di header (maks. 40 karakter).</p>
+              </div>
+              <div>
+                <label for="branding-report-footer" class="block text-xs font-bold text-slate-500 mb-2 uppercase">Teks Footer Laporan</label>
+                <textarea id="branding-report-footer" maxlength="300" rows="3" oninput="updateBrandingPreview()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm resize-y" placeholder="Dihasilkan otomatis melalui ..."></textarea>
+                <p class="text-[11px] text-slate-400 mt-1.5">Tampil di bagian bawah semua laporan WhatsApp (maks. 300 karakter).</p>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+              <p class="text-[11px] font-bold text-slate-500 uppercase mb-1.5">Pratinjau Footer</p>
+              <p id="branding-footer-preview" class="text-xs text-slate-600 italic leading-relaxed">—</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+              <button type="button" onclick="saveBrandingConfig()" class="px-4 py-2.5 rounded-xl bg-[#0057B7] hover:bg-[#00438F] text-white text-sm font-bold shadow-sm transition-all min-touch-target">
+                💾 Simpan Branding
+              </button>
+              <button type="button" onclick="resetBrandingConfig()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold shadow-2xs transition-all min-touch-target">
+                ↩️ Kembalikan Default
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- ==================== SUB-TAB 1: SUBMISI PANEL ==================== -->
@@ -571,12 +643,17 @@
           <!-- Filter Perihal / Kegiatan -->
           <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h4 class="font-bold text-slate-800 text-sm">Filter Kegiatan</h4>
-              <p class="text-xs text-slate-400">Tampilkan statistik dan rekap berdasarkan kegiatan tertentu</p>
+              <h4 class="font-bold text-slate-800 text-sm">Filter Rekap</h4>
+              <p class="text-xs text-slate-400">Tampilkan statistik dan rekap berdasarkan kegiatan dan mode penomoran</p>
             </div>
-            <div class="w-full md:w-80">
-              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+            <div class="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+              <select id="filter-kegiatan" onchange="applyFilters()" class="w-full sm:w-72 px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
                 <option value="Semua Kegiatan">-- Semua Kegiatan (Global) --</option>
+              </select>
+              <select id="filter-nomor-mode" onchange="applyFilters()" aria-label="Filter mode penomoran" class="w-full sm:w-56 px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm">
+                <option value="Semua Mode">-- Semua Mode Nomor --</option>
+                <option value="auto">Otomatis (Sistem)</option>
+                <option value="manual">Manual (Instansi Sendiri)</option>
               </select>
             </div>
           </div>
@@ -598,6 +675,166 @@
             <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-100 shadow-sm border-l-4 border-l-[#0057B7]">
               <p class="text-xs font-bold text-slate-400 uppercase">Total SPT Masuk</p>
               <h3 id="stat-total" class="text-2xl md:text-3xl font-extrabold text-[#0057B7] mt-2">0</h3>
+            </div>
+          </div>
+
+          <!-- Monitoring Pengiriman SPT per OPD (mengikuti Filter Rekap di atas) -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 pb-4 border-b border-slate-100">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xl">📨</span>
+                  <h3 class="font-bold text-slate-800 text-lg">Monitoring Pengiriman SPT per OPD</h3>
+                  <span id="spt-deadline-info" class="text-[11px] px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 border border-slate-200">Batas waktu: -</span>
+                </div>
+                <p class="text-xs text-slate-500">
+                  Mengikuti pilihan <strong>kegiatan</strong> pada Filter Rekap di atas. Pilih kegiatan tertentu (bukan Semua Kegiatan) untuk menampilkan daftar OPD yang belum dan sudah mengirim SPT.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onclick="copyLaporanLengkapSptToClipboard()" 
+                class="px-4 py-2.5 rounded-xl bg-[#0057B7] hover:bg-[#00438F] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 shrink-0 min-touch-target cursor-pointer active:scale-95"
+              >
+                <span>📋 Salin Laporan Lengkap</span>
+              </button>
+            </div>
+
+            <!-- Pengaturan unit yang dipantau / dikecualikan -->
+            <div class="rounded-2xl border border-slate-200 bg-slate-50/70">
+              <button 
+                type="button" 
+                onclick="toggleSptExcludePanel()" 
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer"
+                aria-controls="spt-exclude-panel"
+                aria-expanded="false"
+                id="spt-exclude-toggle"
+              >
+                <span class="flex items-center gap-2 flex-wrap">
+                  <span class="text-base">⚙️</span>
+                  <span class="text-xs font-bold text-slate-700">Atur Pantauan OPD / Sub Unit</span>
+                  <span id="spt-exclude-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-slate-200 text-slate-700 border border-slate-300">0 dikecualikan</span>
+                </span>
+                <span id="spt-exclude-chevron" class="text-slate-400 text-xs font-bold" aria-hidden="true">▾</span>
+              </button>
+
+              <div id="spt-exclude-panel" class="hidden px-4 pb-4 pt-3 border-t border-slate-200 space-y-3">
+                <p class="text-[11px] text-slate-500">
+                  Centang unit kerja yang <strong>tidak perlu dipantau</strong> pada laporan SPT ini (misalnya sub unit yang SPT-nya digabung ke OPD induk). Pengaturan hanya memengaruhi panel dan laporan Monitoring Pengiriman SPT.
+                </p>
+                <input 
+                  type="text" 
+                  id="spt-exclude-search" 
+                  oninput="renderSptExcludeList()" 
+                  placeholder="Cari OPD / sub unit..." 
+                  class="w-full px-3.5 py-2 rounded-xl border border-slate-200 outline-none text-xs text-slate-700 focus:ring-2 focus:ring-[#0057B7]"
+                >
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="setAllSptExclusionPending(true)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-bold transition-all min-touch-target">
+                    Centang Semua
+                  </button>
+                  <button type="button" onclick="setAllSptExclusionPending(false)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-bold transition-all min-touch-target">
+                    Kosongkan
+                  </button>
+                  <button type="button" onclick="resetSptExclusions()" class="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-[11px] font-bold transition-all min-touch-target">
+                    Kembalikan Semua
+                  </button>
+                  <span id="spt-exclude-status" class="text-[11px] text-slate-500 font-medium sm:ml-auto"></span>
+                </div>
+                <div id="spt-exclude-list" class="max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
+                  <div class="p-3 text-xs text-slate-400 italic">Memuat daftar unit kerja...</div>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  <button type="button" onclick="closeSptExcludePanel()" class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all min-touch-target">
+                    Batal
+                  </button>
+                  <button type="button" onclick="saveSptExclusions()" class="px-4 py-2 rounded-xl bg-[#0057B7] hover:bg-[#00438F] text-white text-xs font-bold transition-all shadow-sm min-touch-target">
+                    💾 Simpan Pengaturan
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Unit Dipantau</p>
+                <h4 id="spt-stat-total-opd" class="text-xl sm:text-2xl font-black text-slate-800 mt-1">0</h4>
+                <p id="spt-scope-info" class="text-[10px] text-slate-400 mt-1">0 utama • 0 sub unit</p>
+              </div>
+              <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100">
+                <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Sudah Kirim SPT</p>
+                <h4 id="spt-stat-sudah" class="text-xl sm:text-2xl font-black text-emerald-700 mt-1">0</h4>
+                <p class="text-[10px] text-emerald-600/80 mt-1">OPD terdata</p>
+              </div>
+              <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200">
+                <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Belum Kirim SPT</p>
+                <h4 id="spt-stat-belum" class="text-xl sm:text-2xl font-black text-amber-800 mt-1">0</h4>
+                <p class="text-[10px] text-amber-700/80 mt-1">Perlu ditindaklanjuti</p>
+              </div>
+              <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                <p class="text-[11px] font-bold text-[#0057B7] uppercase tracking-wider">% Kepatuhan Unit</p>
+                <h4 id="spt-stat-persen" class="text-xl sm:text-2xl font-black text-[#0057B7] mt-1">0%</h4>
+                <p class="text-[10px] text-slate-400 mt-1">Tingkat pengiriman</p>
+              </div>
+              <div class="col-span-2 sm:col-span-1 bg-purple-50/60 p-4 rounded-2xl border border-purple-100">
+                <p class="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Total SPT Masuk</p>
+                <h4 id="spt-stat-total-spt" class="text-xl sm:text-2xl font-black text-purple-800 mt-1">0</h4>
+                <p class="text-[10px] text-purple-600/80 mt-1">Dokumen submisi</p>
+              </div>
+            </div>
+
+            <!-- Daftar OPD Belum & Sudah Kirim -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              <!-- Belum Kirim -->
+              <div class="rounded-2xl border-2 border-amber-300 bg-amber-50/20 p-4 space-y-3">
+                <div class="flex items-start justify-between gap-2 pb-2 border-b border-amber-100">
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-base">⚠️</span>
+                      <h4 class="font-extrabold text-slate-800 text-sm">OPD / Unit Belum Mengirim SPT</h4>
+                      <span id="belum-spt-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300">0 unit</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Unit kerja utama dan sub unit tanpa submisi SPT pada kegiatan ini.</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    onclick="copyBelumKirimSptToClipboard()" 
+                    class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-all shadow-sm flex items-center justify-center gap-1 shrink-0 min-touch-target cursor-pointer active:scale-95"
+                  >
+                    <span>📋 Salin Daftar Belum</span>
+                  </button>
+                </div>
+                <div id="belum-spt-container" class="flex flex-wrap gap-2 pt-1 max-h-64 overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-400 py-3 italic">Pilih kegiatan tertentu pada Filter Rekap di atas.</div>
+                </div>
+              </div>
+
+              <!-- Sudah Kirim -->
+              <div class="rounded-2xl border border-emerald-200 bg-emerald-50/20 p-4 space-y-3">
+                <div class="flex items-start justify-between gap-2 pb-2 border-b border-emerald-100">
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-base">✅</span>
+                      <h4 class="font-extrabold text-slate-800 text-sm">OPD / Unit Sudah Mengirim SPT</h4>
+                      <span id="sudah-spt-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">0 unit</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Unit kerja utama dan sub unit yang sudah memiliki submisi SPT.</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    onclick="copySudahKirimSptToClipboard()" 
+                    class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-sm flex items-center justify-center gap-1 shrink-0 min-touch-target cursor-pointer active:scale-95"
+                  >
+                    <span>📋 Salin Daftar Sudah</span>
+                  </button>
+                </div>
+                <div id="sudah-spt-container" class="flex flex-wrap gap-2 pt-1 max-h-64 overflow-y-auto pr-1">
+                  <div class="text-xs text-slate-400 py-3 italic">Pilih kegiatan tertentu pada Filter Rekap di atas.</div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -725,6 +962,10 @@
                       <code class="bg-white px-1 py-0.5 rounded border border-slate-200 text-emerald-600">{tahun}</code>
                     </p>
                   </div>
+                  <label class="flex items-start gap-2 pt-2 cursor-pointer text-[11px] font-semibold text-slate-600 border-t border-blue-100">
+                    <input type="checkbox" id="keg-izinkan-manual" checked class="mt-0.5 w-4 h-4 text-[#0057B7] rounded focus:ring-[#0057B7]">
+                    <span>Izinkan pengirim memakai nomor agenda/registrasi instansi sendiri (opsi manual)</span>
+                  </label>
                 </div>
                 <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
                   <span>💾 Simpan Kegiatan</span>
@@ -1149,6 +1390,7 @@
           </div>
 
         </div>
+
       </div>
     </div>
     </div>
@@ -1381,11 +1623,49 @@
     // Dynamic SIANJAB Units Data (No hardcoded fallback)
     let sianjabUnits = [];
 
+    // --- Segmen Unit Kerja ---
+    // Induk yang hanya berfungsi sebagai wadah struktural TIDAK boleh dipilih langsung
+    // di form operator. Contoh: "Sekretariat Daerah" bukan unit pelaksana, yang benar
+    // adalah Bagian di bawahnya (Bagian Organisasi, Bagian Hukum, dst).
+    // Dinas Kesehatan sengaja TIDAK didaftarkan di sini: Dinas Kesehatan tetap bisa
+    // dipilih, dan Puskesmas / RSUD di bawahnya tetap tampil sebagai sub unit.
+    const UNIT_WADAH_SEGMEN = [
+      { id: "SETDA", nama: "Sekretariat Daerah", label: "Sekretariat Daerah — pilih Bagian" }
+    ];
+
+    function getUnitWadah(unit) {
+      if (!unit) return null;
+      const id = String(unit.id || '').trim().toUpperCase();
+      const nama = String(unit.nama || '').trim().toLowerCase();
+      return UNIT_WADAH_SEGMEN.find(w =>
+        (id && id === w.id.toUpperCase()) || (nama && nama === w.nama.toLowerCase())
+      ) || null;
+    }
+
+    function unitParentMatch(child, induk) {
+      if (!child || !induk || !child.parentId) return false;
+      const parentKey = String(child.parentId).trim().toLowerCase();
+      return parentKey === String(induk.id || '').trim().toLowerCase() ||
+        parentKey === String(induk.nama || '').trim().toLowerCase();
+    }
+
+    // True bila unit ini hanya wadah struktural DAN sudah punya sub unit terdaftar.
+    // Bila belum ada sub unit, unit induk tetap dianggap bisa dipilih agar form tidak buntu.
+    function isWadahStruktural(unit, pool) {
+      if (!getUnitWadah(unit)) return false;
+      const units = Array.isArray(pool) ? pool : (sianjabUnits || []);
+      return units.some(c => unitParentMatch(c, unit));
+    }
+
     let kegiatanDb = [];
     let submissionsDb = [];
     window.submissionsDb = submissionsDb;
     let filteredSubmissions = [];
     let authenticated = false;
+
+    // Unit kerja yang dikecualikan dari laporan Monitoring Pengiriman SPT
+    let sptExcludedKeys = new Set();
+    let sptPendingExcludedKeys = new Set();
 
     // --- Tab Switch Logic ---
     function switchTab(tabId) {
@@ -1444,6 +1724,135 @@
       }
     }
 
+    // --- Branding aplikasi & footer laporan (dapat diatur dari Panel Admin) ---
+    const DEFAULT_BRANDING = {
+      appName: 'Tugasku',
+      reportFooter: 'Dihasilkan otomatis melalui Tugasku - Layanan Penugasan, Bagian Organisasi Setda Kab. Muaro Jambi'
+    };
+    let brandingConfig = Object.assign({}, DEFAULT_BRANDING);
+
+    function normalizeBrandingConfig(cfg) {
+      const source = cfg || {};
+      const appName = String(source.appName == null ? '' : source.appName).trim().slice(0, 40) || DEFAULT_BRANDING.appName;
+      const reportFooter = String(source.reportFooter == null ? '' : source.reportFooter).trim().slice(0, 300) || DEFAULT_BRANDING.reportFooter;
+      return { appName: appName, reportFooter: reportFooter };
+    }
+
+    function applyBranding(cfg) {
+      brandingConfig = normalizeBrandingConfig(cfg);
+      window.__brandingConfig = brandingConfig;
+      document.title = brandingConfig.appName + ' - Layanan Penugasan';
+
+      const brandEl = document.getElementById('app-brand-name');
+      if (brandEl) brandEl.textContent = brandingConfig.appName;
+
+      const nameInput = document.getElementById('branding-app-name');
+      if (nameInput && document.activeElement !== nameInput) nameInput.value = brandingConfig.appName;
+      const footerInput = document.getElementById('branding-report-footer');
+      if (footerInput && document.activeElement !== footerInput) footerInput.value = brandingConfig.reportFooter;
+
+      updateBrandingPreview();
+    }
+
+    function getReportFooterText() {
+      const footer = (brandingConfig && brandingConfig.reportFooter) ? brandingConfig.reportFooter : DEFAULT_BRANDING.reportFooter;
+      return '_' + footer + '_';
+    }
+
+    function updateBrandingPreview() {
+      const preview = document.getElementById('branding-footer-preview');
+      if (!preview) return;
+      const input = document.getElementById('branding-report-footer');
+      const value = (input ? input.value : brandingConfig.reportFooter).trim() || DEFAULT_BRANDING.reportFooter;
+      preview.textContent = '_' + value + '_';
+    }
+
+    function loadBrandingConfig() {
+      const fallback = () => applyBranding(brandingConfig || DEFAULT_BRANDING);
+      if (window.FirebaseService && typeof window.FirebaseService.getBrandingConfig === 'function') {
+        window.FirebaseService.getBrandingConfig().then(applyBranding).catch(fallback);
+        return;
+      }
+      try {
+        google.script.run.withSuccessHandler(applyBranding).withFailureHandler(fallback).getBrandingConfig();
+      } catch (err) {
+        fallback();
+      }
+    }
+
+    function saveBrandingConfig() {
+      const nameEl = document.getElementById('branding-app-name');
+      const footerEl = document.getElementById('branding-report-footer');
+      const rawName = (nameEl ? nameEl.value : '').trim();
+      const rawFooter = (footerEl ? footerEl.value : '').trim();
+
+      if (!rawName || !rawFooter) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Lengkapi Branding',
+          text: 'Nama aplikasi dan teks footer laporan wajib diisi.'
+        });
+        return;
+      }
+
+      const payload = normalizeBrandingConfig({ appName: rawName, reportFooter: rawFooter });
+      const onSuccess = () => {
+        Swal.close();
+        applyBranding(payload);
+        Swal.fire({
+          icon: 'success',
+          title: 'Branding Tersimpan',
+          text: 'Nama aplikasi dan footer laporan sudah diperbarui untuk semua perangkat.',
+          confirmButtonColor: '#0057B7'
+        });
+      };
+      const onError = (err) => {
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Menyimpan Branding',
+          text: (err && (err.message || err.toString())) || 'Terjadi kesalahan. Silakan coba lagi.'
+        });
+      };
+
+      Swal.fire({
+        title: 'Menyimpan Branding...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      if (window.FirebaseService && typeof window.FirebaseService.saveBrandingConfig === 'function') {
+        window.FirebaseService.saveBrandingConfig(payload).then(onSuccess).catch(onError);
+        return;
+      }
+      try {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).saveBrandingConfig(payload);
+      } catch (err) {
+        onError(err);
+      }
+    }
+
+    function resetBrandingConfig() {
+      Swal.fire({
+        icon: 'question',
+        title: 'Kembalikan Branding Default?',
+        text: 'Nama aplikasi dan teks footer laporan akan dikembalikan ke pengaturan awal.',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Kembalikan',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#0057B7'
+      }).then(result => {
+        if (!result.isConfirmed) return;
+        const nameEl = document.getElementById('branding-app-name');
+        const footerEl = document.getElementById('branding-report-footer');
+        if (nameEl) nameEl.value = DEFAULT_BRANDING.appName;
+        if (footerEl) footerEl.value = DEFAULT_BRANDING.reportFooter;
+        updateBrandingPreview();
+        saveBrandingConfig();
+      });
+    }
+
     function switchAdminTab(subTabId) {
       document.querySelectorAll('.admin-sub-tab').forEach(el => el.classList.add('hidden'));
       const target = document.getElementById(subTabId);
@@ -1454,6 +1863,7 @@
       const btnKeg = document.getElementById('btn-kegiatan-panel');
       const btnOpd = document.getElementById('btn-opd-panel');
       const btnTpl = document.getElementById('btn-template-panel');
+      const btnBranding = document.getElementById('btn-branding-panel');
 
       const activeClass = "px-3 sm:px-4 py-2.5 rounded-xl bg-[#0057B7] text-white shadow-sm font-bold text-xs sm:text-sm transition-all flex-1 text-center whitespace-nowrap";
       const inactiveClass = "px-3 sm:px-4 py-2.5 rounded-xl bg-transparent text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm transition-all flex-1 text-center whitespace-nowrap";
@@ -1463,6 +1873,7 @@
       if (btnKeg) btnKeg.className = subTabId === 'kegiatan-panel' ? activeClass : inactiveClass;
       if (btnOpd) btnOpd.className = subTabId === 'opd-panel' ? activeClass : inactiveClass;
       if (btnTpl) btnTpl.className = subTabId === 'template-panel' ? activeClass : inactiveClass;
+      if (btnBranding) btnBranding.className = subTabId === 'branding-panel' ? activeClass : inactiveClass;
 
       if (subTabId === 'kehadiran-panel') {
         loadAttendancePanelData();
@@ -1470,11 +1881,16 @@
         loadOpdConfigManager();
       } else if (subTabId === 'template-panel') {
         loadTemplateManager();
+      } else if (subTabId === 'branding-panel') {
+        loadBrandingConfig();
       }
     }
 
     // --- Page Load Initializer ---
     window.onload = function() {
+      // Terapkan branding tersimpan (nama aplikasi + footer laporan)
+      loadBrandingConfig();
+
       // Check for verification token in query parameters
       const urlParams = new URLSearchParams(window.location.search);
       const verifyToken = urlParams.get('v') || "";
@@ -1513,6 +1929,9 @@
       // 3. Load dynamic OPD list from Sianjab database
       loadOpdFromSianjab();
 
+      // 3b. Muat pengaturan unit yang dikecualikan dari monitoring SPT
+      initSptExclusions();
+
       // 4. Initialize Autocompletes
       createAutocomplete(document.getElementById('opd-select'));
       createAutocomplete(document.getElementById('kegiatan-select'));
@@ -1534,6 +1953,9 @@
           }
         })
         .getActiveTemplate();
+
+      // 7. Tandai mode penomoran sebagai pilihan wajib sejak awal (tanpa default)
+      handleNomorModeChange();
     };
 
     function loadOpdFromSianjab(forceRefresh) {
@@ -1560,28 +1982,53 @@
         .withSuccessHandler(function(res) {
           if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
             window.sianjabUnits = sianjabUnits = res.data;
-            const parents = sianjabUnits.filter(o => !o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
-            const children = sianjabUnits.filter(o => o.parentId).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+            const byName = (a, b) => (a.nama || '').localeCompare(b.nama || '');
+            const rootUnits = sianjabUnits.filter(o => !o.parentId);
+            const allChildren = sianjabUnits.filter(o => o.parentId);
+
+            const optionHtml = (o) => {
+              const safeName = (o.nama || '').replace(/"/g, '&quot;');
+              const opdId = (o.id || '').toString().replace(/"/g, '&quot;');
+              return `<option value="${safeName}" data-id="${opdId}">${safeName}</option>`;
+            };
+
+            // Pisahkan unit wadah (mis. Sekretariat Daerah) dari unit yang boleh dipilih langsung.
+            // Sub unit milik wadah dikelompokkan pada segmennya sendiri, bukan pada daftar "Sub Unit Kerja".
+            const segmen = [];
+            const wadahChildKeys = new Set();
+            const parents = [];
+            rootUnits.forEach(o => {
+              if (isWadahStruktural(o, sianjabUnits)) {
+                const bagian = allChildren.filter(c => unitParentMatch(c, o)).sort(byName);
+                bagian.forEach(c => wadahChildKeys.add(String(c.id || c.nama || '').trim().toLowerCase()));
+                segmen.push({ cfg: getUnitWadah(o), induk: o, bagian });
+              } else {
+                parents.push(o);
+              }
+            });
+            parents.sort(byName);
+            segmen.sort((a, b) => byName(a.induk, b.induk));
+            const children = allChildren
+              .filter(c => !wadahChildKeys.has(String(c.id || c.nama || '').trim().toLowerCase()))
+              .sort(byName);
             
             let html = '<option value="">-- Pilih Unit Kerja (SI-PRABU) --</option>';
+
+            segmen.forEach(({ cfg, bagian }) => {
+              html += `<optgroup label="${cfg.label}">`;
+              bagian.forEach(o => { html += optionHtml(o); });
+              html += '</optgroup>';
+            });
             
             if (parents.length > 0) {
               html += '<optgroup label="Unit Kerja Utama (Dinas / Badan / Kecamatan)">';
-              parents.forEach(o => {
-                const safeName = (o.nama || '').replace(/"/g, '&quot;');
-                const opdId = (o.id || '').toString().replace(/"/g, '&quot;');
-                html += `<option value="${safeName}" data-id="${opdId}">${safeName}</option>`;
-              });
+              parents.forEach(o => { html += optionHtml(o); });
               html += '</optgroup>';
             }
             
             if (children.length > 0) {
               html += '<optgroup label="Sub Unit Kerja (Bagian / Puskesmas / RSUD)">';
-              children.forEach(o => {
-                const safeName = (o.nama || '').replace(/"/g, '&quot;');
-                const opdId = (o.id || '').toString().replace(/"/g, '&quot;');
-                html += `<option value="${safeName}" data-id="${opdId}">${safeName}</option>`;
-              });
+              children.forEach(o => { html += optionHtml(o); });
               html += '</optgroup>';
             }
             
@@ -1604,6 +2051,9 @@
             }
             if (typeof renderAttendanceStatsAndAbsentOpd === 'function') {
               renderAttendanceStatsAndAbsentOpd();
+            }
+            if (typeof renderSptComplianceReport === 'function') {
+              renderSptComplianceReport();
             }
           } else {
             const errMsg = (res && res.error) ? res.error : "Data unit kerja tidak ditemukan di server SI-PRABU.";
@@ -1655,7 +2105,7 @@
         document.getElementById('v-nip').innerText = "197508152000031002";
         document.getElementById('v-jabatan').innerText = "Kepala Bagian Organisasi";
         document.getElementById('v-perihal').innerText = "Uji Coba Preview Format Template SPT SIMONA";
-        document.getElementById('v-tanggal').innerText = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        document.getElementById('v-tanggal').innerText = formatWibDate(await getWibNow());
         if (document.getElementById('v-pegawai')) document.getElementById('v-pegawai').innerText = "Budi Santoso, S.Kom (NIP: 199012312015031001)";
         if (document.getElementById('v-unitkerja')) document.getElementById('v-unitkerja').innerText = "Bagian Organisasi Sekretariat Daerah";
         return;
@@ -1739,8 +2189,8 @@
     function generateSrikandi() {
       Swal.fire({
         icon: 'warning',
-        title: 'Srikandi Belum Terhubung',
-        text: 'Aplikasi Srikandi belum terhubung dengan sistem ini. Silakan hubungi admin instansi Anda.',
+        title: 'Maaf',
+        text: 'Aplikasi Tugasku belum terkoneksi dengan Srikandi, terima kasih atas perhatiannya.',
         confirmButtonColor: '#0d9488'
       });
     }
@@ -2020,7 +2470,7 @@
           msg += `${i + 1}. ${opd}\n`;
         });
       }
-      msg += `\n_Dihasilkan otomatis melalui Tugasku - Layanan Penugasan & Presensi Digital Bagian Organisasi Setda Kab. Muaro Jambi_`;
+      msg += `\n${getReportFooterText()}`;
 
       navigator.clipboard.writeText(msg).then(() => {
         alert("✅ Daftar OPD yang belum hadir berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp.");
@@ -2030,7 +2480,545 @@
       });
     }
 
-    function exportAttendanceCsv() {
+    // ==========================================
+    // KEPATUHAN PENGIRIMAN SPT & DAFTAR OPD BELUM KIRIM
+    // ==========================================
+    function normalizeUnitName(name) {
+      return String(name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function getAllSianjabUnits() {
+      const units = (window.sianjabUnits && window.sianjabUnits.length > 0)
+        ? window.sianjabUnits
+        : (typeof sianjabUnits !== 'undefined' ? sianjabUnits : []);
+      const seen = new Set();
+      const list = [];
+      units.forEach(u => {
+        if (!u) return;
+        const nama = String(u.nama || '').trim();
+        const key = normalizeUnitName(nama);
+        if (!nama || !key || seen.has(key)) return;
+        // Unit wadah struktural (mis. Sekretariat Daerah) tidak pernah mengirim SPT sendiri,
+        // jadi tidak dihitung sebagai unit yang dipantau. Bagian di bawahnya tetap dipantau.
+        if (getUnitWadah({ id: u.id, nama: nama })) return;
+        seen.add(key);
+        list.push({ nama: nama, key: key, sub: !!u.parentId });
+      });
+      return list.sort((a, b) => a.nama.localeCompare(b.nama));
+    }
+
+    function updateSptExcludeBadge() {
+      const badge = document.getElementById('spt-exclude-count-badge');
+      if (badge) badge.innerText = `${sptExcludedKeys.size} dikecualikan`;
+    }
+
+    function initSptExclusions() {
+      // Tampilkan cache lokal lebih dulu agar panel langsung konsisten
+      try {
+        const cached = JSON.parse(localStorage.getItem('spt_monitoring_excluded_units') || '[]');
+        if (Array.isArray(cached)) sptExcludedKeys = new Set(cached);
+      } catch (e) {}
+      updateSptExcludeBadge();
+
+      if (!window.google || !window.google.script || !window.google.script.run) return;
+      google.script.run
+        .withSuccessHandler(function(keys) {
+          if (!Array.isArray(keys)) return;
+          sptExcludedKeys = new Set(keys);
+          try {
+            localStorage.setItem('spt_monitoring_excluded_units', JSON.stringify(Array.from(sptExcludedKeys)));
+          } catch (e) {}
+          updateSptExcludeBadge();
+          if (typeof renderSptComplianceReport === 'function') renderSptComplianceReport();
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Gagal memuat pengaturan pantauan dari server, memakai cache lokal:', err);
+        })
+        .getMonitoringExclusions();
+    }
+
+    function toggleSptExcludePanel() {
+      const panel = document.getElementById('spt-exclude-panel');
+      const toggle = document.getElementById('spt-exclude-toggle');
+      const chevron = document.getElementById('spt-exclude-chevron');
+      if (!panel) return;
+
+      if (panel.classList.contains('hidden')) {
+        sptPendingExcludedKeys = new Set(sptExcludedKeys);
+        panel.classList.remove('hidden');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        if (chevron) chevron.innerText = '▴';
+        renderSptExcludeList();
+      } else {
+        closeSptExcludePanel();
+      }
+    }
+
+    function closeSptExcludePanel() {
+      const panel = document.getElementById('spt-exclude-panel');
+      const toggle = document.getElementById('spt-exclude-toggle');
+      const chevron = document.getElementById('spt-exclude-chevron');
+      if (panel) panel.classList.add('hidden');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      if (chevron) chevron.innerText = '▾';
+      sptPendingExcludedKeys = new Set(sptExcludedKeys);
+    }
+
+    function renderSptExcludeList() {
+      const container = document.getElementById('spt-exclude-list');
+      const status = document.getElementById('spt-exclude-status');
+      const searchEl = document.getElementById('spt-exclude-search');
+      if (!container) return;
+
+      const allUnits = getAllSianjabUnits();
+      if (allUnits.length === 0) {
+        container.innerHTML = '<div class="p-3 text-xs text-amber-700 bg-amber-50">Data master OPD SI-PRABU belum tersedia.</div>';
+        if (status) status.innerText = '';
+        return;
+      }
+
+      const q = searchEl ? searchEl.value.toLowerCase().trim() : '';
+      const filtered = allUnits.filter(u => !q || u.nama.toLowerCase().includes(q));
+      const groups = [
+        { label: 'Unit Kerja Utama (Dinas / Badan / Kecamatan)', items: filtered.filter(u => !u.sub) },
+        { label: 'Sub Unit Kerja (Bagian / Puskesmas / RSUD / UPTD)', items: filtered.filter(u => u.sub) }
+      ];
+
+      let html = '';
+      groups.forEach(group => {
+        if (group.items.length === 0) return;
+        html += `<div class="px-3 py-2 bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500">${escapeHtml(group.label)}</div>`;
+        group.items.forEach(u => {
+          const checked = sptPendingExcludedKeys.has(u.key) ? 'checked' : '';
+          html += `
+            <label class="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs text-slate-700">
+              <input type="checkbox" class="w-4 h-4 rounded text-[#0057B7] focus:ring-[#0057B7]" data-key="${escapeHtml(u.key)}" ${checked} onchange="handleSptExcludeToggle(this)">
+              <span class="flex-1 font-medium">${escapeHtml(u.nama)}</span>
+              ${u.sub ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">SUB</span>' : ''}
+            </label>
+          `;
+        });
+      });
+
+      container.innerHTML = html || '<div class="p-3 text-xs text-slate-400 italic">Tidak ada unit kerja yang cocok dengan pencarian.</div>';
+      if (status) {
+        status.innerText = `${sptPendingExcludedKeys.size} dikecualikan • ${Math.max(allUnits.length - sptPendingExcludedKeys.size, 0)} dipantau`;
+      }
+    }
+
+    function handleSptExcludeToggle(el) {
+      if (!el || !el.dataset) return;
+      const key = el.dataset.key;
+      if (!key) return;
+      if (el.checked) sptPendingExcludedKeys.add(key);
+      else sptPendingExcludedKeys.delete(key);
+      const status = document.getElementById('spt-exclude-status');
+      const total = getAllSianjabUnits().length;
+      if (status) status.innerText = `${sptPendingExcludedKeys.size} dikecualikan • ${Math.max(total - sptPendingExcludedKeys.size, 0)} dipantau`;
+    }
+
+    function setAllSptExclusionPending(excludeAll) {
+      sptPendingExcludedKeys = new Set();
+      if (excludeAll) {
+        getAllSianjabUnits().forEach(u => sptPendingExcludedKeys.add(u.key));
+      }
+      renderSptExcludeList();
+    }
+
+    function resetSptExclusions() {
+      sptPendingExcludedKeys = new Set();
+      renderSptExcludeList();
+    }
+
+    function saveSptExclusions() {
+      sptExcludedKeys = new Set(sptPendingExcludedKeys);
+      try {
+        localStorage.setItem('spt_monitoring_excluded_units', JSON.stringify(Array.from(sptExcludedKeys)));
+      } catch (e) {}
+      updateSptExcludeBadge();
+      renderSptComplianceReport();
+      closeSptExcludePanel();
+
+      if (!window.google || !window.google.script || !window.google.script.run) {
+        alert(`✅ Pengaturan pantauan disimpan di browser ini (${sptExcludedKeys.size} unit dikecualikan).`);
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function() {
+          alert(`✅ Pengaturan pantauan tersimpan (${sptExcludedKeys.size} unit dikecualikan dari laporan).`);
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Gagal menyimpan pengaturan pantauan ke server:', err);
+          alert("⚠️ Pengaturan diterapkan di browser ini, tetapi belum tersimpan ke server. Pastikan aturan Firestore sudah dideploy agar pengaturan berlaku di perangkat lain.");
+        })
+        .saveMonitoringExclusions(Array.from(sptExcludedKeys));
+    }
+
+    function renderSptComplianceReport() {
+      const filterEl = document.getElementById('filter-kegiatan');
+      const selectedKegiatan = filterEl ? filterEl.value : 'Semua Kegiatan';
+      const kegiatan = (selectedKegiatan && selectedKegiatan !== 'Semua Kegiatan') ? selectedKegiatan : '';
+      const belumContainer = document.getElementById('belum-spt-container');
+      const sudahContainer = document.getElementById('sudah-spt-container');
+      const belumBadge = document.getElementById('belum-spt-count-badge');
+      const sudahBadge = document.getElementById('sudah-spt-count-badge');
+      const deadlineInfo = document.getElementById('spt-deadline-info');
+      const setStat = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = value;
+      };
+
+      if (!kegiatan) {
+        setStat('spt-stat-total-opd', 0);
+        setStat('spt-stat-sudah', 0);
+        setStat('spt-stat-belum', 0);
+        setStat('spt-stat-persen', '0%');
+        setStat('spt-stat-total-spt', 0);
+        setStat('spt-scope-info', '0 utama • 0 sub unit');
+        if (deadlineInfo) deadlineInfo.innerText = 'Batas waktu: -';
+        if (belumBadge) belumBadge.innerText = '0 unit';
+        if (sudahBadge) sudahBadge.innerText = '0 unit';
+        const promptHtml = '<div class="p-4 text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200 italic">Pilih kegiatan tertentu pada Filter Rekap di atas (bukan Semua Kegiatan) untuk menampilkan daftar OPD.</div>';
+        if (belumContainer) belumContainer.innerHTML = promptHtml;
+        if (sudahContainer) sudahContainer.innerHTML = promptHtml;
+        window.__sptComplianceState = { kegiatan: '', deadline: '', belum: [], sudah: [], stats: {} };
+        return;
+      }
+
+      const keg = (Array.isArray(kegiatanDb) ? kegiatanDb : []).find(k => k && String(k.nama || '').trim() === kegiatan);
+      const deadline = (keg && keg.deadline) ? keg.deadline : 'Tanpa Batas';
+      if (deadlineInfo) deadlineInfo.innerText = 'Batas waktu: ' + deadline;
+
+      const allUnits = getAllSianjabUnits().filter(unit => !sptExcludedKeys.has(unit.key));
+      const rows = (submissionsDb && submissionsDb.length > 1) ? submissionsDb.slice(1) : [];
+      const rowsForKeg = rows.filter(row => row && String(row[1] || '').trim() === kegiatan);
+      const monitoredKeys = new Set(allUnits.map(unit => unit.key));
+      const monitoredRowsForKeg = rowsForKeg.filter(row =>
+        monitoredKeys.has(normalizeUnitName(String((row && row[2]) || '').trim()))
+      );
+
+      // Cocokkan nama unit kerja dengan submisi secara toleran (abaikan huruf besar/kecil & spasi ganda)
+      const submissionCountByKey = new Map();
+      monitoredRowsForKeg.forEach(row => {
+        const key = normalizeUnitName(String((row && row[2]) || '').trim());
+        if (!key) return;
+        submissionCountByKey.set(key, (submissionCountByKey.get(key) || 0) + 1);
+      });
+
+      const sudah = [];
+      const belum = [];
+      allUnits.forEach(unit => {
+        const jumlah = submissionCountByKey.get(unit.key) || 0;
+        if (jumlah > 0) sudah.push({ opd: unit.nama, sub: unit.sub, jumlah: jumlah });
+        else belum.push({ opd: unit.nama, sub: unit.sub });
+      });
+
+      const percent = allUnits.length > 0 ? Math.round((sudah.length / allUnits.length) * 100) : 0;
+      const utamaCount = allUnits.filter(unit => !unit.sub).length;
+
+      setStat('spt-stat-total-opd', allUnits.length);
+      setStat('spt-stat-sudah', sudah.length);
+      setStat('spt-stat-belum', belum.length);
+      setStat('spt-stat-persen', `${percent}%`);
+      setStat('spt-stat-total-spt', monitoredRowsForKeg.length);
+      setStat('spt-scope-info', `${utamaCount} utama • ${allUnits.length - utamaCount} sub unit`);
+      if (belumBadge) belumBadge.innerText = `${belum.length} unit`;
+      if (sudahBadge) sudahBadge.innerText = `${sudah.length} unit`;
+
+      if (allUnits.length === 0) {
+        const masterCount = getAllSianjabUnits().length;
+        const warningHtml = masterCount === 0
+          ? `
+            <div class="p-3 text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+              Data master OPD SI-PRABU belum tersedia.
+              <button type="button" onclick="loadOpdFromSianjab(true)" class="font-bold underline hover:text-amber-900">Sinkronkan sekarang</button>
+            </div>
+          `
+          : `
+            <div class="p-3 text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+              Semua unit kerja sedang dikecualikan dari pantauan.
+              <button type="button" onclick="toggleSptExcludePanel()" class="font-bold underline hover:text-amber-900">Buka Atur Pantauan</button>
+            </div>
+          `;
+        if (belumContainer) belumContainer.innerHTML = warningHtml;
+        if (sudahContainer) sudahContainer.innerHTML = warningHtml;
+      } else {
+        if (belumContainer) {
+          belumContainer.innerHTML = belum.length === 0
+            ? `<div class="w-full p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 text-center font-bold text-xs sm:text-sm">🎉 Seluruh (${allUnits.length}) unit kerja telah mengirimkan SPT untuk kegiatan ini!</div>`
+            : belum.map((item, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 font-bold text-xs shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                  <span>${idx + 1}. ${escapeHtml(item.opd)}</span>
+                  ${item.sub ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-white/70 border border-amber-200 text-amber-700">SUB</span>' : ''}
+                </span>
+              `).join('');
+        }
+        if (sudahContainer) {
+          sudahContainer.innerHTML = sudah.length === 0
+            ? '<div class="p-3 text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200 italic">Belum ada unit kerja yang mengirimkan SPT pada kegiatan ini.</div>'
+            : sudah.map((item, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 font-bold text-xs shadow-2xs">
+                  <span>✅</span>
+                  <span>${idx + 1}. ${escapeHtml(item.opd)}</span>
+                  ${item.sub ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-white/70 border border-emerald-200 text-emerald-700">SUB</span>' : ''}
+                  <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-white/70 border border-emerald-200 text-emerald-700 shrink-0 whitespace-nowrap">${item.jumlah} SPT</span>
+                </span>
+              `).join('');
+        }
+      }
+
+      window.__sptComplianceState = {
+        kegiatan: kegiatan,
+        deadline: deadline,
+        belum: belum,
+        sudah: sudah,
+        stats: {
+          total: allUnits.length,
+          sudah: sudah.length,
+          belum: belum.length,
+          percent: percent,
+          totalSpt: monitoredRowsForKeg.length
+        }
+      };
+    }
+
+    // Sumber waktu laporan: ambil jam dari server agar tanggal/jam tetap benar
+    // meskipun jam komputer pengguna (mis. admin) meleset beberapa jam/hari.
+    let __serverClockOffsetMs = 0;
+    let __serverClockFetchedAt = 0;
+    const SERVER_CLOCK_TTL_MS = 5 * 60 * 1000;
+
+    async function syncServerClock(force) {
+      const freshFor = Date.now() - __serverClockFetchedAt;
+      if (!force && __serverClockFetchedAt && freshFor < SERVER_CLOCK_TTL_MS) return;
+
+      // /__/firebase/init.json selalu no-store di Firebase Hosting; index.html
+      // dipakai sebagai cadangan (mis. saat dijalankan dari Apps Script).
+      const sources = [
+        { url: '/__/firebase/init.json', method: 'GET' },
+        { url: './index.html?_clock=' + Date.now(), method: 'HEAD' }
+      ];
+
+      for (const src of sources) {
+        try {
+          const res = await fetch(src.url, { method: src.method, cache: 'no-store' });
+          if (!res || !res.ok) continue;
+          const header = res.headers.get('date');
+          const serverMs = header ? Date.parse(header) : NaN;
+          if (isNaN(serverMs)) continue;
+          __serverClockOffsetMs = serverMs - Date.now();
+          __serverClockFetchedAt = Date.now();
+          return;
+        } catch (err) {
+          // coba sumber berikutnya, lalu jatuh ke jam perangkat
+        }
+      }
+    }
+
+    async function getWibNow() {
+      try {
+        await syncServerClock(false);
+      } catch (err) {
+        // abaikan: tetap pakai jam perangkat
+      }
+      return new Date(Date.now() + __serverClockOffsetMs);
+    }
+
+    function formatWibDate(date) {
+      const d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    }
+
+    function formatWibTimestamp(date) {
+      const d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+      const jam = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+      return `${formatWibDate(d)}, ${jam} WIB`;
+    }
+
+    // Tanggal ISO (YYYY-MM-DD) menurut WIB, dipakai untuk nama file ekspor
+    // dan nilai default input tanggal agar tidak bergeser oleh zona waktu perangkat.
+    function formatWibIsoDate(date) {
+      const d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(d);
+      const pick = type => (parts.find(p => p.type === type) || {}).value || '';
+      return `${pick('year')}-${pick('month')}-${pick('day')}`;
+    }
+
+    function formatWibYear(date) {
+      return formatWibIsoDate(date).slice(0, 4);
+    }
+
+    async function copyBelumKirimSptToClipboard() {
+      const state = window.__sptComplianceState || {};
+      if (!state.kegiatan) {
+        alert("Pilih kegiatan terlebih dahulu sebelum menyalin laporan.");
+        return;
+      }
+
+      const stats = state.stats || {};
+      const belum = (Array.isArray(state.belum) ? state.belum : []).map(item => ({
+        opd: (item && item.opd) ? item.opd : String(item || ''),
+        sub: !!(item && item.sub)
+      }));
+      const waktuData = formatWibTimestamp(await getWibNow());
+
+      let msg = `*LAPORAN KEPATUHAN PENGIRIMAN SPT*\n`;
+      msg += `📌 Kegiatan: *${state.kegiatan}*\n`;
+      if (state.deadline && state.deadline !== 'Tanpa Batas') {
+        msg += `🗓️ Batas Waktu: *${state.deadline}*\n`;
+      }
+      msg += `📊 Kepatuhan Unit Kerja: *${stats.sudah || 0} dari ${stats.total || 0} unit* (${stats.percent || 0}%)\n`;
+      msg += `📨 Total SPT Masuk: *${stats.totalSpt || 0} dokumen*\n`;
+      msg += `🕒 Data per: *${waktuData}*\n\n`;
+
+      if (belum.length === 0) {
+        msg += `✅ *Seluruh unit kerja telah mengirimkan SPT untuk kegiatan ini.*\n`;
+      } else {
+        msg += `⚠️ *DAFTAR OPD / UNIT KERJA YANG BELUM MENGIRIM SPT (${belum.length} unit):*\n`;
+        belum.forEach((item, i) => {
+          msg += `${i + 1}. ${item.opd}\n`;
+        });
+        msg += `\nMohon unit kerja tersebut segera menindaklanjuti pengiriman SPT.\n`;
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+        prompt("Salin teks di bawah ini secara manual:", msg);
+        return;
+      }
+
+      navigator.clipboard.writeText(msg).then(() => {
+        alert("✅ Daftar OPD yang belum mengirim SPT berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp.");
+      }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+        prompt("Salin teks di bawah ini secara manual:", msg);
+      });
+    }
+
+    async function copySudahKirimSptToClipboard() {
+      const state = window.__sptComplianceState || {};
+      if (!state.kegiatan) {
+        alert("Pilih kegiatan tertentu pada Filter Rekap terlebih dahulu sebelum menyalin laporan.");
+        return;
+      }
+
+      const stats = state.stats || {};
+      const sudah = Array.isArray(state.sudah) ? state.sudah : [];
+      const waktuData = formatWibTimestamp(await getWibNow());
+
+      let msg = `*LAPORAN OPD / UNIT KERJA YANG SUDAH MENGIRIM SPT*\n`;
+      msg += `📌 Kegiatan: *${state.kegiatan}*\n`;
+      if (state.deadline && state.deadline !== 'Tanpa Batas') {
+        msg += `🗓️ Batas Waktu: *${state.deadline}*\n`;
+      }
+      msg += `📊 Kepatuhan Unit Kerja: *${stats.sudah || 0} dari ${stats.total || 0} unit* (${stats.percent || 0}%)\n`;
+      msg += `📨 Total SPT Masuk: *${stats.totalSpt || 0} dokumen*\n`;
+      msg += `🕒 Data per: *${waktuData}*\n\n`;
+
+      if (sudah.length === 0) {
+        msg += `ℹ️ *Belum ada unit kerja yang mengirimkan SPT untuk kegiatan ini.*\n`;
+      } else {
+        msg += `✅ *DAFTAR OPD / UNIT KERJA YANG SUDAH MENGIRIM SPT (${sudah.length} unit):*\n`;
+        sudah.forEach((item, i) => {
+          const namaOpd = (item && item.opd) ? item.opd : String(item || '');
+          const jumlah = (item && item.jumlah) ? item.jumlah : 0;
+          msg += `${i + 1}. ${namaOpd} — ${jumlah} SPT\n`;
+        });
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+        prompt("Salin teks di bawah ini secara manual:", msg);
+        return;
+      }
+
+      navigator.clipboard.writeText(msg).then(() => {
+        alert("✅ Daftar OPD yang sudah mengirim SPT berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp.");
+      }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+        prompt("Salin teks di bawah ini secara manual:", msg);
+      });
+    }
+
+    async function copyLaporanLengkapSptToClipboard() {
+      const state = window.__sptComplianceState || {};
+      if (!state.kegiatan) {
+        alert("Pilih kegiatan tertentu pada Filter Rekap terlebih dahulu sebelum menyalin laporan.");
+        return;
+      }
+
+      const stats = state.stats || {};
+      const sudah = Array.isArray(state.sudah) ? state.sudah : [];
+      const belum = Array.isArray(state.belum) ? state.belum : [];
+      const waktuData = formatWibTimestamp(await getWibNow());
+
+      const formatUnitSection = (list, withCount) => {
+        const utama = list.filter(item => !item.sub);
+        const sub = list.filter(item => item.sub);
+        let section = '';
+        let n = 0;
+        if (utama.length > 0) {
+          if (sub.length > 0) section += `*Unit Kerja Utama (${utama.length}):*\n`;
+          utama.forEach(item => {
+            n++;
+            section += withCount ? `${n}. ${item.opd} — ${item.jumlah} SPT\n` : `${n}. ${item.opd}\n`;
+          });
+        }
+        if (sub.length > 0) {
+          if (utama.length > 0) section += `\n*Sub Unit Kerja (${sub.length}):*\n`;
+          sub.forEach(item => {
+            n++;
+            section += withCount ? `${n}. ${item.opd} — ${item.jumlah} SPT\n` : `${n}. ${item.opd}\n`;
+          });
+        }
+        return section;
+      };
+
+      let msg = `*LAPORAN LENGKAP PENGIRIMAN SPT PER OPD / UNIT KERJA*\n`;
+      msg += `📌 Kegiatan: *${state.kegiatan}*\n`;
+      if (state.deadline && state.deadline !== 'Tanpa Batas') {
+        msg += `🗓️ Batas Waktu: *${state.deadline}*\n`;
+      }
+      msg += `📊 Kepatuhan Unit Kerja: *${stats.sudah || 0} dari ${stats.total || 0} unit* (${stats.percent || 0}%)\n`;
+      msg += `📨 Total SPT Masuk: *${stats.totalSpt || 0} dokumen*\n`;
+      msg += `🕒 Data per: *${waktuData}*\n\n`;
+
+      msg += `✅ *OPD / UNIT KERJA YANG SUDAH MENGIRIM SPT (${sudah.length} unit):*\n`;
+      if (sudah.length === 0) {
+        msg += `_Belum ada unit kerja yang mengirimkan SPT._\n`;
+      } else {
+        msg += formatUnitSection(sudah, true);
+      }
+
+      msg += `\n⚠️ *OPD / UNIT KERJA YANG BELUM MENGIRIM SPT (${belum.length} unit):*\n`;
+      if (belum.length === 0) {
+        msg += `✅ _Seluruh unit kerja telah mengirimkan SPT untuk kegiatan ini._\n`;
+      } else {
+        msg += formatUnitSection(belum, false);
+        msg += `\nMohon unit kerja tersebut segera menindaklanjuti pengiriman SPT.\n`;
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+        prompt("Salin teks di bawah ini secara manual:", msg);
+        return;
+      }
+
+      navigator.clipboard.writeText(msg).then(() => {
+        alert("✅ Laporan lengkap OPD/unit kerja sudah dan belum mengirim SPT berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp.");
+      }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+        prompt("Salin teks di bawah ini secara manual:", msg);
+      });
+    }
+
+    async function exportAttendanceCsv() {
       if (attendanceDb.length === 0) {
         alert("Belum ada data kehadiran untuk diekspor!");
         return;
@@ -2060,7 +3048,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `Daftar_Hadir_${safeKeg}_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute("download", `Daftar_Hadir_${safeKeg}_${formatWibIsoDate(await getWibNow())}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2146,6 +3134,78 @@
       } else {
         text.value = "";
       }
+
+      applyNomorModePolicy(selected);
+    }
+
+    // Apakah pengirim wajib memilih mode? Fail-closed: default wajib,
+    // kecuali kebijakan kegiatan menetapkan modenya sendiri (dataset = '0').
+    function butuhPilihNomorMode() {
+      const w = document.getElementById('nomor-mode-wrapper');
+      return !w || w.dataset.wajibPilih !== '0';
+    }
+
+    // Tampilkan/sembunyikan input nomor agenda sesuai mode yang dipilih
+    function handleNomorModeChange() {
+      const modeEl = document.querySelector('input[name="nomor_mode"]:checked');
+      const mode = modeEl ? modeEl.value : null;
+      const wrap = document.getElementById('nomor-manual-input-wrap');
+      const input = document.getElementById('nomor-manual-input');
+      const showManual = mode === 'manual';
+      if (wrap) wrap.classList.toggle('hidden', !showManual);
+      if (input) {
+        input.required = showManual;
+        if (!showManual) input.value = '';
+      }
+
+      // Belum dipilih padahal wajib -> tandai jelas agar tidak terlewat
+      const belumPilih = !modeEl && butuhPilihNomorMode();
+      ['nomor-auto-option', 'nomor-manual-option'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('border-amber-300', belumPilih);
+      });
+      const note = document.getElementById('nomor-pilih-note');
+      if (note) note.classList.toggle('hidden', !belumPilih);
+    }
+
+    // Kebijakan penomoran per kegiatan:
+    //  autoNomor === false           -> wajib manual (nomor instansi sendiri)
+    //  izinkanNomorManual === false  -> wajib otomatis sistem
+    //  lainnya                        -> pengirim WAJIB memilih sendiri (tanpa default)
+    function applyNomorModePolicy(keg) {
+      const autoRadio = document.querySelector('input[name="nomor_mode"][value="auto"]');
+      const manualRadio = document.querySelector('input[name="nomor_mode"][value="manual"]');
+      if (!autoRadio || !manualRadio) return;
+
+      const wajibManual = !!(keg && keg.autoNomor === false);
+      const bolehManual = !keg || keg.izinkanNomorManual !== false;
+      const wajibPilih = !wajibManual && bolehManual;
+
+      const wrapper = document.getElementById('nomor-mode-wrapper');
+      if (wrapper) wrapper.dataset.wajibPilih = wajibPilih ? '1' : '0';
+
+      autoRadio.disabled = wajibManual;
+      manualRadio.disabled = !bolehManual;
+      // Hanya sistem yang boleh menentukan mode (kasus terkunci). Saat bebas, sengaja tidak
+      // ada default agar pengirim sadar harus memilih sendiri sebelum kirim.
+      if (wajibManual) manualRadio.checked = true;
+      else if (!bolehManual) autoRadio.checked = true;
+      else { autoRadio.checked = false; manualRadio.checked = false; }
+
+      const manualOption = document.getElementById('nomor-manual-option');
+      if (manualOption) manualOption.classList.toggle('hidden', !bolehManual && !wajibManual);
+
+      const autoHint = document.getElementById('nomor-auto-hint');
+      if (autoHint) autoHint.innerText = (keg && keg.formatNomor) ? ('Format sistem: ' + keg.formatNomor) : 'Nomor dibuat otomatis oleh sistem';
+
+      const statusNote = document.getElementById('nomor-status-note');
+      if (statusNote) {
+        if (wajibManual) statusNote.innerText = 'Kegiatan ini memakai penomoran manual — isi nomor agenda instansi Anda.';
+        else if (!bolehManual) statusNote.innerText = 'Kegiatan ini hanya memakai penomoran otomatis sistem.';
+        else statusNote.innerText = '';
+      }
+
+      handleNomorModeChange();
     }
 
     // --- HTML5 Signature Canvas Drawing Logic ---
@@ -2288,7 +3348,7 @@
     }
 
     // --- Form Submission Logic ---
-    function handleFormSubmit(e) {
+    async function handleFormSubmit(e) {
       e.preventDefault();
       
       const form = document.getElementById('sptForm');
@@ -2311,16 +3371,57 @@
       const opdSelect = document.getElementById('opd-select');
       const selectedOption = opdSelect && opdSelect.options[opdSelect.selectedIndex];
       data.unit_kerja_id = selectedOption ? (selectedOption.getAttribute('data-id') || '') : '';
+
+      // Unit wadah struktural (mis. Sekretariat Daerah) tidak boleh dipakai sebagai unit kerja SPT:
+      // yang benar adalah Bagian di bawahnya.
+      const wadahTerpilih = getUnitWadah({ id: data.unit_kerja_id, nama: data.unit_kerja });
+      if (wadahTerpilih) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Pilih Bagian, Bukan ' + wadahTerpilih.nama,
+          html: `<b>${wadahTerpilih.nama}</b> hanya wadah struktural dan tidak dipakai sebagai unit kerja SPT.<br>Silakan pilih <b>Bagian</b> di bawah ${wadahTerpilih.nama} pada kolom Unit Kerja / OPD.`
+        });
+        if (opdSelect) opdSelect.focus();
+        return;
+      }
+
       data.kode_opd = resolveOpdCode(data.unit_kerja, data.unit_kerja_id);
       
       // Add integration info from selected kegiatan status
       const selectKeg = kegiatanDb.find(k => k.nama === data.perihal);
       data.integrasi = selectKeg ? selectKeg.integrasi : "None";
+
+      // Mode penomoran tidak punya default: wajib dipilih eksplisit sebelum mengirim.
+      // Validasi final tetap dilakukan backend (batas kepercayaan).
+      const modeTerpilih = document.querySelector('input[name="nomor_mode"]:checked');
+      if (butuhPilihNomorMode() && !modeTerpilih) {
+        const wrapper = document.getElementById('nomor-mode-wrapper');
+        if (wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        handleNomorModeChange();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Pilih Mode Penomoran',
+          text: 'Tentukan dulu mode penomoran SPT — Otomatis (Sistem) atau Nomor Instansi Sendiri — sebelum mengirim.'
+        });
+        return;
+      }
+
+      // Penomoran manual: nomor agenda/instansi wajib diisi (validasi final juga dilakukan backend)
+      data.nomor_spt = String(data.nomor_spt || "").trim();
+      if (data.nomor_mode === 'manual' && !data.nomor_spt) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Nomor SPT Belum Diisi',
+          text: 'Anda memilih penomoran manual. Silakan isi nomor agenda/SPT instansi Anda, atau pilih mode Otomatis (Sistem).'
+        });
+        return;
+      }
       
       // B-7: Validasi deadline kegiatan sebelum submit
       if (selectKeg && selectKeg.deadline && selectKeg.deadline !== "Tanpa Batas") {
         const deadlineDate = parseDeadlineIndo(selectKeg.deadline);
-        if (deadlineDate && new Date() > deadlineDate) {
+        const sekarangWib = await getWibNow();
+        if (deadlineDate && sekarangWib > deadlineDate) {
           Swal.fire({
             icon: 'error',
             title: 'Batas Waktu Berakhir',
@@ -2345,9 +3446,17 @@
           if (response.status === "success") {
             let successHtml = 'Surat Tugas Anda berhasil dibuat dalam format PDF.';
             if (response.nomor_spt) {
-              successHtml = '<div style="margin-bottom: 12px; padding: 12px 14px; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; text-align: center;">' +
-                '<div style="font-size: 11px; font-weight: bold; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">Nomor Registrasi SPT Resmi</div>' +
+              // Tampilkan mode yang benar-benar dipakai (hasil resolusi backend) + nomor final,
+              // supaya pengirim bisa memastikan apa yang tercatat.
+              const isManual = response.nomor_mode === 'manual';
+              const modeLabel = isManual ? 'Nomor Instansi Sendiri (Manual)' : 'Otomatis (Sistem)';
+              const modeColor = isManual ? '#047857' : '#1e40af';
+              const modeBg = isManual ? '#ecfdf5' : '#eff6ff';
+              const modeBorder = isManual ? '#a7f3d0' : '#bfdbfe';
+              successHtml = '<div style="margin-bottom: 12px; padding: 12px 14px; background: ' + modeBg + '; border: 1.5px solid ' + modeBorder + '; border-radius: 14px; text-align: center;">' +
+                '<div style="font-size: 11px; font-weight: bold; color: ' + modeColor + '; text-transform: uppercase; letter-spacing: 0.5px;">Nomor Registrasi SPT Resmi</div>' +
                 '<div style="font-size: 15px; font-weight: 800; color: #004899; font-family: monospace; margin-top: 4px;">' + escapeHtml(response.nomor_spt) + '</div>' +
+                '<div style="font-size: 11px; font-weight: 600; color: ' + modeColor + '; margin-top: 6px;">Mode Penomoran: ' + escapeHtml(modeLabel) + '</div>' +
                 '</div>' + successHtml;
             }
             if (response.sianjabCreated) {
@@ -2408,7 +3517,7 @@
           Swal.fire({
             icon: 'error',
             title: 'Terjadi Kesalahan',
-            text: err.toString()
+            text: (err && err.message) ? err.message : err.toString()
           });
         })
         .submitSptData(data);
@@ -2431,7 +3540,7 @@
     }
 
     // --- Draft SPT Modal Preview Logic ---
-    function openSptPreviewModal() {
+    async function openSptPreviewModal() {
       const form = document.getElementById('sptForm');
       if (!form) return;
       const formData = new FormData(form);
@@ -2448,11 +3557,10 @@
       const jabatanAtasan = formData.get('j_atasan') || "";
       const pangkatAtasan = formData.get('p_atasan') || document.getElementById('pangkat-atasan-select').value || "";
 
-      const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-      const d = new Date();
-      const todayIndo = d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+      const d = await getWibNow();
+      const todayIndo = formatWibDate(d);
 
-      document.getElementById('prev-tahun').innerText = d.getFullYear();
+      document.getElementById('prev-tahun').innerText = formatWibYear(d);
       document.getElementById('prev-tanggal').innerText = todayIndo;
       document.getElementById('prev-dasar').innerText = dasarSpt || "[Dasar hukum akan terisi otomatis sesuai kegiatan]";
       document.getElementById('prev-unitkerja').innerText = unitKerja || "[Unit Kerja Belum Dipilih]";
@@ -2587,32 +3695,34 @@
     }
 
     function applyFilters() {
-      const selectedKeg = document.getElementById('filter-kegiatan').value;
+      const kegEl = document.getElementById('filter-kegiatan');
+      const modeEl = document.getElementById('filter-nomor-mode');
+      const selectedKeg = kegEl ? kegEl.value : "Semua Kegiatan";
+      const selectedMode = modeEl ? modeEl.value : "Semua Mode";
       
       if (!submissionsDb || submissionsDb.length === 0) {
         filteredSubmissions = [];
         calculateStats();
         renderSubmissionTable();
         renderComplianceReport();
+        renderSptComplianceReport();
         return;
       }
       
       const dataRows = submissionsDb.slice(1);
-      
-      let filteredData = [];
-      if (selectedKeg === "Semua Kegiatan") {
-        filteredData = dataRows.map((row, idx) => ({ row, index: idx + 1 }));
-      } else {
-        filteredData = dataRows
-          .map((row, idx) => ({ row, index: idx + 1 }))
-          .filter(item => item.row[1] === selectedKeg);
-      }
+
+      // Mode kosong (data lama) diperlakukan sebagai "auto", sesuai badge & default backend
+      const filteredData = dataRows
+        .map((row, idx) => ({ row, index: idx + 1 }))
+        .filter(item => selectedKeg === "Semua Kegiatan" || item.row[1] === selectedKeg)
+        .filter(item => selectedMode === "Semua Mode" || (item.row[22] || "auto") === selectedMode);
       
       filteredSubmissions = filteredData;
       
       calculateStats();
       renderSubmissionTable();
       renderComplianceReport();
+      renderSptComplianceReport();
     }
 
     function calculateStats() {
@@ -2675,7 +3785,10 @@
         return;
       }
 
-      const parents = sianjabUnits.filter(o => !o.parentId).map(o => o.nama).filter(Boolean).sort((a, b) => a.localeCompare(b));
+      const parents = sianjabUnits
+        .filter(o => !o.parentId)
+        .filter(o => !isWadahStruktural(o, sianjabUnits))
+        .map(o => o.nama).filter(Boolean).sort((a, b) => a.localeCompare(b));
       const children = sianjabUnits.filter(o => o.parentId).map(o => o.nama).filter(Boolean).sort((a, b) => a.localeCompare(b));
 
       const dynamicGroups = {};
@@ -2768,8 +3881,11 @@
         const statusPegawai = row[14] ? escapeHtml(row[14]) : '';
         const jabatanPengirim = row[15] ? escapeHtml(row[15]) : '';
 
+        // row[19] selalu kolom "Nomor SPT" dari getSubmissionsData — tampilkan apa pun isinya.
+        // Heuristik lama (harus memuat teks "SPT") menyembunyikan nomor manual bebas seperti
+        // "090/123/2026"; fallback row[13] tetap dipertahankan untuk data lama.
         let nomorSpt = '-';
-        if (row[19] && typeof row[19] === 'string' && row[19].includes('SPT')) {
+        if (row[19] && typeof row[19] === 'string' && row[19].trim()) {
           nomorSpt = row[19];
         } else if (row[13] && typeof row[13] === 'string' && row[13].includes('SPT')) {
           nomorSpt = row[13];
@@ -2792,6 +3908,7 @@
             </td>
             <td class="px-6 py-4">
               <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold ${nomorSpt !== '-' ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-slate-50 text-slate-400 border border-slate-200'} inline-block">${escapeHtml(nomorSpt)}</span>
+              ${row[22] === 'manual' ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 align-middle">Manual</span>' : ''}
             </td>
             <td class="px-6 py-4">
               <div class="font-medium text-slate-700">${namaAtasan}</div>
@@ -2799,6 +3916,11 @@
             </td>
             <td class="px-6 py-4 text-center">
               <div class="flex items-center justify-center gap-1.5">
+                <button onclick="viewSubmissionSignature(${actualIdx})" class="p-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Lihat TTD Asli (tanpa barcode/QR verifikasi)">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
                 <button onclick="reprintSubmissionSpt(${actualIdx})" class="p-2 text-[#0057B7] hover:bg-blue-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Cetak / Unduh Ulang Surat Tugas (PDF)">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -2840,6 +3962,7 @@
                 ${nomorSpt !== '-' ? `
                 <div class="text-xs font-mono font-bold text-blue-700 bg-blue-50/80 px-2.5 py-1 rounded-lg border border-blue-200/80 mt-1.5 flex items-center gap-1.5">
                   <span>🔖</span> ${escapeHtml(nomorSpt)}
+                  ${row[22] === 'manual' ? '<span class="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Manual</span>' : ''}
                 </div>` : ''}
               </div>
               <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -2854,6 +3977,12 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
                     <span>Cetak</span>
+                  </button>
+                  <button onclick="viewSubmissionSignature(${actualIdx})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-all flex items-center gap-1 border border-amber-200 min-touch-target" title="Lihat TTD Asli (tanpa barcode/QR)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span>TTD</span>
                   </button>
                   <button onclick="deleteSubmissionData(${actualIdx}, '${escapeHtml(docId)}')" class="px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1 border border-red-200 min-touch-target">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -2934,6 +4063,7 @@
         nomor_spt: (row[19] && row[19] !== '-') ? row[19] : "",
         nomor_urut: row[20] || "",
         kode_opd: row[21] || "",
+        nomor_mode: row[22] || "auto",
         dasar_spt: dasarSpt,
         verify_url: docId ? ("https://tugasku-bagor.web.app/?v=" + docId) : "https://tugasku-bagor.web.app"
       };
@@ -2971,6 +4101,117 @@
             text: 'Terjadi kesalahan saat memproses dokumen PDF: ' + (err.message || err.toString())
           });
         });
+    }
+
+    // --- Lihat TTD Asli (mentah) dari data submisi ---
+    // Hanya menerima data URL PNG/JPEG base64 yang valid agar aman disisipkan ke atribut src.
+    function normalizeSignatureDataUrl(value) {
+      const raw = typeof value === 'string' ? value.trim() : '';
+      if (!/^data:image\/(?:png|jpe?g);base64,[A-Za-z0-9+/=\s]+$/i.test(raw)) return '';
+      return raw.replace(/\s+/g, '');
+    }
+
+    async function viewSubmissionSignature(actualIdx) {
+      const row = (typeof submissionsDb !== 'undefined' && Array.isArray(submissionsDb)) ? submissionsDb[actualIdx] : null;
+      if (!row) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Data Tidak Ditemukan',
+          text: 'Gagal membaca rincian data submisi. Silakan muat ulang halaman.'
+        });
+        return;
+      }
+
+      const docId = row[13] || '';
+      if (!docId) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ID Dokumen Kosong',
+          text: 'Submisi ini tidak memiliki ID dokumen sehingga TTD tidak dapat dibuka.'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: 'Memuat Tanda Tangan...',
+        text: 'Mengambil gambar TTD asli dari database.',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      try {
+        if (!window.db) throw new Error('Koneksi database belum siap. Muat ulang halaman lalu coba lagi.');
+        const snap = await window.db.collection('submissions').doc(docId).get();
+        if (!snap.exists) throw new Error('Dokumen submisi tidak ditemukan. Kemungkinan data sudah dihapus.');
+
+        const data = snap.data() || {};
+        const ttd = normalizeSignatureDataUrl(data.ttd || data.signature_data || '');
+        if (!ttd) {
+          Swal.close();
+          Swal.fire({
+            icon: 'info',
+            title: 'TTD Tidak Tersimpan',
+            text: 'Submisi ini tidak memiliki gambar tanda tangan (mungkin dibuat sebelum fitur TTD aktif atau dikirim tanpa tanda tangan).'
+          });
+          return;
+        }
+
+        const nama = data.namaAdmin || row[3] || 'Pegawai';
+        const nip = data.nipAdmin || row[4] || '';
+        const nomorSpt = data.nomorSpt || data.nomor_spt || row[19] || '';
+        const waktuKirim = data.waktu || row[0] || '';
+        const ext = ttd.indexOf('data:image/png') === 0 ? 'png' : 'jpg';
+        const safeName = String(nama).replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'pegawai';
+        const fileName = `TTD_${safeName}_${String(docId).slice(0, 8)}.${ext}`;
+
+        // Tutup modal loading lebih dulu agar status loading tidak terbawa ke modal TTD.
+        Swal.close();
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const result = await Swal.fire({
+          title: 'TTD Asli (Mentah)',
+          width: 520,
+          html: `
+            <div style="text-align:left;">
+              <div style="font-size:13px;color:#334155;line-height:1.6;margin-bottom:10px;">
+                <div><span style="color:#64748b;">Nama:</span> <b>${escapeHtml(nama)}</b></div>
+                ${nip ? `<div><span style="color:#64748b;">NIP:</span> ${escapeHtml(nip)}</div>` : ''}
+                ${nomorSpt ? `<div><span style="color:#64748b;">Nomor SPT:</span> <span style="font-family:monospace;font-weight:700;color:#004899;">${escapeHtml(nomorSpt)}</span></div>` : ''}
+                ${waktuKirim ? `<div><span style="color:#64748b;">Dikirim:</span> ${escapeHtml(waktuKirim)}</div>` : ''}
+              </div>
+              <div style="background-color:#fff;background-image:linear-gradient(45deg,#f1f5f9 25%,transparent 25%),linear-gradient(-45deg,#f1f5f9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f1f5f9 75%),linear-gradient(-45deg,transparent 75%,#f1f5f9 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;border:1px solid #e2e8f0;border-radius:14px;padding:12px;text-align:center;">
+                <img src="${ttd}" alt="Tanda tangan asli" style="max-width:100%;max-height:260px;display:inline-block;">
+              </div>
+              <p style="font-size:11px;color:#64748b;line-height:1.55;margin:10px 0 0;text-align:left;">
+                Gambar ini persis seperti yang digambar pengirim pada kanvas, sebelum ditempeli QR/barcode verifikasi pada SPT.
+              </p>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: `⬇️ Unduh ${ext.toUpperCase()}`,
+          cancelButtonText: 'Tutup',
+          confirmButtonColor: '#0057B7',
+          cancelButtonColor: '#64748b'
+        });
+
+        if (result.isConfirmed) {
+          const link = document.createElement('a');
+          link.href = ttd;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (err) {
+        console.error('Gagal memuat TTD:', err);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Memuat TTD',
+          text: err.message || String(err)
+        });
+      }
     }
 
     function deleteSubmissionData(rowIdx, docId) {
@@ -3015,7 +4256,7 @@
       });
     }
 
-    function exportToCsv() {
+    async function exportToCsv() {
       if (!submissionsDb || submissionsDb.length <= 1) return;
       
       let csvContent = "";
@@ -3033,7 +4274,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `Rekap_SPT_${new Date().getFullYear()}.csv`);
+      link.setAttribute("download", `Rekap_SPT_${formatWibYear(await getWibNow())}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -3061,7 +4302,7 @@
                 <td class="px-6 py-4">
                   <div class="font-bold text-slate-800">${escapeHtml(keg.nama)}</div>
                   <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi === 'SITPP' ? 'Gentala TPP EM-JE' : keg.integrasi)}</div>
-                  ${keg.autoNomor !== false ? `<div class="text-[11px] text-blue-600 font-mono mt-0.5 font-medium">⚡ Auto-Nomor: ${escapeHtml(keg.formatNomor || '090/{nomor}/SPT/{kode_opd}/{tahun}')}</div>` : `<div class="text-[11px] text-slate-400 mt-0.5">Manual (Tanpa Auto-Nomor)</div>`}
+                  ${keg.autoNomor !== false ? `<div class="text-[11px] text-blue-600 font-mono mt-0.5 font-medium">⚡ Auto-Nomor: ${escapeHtml(keg.formatNomor || '090/{nomor}/SPT/{kode_opd}/{tahun}')}${keg.izinkanNomorManual !== false ? ' <span class="text-emerald-600">• manual opsional</span>' : ' <span class="text-slate-400">• otomatis wajib</span>'}</div>` : `<div class="text-[11px] text-slate-400 mt-0.5">Manual (Tanpa Auto-Nomor)</div>`}
                 </td>
                 <td class="px-6 py-4 font-medium text-slate-600">${escapeHtml(keg.deadline || 'Tanpa Batas')}</td>
                 <td class="px-6 py-4 text-center">
@@ -3097,6 +4338,11 @@
       return `${day} ${INDO_MONTHS[monthIdx]} ${year}`;
     }
 
+    // Batas waktu selalu berakhir pada 23:59:59 WIB, bukan zona waktu perangkat.
+    function wibEndOfDay(year, monthIndex, day) {
+      return new Date(Date.UTC(year, monthIndex, day, 16, 59, 59));
+    }
+
     function parseDeadlineIndo(str) {
       if (!str || typeof str !== 'string' || str === "Tanpa Batas") return null;
       const parts = str.trim().split(/\s+/);
@@ -3105,17 +4351,18 @@
         const month = INDO_MONTHS.indexOf(parts[1]);
         const year = parseInt(parts[2], 10);
         if (day && month !== -1 && year) {
-          return new Date(year, month, day, 23, 59, 59);
+          return wibEndOfDay(year, month, day);
         }
       }
       const iso = new Date(str);
       if (!isNaN(iso.getTime())) {
-        return new Date(iso.getFullYear(), iso.getMonth(), iso.getDate(), 23, 59, 59);
+        const [y, m, d] = formatWibIsoDate(iso).split('-').map(Number);
+        return wibEndOfDay(y, m - 1, d);
       }
       return null;
     }
 
-    function toggleDeadlineInput() {
+    async function toggleDeadlineInput() {
       const type = document.querySelector('input[name="tipe_deadline"]:checked').value;
       const dateInput = document.getElementById('keg-deadline-date');
       const hiddenInput = document.getElementById('keg-deadline');
@@ -3124,8 +4371,7 @@
         dateInput.classList.remove('hidden');
         dateInput.required = true;
         if (!dateInput.value) {
-          const today = new Date().toISOString().split('T')[0];
-          dateInput.value = today;
+          dateInput.value = formatWibIsoDate(await getWibNow());
         }
         updateDeadlineValue();
       } else {
@@ -3146,6 +4392,7 @@
       
       const autoNomorChecked = document.getElementById('keg-auto-nomor') ? document.getElementById('keg-auto-nomor').checked : true;
       const formatNomorVal = document.getElementById('keg-format-nomor') ? document.getElementById('keg-format-nomor').value : "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
+      const izinkanManualChecked = document.getElementById('keg-izinkan-manual') ? document.getElementById('keg-izinkan-manual').checked : true;
 
       const newKeg = {
         nama: document.getElementById('keg-nama').value,
@@ -3154,6 +4401,7 @@
         deadline: document.getElementById('keg-deadline').value,
         dasar: document.getElementById('keg-dasar').value,
         autoNomor: autoNomorChecked,
+        izinkanNomorManual: izinkanManualChecked,
         formatNomor: formatNomorVal
       };
       
@@ -3169,6 +4417,7 @@
           document.getElementById('keg-nama').value = '';
           document.getElementById('keg-dasar').value = '';
           if (document.getElementById('keg-auto-nomor')) document.getElementById('keg-auto-nomor').checked = true;
+          if (document.getElementById('keg-izinkan-manual')) document.getElementById('keg-izinkan-manual').checked = true;
           if (document.getElementById('keg-format-nomor')) document.getElementById('keg-format-nomor').value = 'NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}';
           // Reset deadline selection
           document.querySelector('input[name="tipe_deadline"][value="Tanpa Batas"]').checked = true;

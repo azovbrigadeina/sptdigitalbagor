@@ -67,6 +67,11 @@ const firebaseSnippet = `
       return \`\${d.getFullYear()}-\${pad(d.getMonth() + 1)}-\${pad(d.getDate())} \${pad(d.getHours())}:\${pad(d.getMinutes())}:\${pad(d.getSeconds())}\`;
     }
 
+    // Kunci normalisasi nomor SPT untuk cek keunikan (abaikan beda huruf besar/kecil & spasi ganda)
+    function makeNomorKey(nomor) {
+      return String(nomor || '').trim().replace(/\\s+/g, ' ').toUpperCase();
+    }
+
     function parseDeadlineIndo(str) {
       if (!str || typeof str !== 'string' || str === "Tanpa Batas") return null;
       const INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -99,6 +104,7 @@ const firebaseSnippet = `
                 deadline: "6 Februari 2026", 
                 dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA",
                 autoNomor: true,
+                izinkanNomorManual: true,
                 formatNomor: "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"
               }
             ];
@@ -118,6 +124,7 @@ const firebaseSnippet = `
               deadline: d.deadline || "Tanpa Batas",
               dasar: d.dasar || "",
               autoNomor: d.autoNomor !== false,
+              izinkanNomorManual: d.izinkanNomorManual !== false,
               formatNomor: d.formatNomor || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}"
             });
           });
@@ -147,6 +154,7 @@ const firebaseSnippet = `
           deadline: item.deadline || "Tanpa Batas",
           dasar: item.dasar || "",
           autoNomor: item.autoNomor !== false,
+          izinkanNomorManual: item.izinkanNomorManual !== false,
           formatNomor: item.formatNomor || "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}",
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
@@ -160,6 +168,38 @@ const firebaseSnippet = `
         deletePromises.push(db.collection('config_kegiatan').doc(nama).delete().catch(() => {}));
         await Promise.all(deletePromises);
         return { success: true };
+      },
+
+      async getBrandingConfig() {
+        const defaults = {
+          appName: "Tugasku",
+          reportFooter: "Dihasilkan otomatis melalui Tugasku - Layanan Penugasan, Bagian Organisasi Setda Kab. Muaro Jambi"
+        };
+        try {
+          const snap = await db.collection('config_branding').doc('app').get();
+          if (!snap.exists) return defaults;
+          const d = snap.data() || {};
+          return {
+            appName: String(d.appName || '').trim() || defaults.appName,
+            reportFooter: String(d.reportFooter || '').trim() || defaults.reportFooter
+          };
+        } catch(err) {
+          console.error("Firestore getBrandingConfig error:", err);
+          return defaults;
+        }
+      },
+
+      async saveBrandingConfig(config) {
+        const appName = String((config && config.appName) || '').trim().slice(0, 40);
+        const reportFooter = String((config && config.reportFooter) || '').trim().slice(0, 300);
+        if (!appName) throw new Error("Nama aplikasi wajib diisi.");
+        if (!reportFooter) throw new Error("Teks footer laporan wajib diisi.");
+        await db.collection('config_branding').doc('app').set({
+          appName: appName,
+          reportFooter: reportFooter,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        return { success: true, appName: appName, reportFooter: reportFooter };
       },
 
       async getOpdConfigList() {
@@ -244,6 +284,7 @@ const firebaseSnippet = `
                 window.sianjabUnits = list;
                 if (typeof renderAttendanceStatsAndAbsentOpd === 'function') renderAttendanceStatsAndAbsentOpd();
                 if (typeof renderComplianceReport === 'function') renderComplianceReport();
+                if (typeof renderSptComplianceReport === 'function') renderSptComplianceReport();
               }
             }
           }
@@ -268,6 +309,31 @@ const firebaseSnippet = `
             return { success: true, data: seedUnits, fromSeed: true };
           }
           return { success: false, error: err.toString() };
+        }
+      },
+
+      async getMonitoringExclusions() {
+        try {
+          const doc = await db.collection('config_monitoring').doc('excluded_units').get();
+          if (!doc.exists) return [];
+          const data = doc.data() || {};
+          return Array.isArray(data.keys) ? data.keys : [];
+        } catch (err) {
+          console.warn("Firestore getMonitoringExclusions error:", err);
+          throw err;
+        }
+      },
+
+      async saveMonitoringExclusions(keys) {
+        try {
+          await db.collection('config_monitoring').doc('excluded_units').set({
+            keys: Array.isArray(keys) ? keys : [],
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          return { success: true };
+        } catch (err) {
+          console.error("Firestore saveMonitoringExclusions error:", err);
+          throw err;
         }
       },
 
@@ -337,7 +403,7 @@ const firebaseSnippet = `
             "Email", "Nama Atasan", "Jabatan Atasan", "Pangkat Gol Atasan",
             "NIP Atasan", "TTD", "Integrasi", "Tahun", "DocId",
             "Status Pegawai", "Jabatan Admin", "Pangkat Admin", "No HP Admin", "Unit Kerja ID",
-            "Nomor SPT", "Nomor Urut", "Kode OPD"
+            "Nomor SPT", "Nomor Urut", "Kode OPD", "Mode Nomor"
           ];
           const rows = [headers];
           snap.forEach(doc => {
@@ -364,7 +430,8 @@ const firebaseSnippet = `
               d.unitKerjaId || "",
               d.nomorSpt || d.nomor_spt || "",
               d.nomorUrut || d.nomor_urut || "",
-              d.kodeOpd || d.kode_opd || ""
+              d.kodeOpd || d.kode_opd || "",
+              d.nomorMode || "auto"
             ]);
           });
           return rows;
@@ -462,7 +529,9 @@ const firebaseSnippet = `
             .get();
           const sameYearDocs = countSnap.docs.filter(d => {
             const docYear = d.data().tahun ? Number(d.data().tahun) : null;
-            return !docYear || docYear === currentYear;
+            const isManual = d.data().nomorMode === 'manual';
+            // Nomor manual tidak mengonsumsi urutan otomatis agar deret nomor sistem tetap rapat
+            return !isManual && (!docYear || docYear === currentYear);
           });
           countPerihal = sameYearDocs.length;
         } catch(e) {
@@ -499,24 +568,61 @@ const firebaseSnippet = `
         if (!kodeOpd) kodeOpd = "OPD";
 
         // 3. Konfigurasi Penomoran Kegiatan (dari kegData yang sudah diambil di awal)
-        let isAutoNomor = true;
+        //    - kegData.autoNomor === false           -> WAJIB manual (nomor dari pengirim)
+        //    - kegData.izinkanNomorManual === false  -> WAJIB otomatis sistem (permintaan manual diabaikan)
+        //    - selain itu pengirim boleh memilih lewat field "nomor_mode" (default otomatis)
         let formatTemplate = "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
-        if (kegData) {
-          if (kegData.autoNomor === false) isAutoNomor = false;
-          if (kegData.formatNomor) formatTemplate = kegData.formatNomor;
+        if (kegData && kegData.formatNomor) formatTemplate = kegData.formatNomor;
+
+        const wajibManual = !!(kegData && kegData.autoNomor === false);
+        const bolehManual = !kegData || kegData.izinkanNomorManual !== false;
+        const mintaManual = String(data.nomor_mode || "").toLowerCase() === "manual";
+        // Mode wajib dipilih eksplisit saat pengirim punya pilihan (cegah kirim tanpa sadar).
+        // Kegiatan yang mengunci modenya sendiri tidak diwajibkan mengirim field ini.
+        if (!wajibManual && bolehManual && !String(data.nomor_mode || "").trim()) {
+          throw new Error("Mode penomoran SPT wajib dipilih: Otomatis (Sistem) atau Nomor Instansi Sendiri.");
         }
+        const pakaiManual = wajibManual || (mintaManual && bolehManual);
 
         let nomorSpt = "";
-        if (isAutoNomor) {
+        if (pakaiManual) {
+          nomorSpt = String(data.nomor_spt || "").trim();
+          if (!nomorSpt) {
+            throw new Error("Nomor SPT/agenda wajib diisi karena penomoran manual dipilih. Isi nomor instansi Anda atau pilih mode Otomatis (Sistem).");
+          }
+        } else {
           nomorSpt = formatTemplate
             .replace(/{nomor}/g, nomorUrutPad)
             .replace(/{kode_opd}/g, kodeOpd)
             .replace(/{tahun}/g, String(currentYear));
-        } else {
-          nomorSpt = data.nomor_spt || "";
+        }
+
+        const nomorSptKey = makeNomorKey(nomorSpt);
+
+        // Nomor manual wajib unik per tahun agar tidak bentrok nomor resmi antar pengajuan.
+        // ponytail: cek ini read-then-write, bukan transaction — dua kiriman paralel dengan nomor
+        // identik masih bisa lolos. Ceiling: volume SPT manual per tahun rendah.
+        // Upgrade path: registry {tahun}_{nomorSptKey} + db.runTransaction.
+        if (pakaiManual) {
+          let usedSnap;
+          try {
+            usedSnap = await db.collection('submissions').where('nomorSptKey', '==', nomorSptKey).get();
+          } catch (cekErr) {
+            console.warn("Gagal memeriksa keunikan nomor manual:", cekErr);
+            throw new Error("Gagal memverifikasi keunikan nomor SPT manual. Silakan coba kirim ulang.");
+          }
+          const bentrok = usedSnap.docs.some(d => {
+            const dd = d.data();
+            const docYear = dd.tahun ? Number(dd.tahun) : null;
+            return !docYear || docYear === currentYear;
+          });
+          if (bentrok) {
+            throw new Error('Nomor SPT "' + nomorSpt + '" sudah dipakai pada pengajuan lain tahun ' + currentYear + '. Gunakan nomor agenda lain atau pilih mode Otomatis (Sistem).');
+          }
         }
 
         data.nomor_spt = nomorSpt;
+        data.nomor_mode = pakaiManual ? "manual" : "auto";
         data.nomor_urut = nomorUrutPad;
         data.kode_opd = kodeOpd;
         data.tahun = currentYear;
@@ -541,7 +647,9 @@ const firebaseSnippet = `
           integrasi: data.integrasi || "None",
           tahun: currentYear,
           nomorSpt: nomorSpt,
+          nomorSptKey: nomorSptKey,
           nomorUrut: nomorUrutPad,
+          nomorMode: data.nomor_mode,
           kodeOpd: kodeOpd,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -648,6 +756,7 @@ const firebaseSnippet = `
           status: "success",
           docId: docRef.id,
           nomor_spt: nomorSpt,
+          nomor_mode: data.nomor_mode,
           nomor_urut: nomorUrutPad,
           kode_opd: kodeOpd,
           fileContent: fileContent,

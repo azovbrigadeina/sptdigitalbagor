@@ -11,8 +11,10 @@
   "name": "sptdigitalbagor",
   "version": "1.0.0",
   "scripts": {
+    "test": "node test-attendance.js && node test-audit-fixes.js && node test-template-pdf.js",
     "build": "node build.js",
-    "deploy": "node build.js && npx -y firebase-tools@latest deploy --only firestore:rules,hosting",
-    "deploy:hosting": "node build.js && npx -y firebase-tools@latest deploy --only hosting"
+    "verify": "npm test && npm run build",
+    "deploy": "npm run verify && npx -y firebase-tools@latest deploy --only firestore:rules,hosting",
+    "deploy:hosting": "npm run verify && npx -y firebase-tools@latest deploy --only hosting"
   }
 }
