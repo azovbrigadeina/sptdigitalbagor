@@ -127,6 +127,12 @@
       min-height: 48px;
       min-width: 48px;
     }
+    /* Tabel Detail Submisi punya 4 tombol aksi; rapatkan padding agar tidak perlu scroll horizontal */
+    .submission-table th,
+    .submission-table td {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
     .touch-input {
       min-height: 48px;
     }
@@ -720,7 +726,7 @@
 
               <div id="spt-exclude-panel" class="hidden px-4 pb-4 pt-3 border-t border-slate-200 space-y-3">
                 <p class="text-[11px] text-slate-500">
-                  Centang unit kerja yang <strong>tidak perlu dipantau</strong> pada laporan SPT ini (misalnya sub unit yang SPT-nya digabung ke OPD induk). Pengaturan hanya memengaruhi panel dan laporan Monitoring Pengiriman SPT.
+                  Centang unit kerja yang <strong>tidak perlu dipantau</strong> (misalnya sub unit yang SPT-nya digabung ke OPD induk). Pengaturan yang sama berlaku untuk panel dan laporan <strong>Monitoring Pengiriman SPT</strong> serta <strong>Rekap Kehadiran</strong>.
                 </p>
                 <input 
                   type="text" 
@@ -877,7 +883,7 @@
             </div>
 
             <div class="overflow-x-auto">
-              <table class="hidden md:table w-full text-left border-collapse">
+              <table class="submission-table hidden md:table w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
                     <th class="px-6 py-4">Waktu</th>
@@ -902,11 +908,35 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Add New Kegiatan Form -->
             <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit">
-              <h3 class="font-bold text-slate-800 text-lg mb-6">➕ Tambah Perihal Baru</h3>
+              <h3 id="keg-form-title" class="font-bold text-slate-800 text-lg mb-6">➕ Tambah Perihal Baru</h3>
               <form onsubmit="handleNewKegiatan(event)" class="space-y-4">
+                <input type="hidden" id="keg-edit-id" value="">
+                <p id="keg-edit-note" class="hidden text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 leading-relaxed">
+                  Mode edit: nama kegiatan dikunci karena menjadi kunci data SPT dan presensi. Untuk menutup presensi, ubah Status menjadi <strong>Nonaktif</strong>.
+                </p>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Kegiatan</label>
                   <input type="text" id="keg-nama" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Contoh: SPT Rekon TPP">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Jenis Kegiatan</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-start gap-2 p-3 rounded-2xl border border-slate-200 bg-white hover:bg-blue-50/40 cursor-pointer transition-all">
+                      <input type="radio" name="keg-jenis" value="spt" checked onchange="applyKegiatanJenis()" class="mt-0.5 w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
+                      <span class="text-xs font-bold text-slate-700">
+                        Wajib SPT
+                        <span class="block text-[11px] font-normal text-slate-500 mt-0.5">Presensi diverifikasi ke data SPT.</span>
+                      </span>
+                    </label>
+                    <label class="flex items-start gap-2 p-3 rounded-2xl border border-slate-200 bg-white hover:bg-amber-50/40 cursor-pointer transition-all">
+                      <input type="radio" name="keg-jenis" value="non-spt" onchange="applyKegiatanJenis()" class="mt-0.5 w-4 h-4 text-[#0057B7] focus:ring-[#0057B7]">
+                      <span class="text-xs font-bold text-slate-700">
+                        Non SPT
+                        <span class="block text-[11px] font-normal text-slate-500 mt-0.5">Peserta cukup mengisi data kehadiran.</span>
+                      </span>
+                    </label>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1.5">Kegiatan non SPT tidak memakai penomoran SPT dan tidak muncul di form pengajuan SPT.</p>
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Integrasi Sistem</label>
@@ -940,12 +970,12 @@
                     <option value="Nonaktif">Nonaktif</option>
                   </select>
                 </div>
-                <div>
+                <div id="keg-dasar-block">
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Dasar SPT (Multi-line)</label>
                   <textarea id="keg-dasar" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7] text-sm" placeholder="Masukkan Dasar SPT..."></textarea>
                 </div>
                 <!-- Pengaturan Auto-Nomor SPT -->
-                <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100 space-y-2.5">
+                <div id="keg-nomor-block" class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100 space-y-2.5">
                   <div class="flex items-center justify-between">
                     <label class="text-xs font-bold text-slate-700 uppercase flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" id="keg-auto-nomor" checked class="w-4 h-4 text-[#0057B7] rounded focus:ring-[#0057B7]">
@@ -968,7 +998,10 @@
                   </label>
                 </div>
                 <button type="submit" class="w-full bg-[#0057B7] hover:bg-[#00438F] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] min-touch-target flex items-center justify-center gap-2">
-                  <span>💾 Simpan Kegiatan</span>
+                  <span id="keg-submit-label">💾 Simpan Kegiatan</span>
+                </button>
+                <button type="button" id="keg-cancel-edit" onclick="resetKegiatanFormMode()" class="hidden w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-3 rounded-xl text-sm transition-all min-touch-target flex items-center justify-center gap-2">
+                  <span>✖ Batal Edit</span>
                 </button>
               </form>
             </div>
@@ -1226,13 +1259,19 @@
             <div class="space-y-1">
               <div class="flex items-center gap-2">
                 <span class="text-2xl">📋</span>
-                <h3 class="font-extrabold text-slate-800 text-lg">Rekapitulasi Kehadiran Peserta & Monitoring OPD</h3>
+                <h3 class="font-extrabold text-slate-800 text-lg">Rekapitulasi Kehadiran Peserta & Monitoring Unit Kerja</h3>
               </div>
               <p class="text-xs text-slate-500">
-                Pilih kegiatan untuk melihat rangkuman tingkat kehadiran, instansi yang belum hadir, dan daftar hadir sah.
+                Pilih kegiatan untuk melihat rangkuman tingkat kehadiran per unit kerja (utama dan sub unit), unit yang belum hadir, dan daftar hadir sah. Unit yang dikecualikan pada <strong>Atur Pantauan</strong> tidak dihitung di sini.
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
+              <button type="button" onclick="copyLaporanLengkapKehadiranToClipboard()" class="px-3.5 py-2.5 rounded-xl bg-[#0057B7] hover:bg-[#00438F] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 min-touch-target cursor-pointer active:scale-95">
+                <span>📋 Salin Laporan Kehadiran</span>
+              </button>
+              <button type="button" onclick="openSptExcludeFromAttendance()" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 min-touch-target cursor-pointer active:scale-95">
+                <span>⚙️ Atur Pantauan</span>
+              </button>
               <a href="presensi.html" target="_blank" class="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0057B7] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 min-touch-target">
                 <span>📍 Buka Form Presensi</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1264,22 +1303,22 @@
           <!-- 5 Stats Metrics Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-2xs">
-              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total OPD Utama</p>
+              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Unit Dipantau</p>
               <h4 id="att-stat-total-opd" class="text-xl sm:text-2xl font-black text-slate-800 mt-1">0</h4>
-              <p class="text-[10px] text-slate-400 mt-1">Master SI-PRABU</p>
+              <p id="att-scope-info" class="text-[10px] text-slate-400 mt-1">0 utama • 0 sub unit</p>
             </div>
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-100 shadow-2xs">
-              <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">OPD Hadir</p>
+              <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Unit Hadir</p>
               <h4 id="att-stat-opd-hadir" class="text-xl sm:text-2xl font-black text-emerald-700 mt-1">0</h4>
-              <p class="text-[10px] text-emerald-600/80 mt-1">Perwakilan terdata</p>
+              <p class="text-[10px] text-emerald-600/80 mt-1">Unit kerja terdata</p>
             </div>
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-amber-200 shadow-2xs bg-amber-50/30">
-              <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">OPD Belum Hadir</p>
+              <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Unit Belum Hadir</p>
               <h4 id="att-stat-opd-absen" class="text-xl sm:text-2xl font-black text-amber-800 mt-1">0</h4>
               <p class="text-[10px] text-amber-700/80 mt-1">Belum ada peserta</p>
             </div>
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-blue-100 shadow-2xs">
-              <p class="text-[11px] font-bold text-[#0057B7] uppercase tracking-wider">% Kehadiran OPD</p>
+              <p class="text-[11px] font-bold text-[#0057B7] uppercase tracking-wider">% Kehadiran Unit</p>
               <h4 id="att-stat-persen" class="text-xl sm:text-2xl font-black text-[#0057B7] mt-1">0%</h4>
               <p class="text-[10px] text-slate-400 mt-1">Tingkat kepatuhan</p>
             </div>
@@ -1290,34 +1329,69 @@
             </div>
           </div>
 
-          <!-- SECTION: OPD YANG BELUM HADIR (ABSEN) -->
-          <div class="bg-white rounded-3xl p-6 border-2 border-amber-300 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-amber-100">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span class="text-xl">⚠️</span>
-                  <h4 class="font-extrabold text-slate-800 text-base">Daftar OPD yang Belum Hadir / Belum Mengirim Peserta</h4>
-                  <span id="absent-opd-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300">
-                    0 OPD
-                  </span>
+          <!-- SECTION: UNIT KERJA BELUM & SUDAH HADIR (utama + sub unit, konsep sama dengan Submisi) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Belum Hadir -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border-2 border-amber-300 shadow-sm space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-amber-100">
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl">⚠️</span>
+                    <h4 class="font-extrabold text-slate-800 text-base">Unit Kerja Belum Hadir</h4>
+                    <span id="absent-opd-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300">
+                      0 unit
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500">
+                    Unit kerja utama dan sub unit yang belum tercatat memiliki satupun peserta yang melakukan konfirmasi kehadiran.
+                  </p>
                 </div>
-                <p class="text-xs text-slate-500">
-                  Berikut unit kerja utama yang belum tercatat memiliki satupun peserta yang melakukan konfirmasi kehadiran.
-                </p>
+                <button
+                  type="button"
+                  onclick="copyAbsentOpdToClipboard()"
+                  class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-all shadow-sm flex items-center justify-center gap-1 shrink-0 min-touch-target cursor-pointer active:scale-95"
+                >
+                  <span>📋 Salin Belum Hadir</span>
+                </button>
               </div>
-              <button 
-                type="button" 
-                onclick="copyAbsentOpdToClipboard()" 
-                class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 min-touch-target cursor-pointer active:scale-95"
-              >
-                <span>📋 Salin ke WhatsApp</span>
-              </button>
+
+              <!-- List Grid of Absent Units -->
+              <div id="absent-opd-container" class="flex flex-wrap gap-2 pt-1 max-h-72 overflow-y-auto pr-1">
+                <div class="text-xs text-slate-400 py-3 italic">Pilih kegiatan untuk menampilkan daftar unit kerja yang belum hadir.</div>
+              </div>
             </div>
 
-            <!-- List Grid of Absent OPD -->
-            <div id="absent-opd-container" class="flex flex-wrap gap-2 pt-1 max-h-72 overflow-y-auto pr-1">
-              <div class="text-xs text-slate-400 py-3 italic">Pilih kegiatan untuk menampilkan daftar OPD yang belum hadir.</div>
+            <!-- Sudah Hadir -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-emerald-200 shadow-sm space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-emerald-100">
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl">✅</span>
+                    <h4 class="font-extrabold text-slate-800 text-base">Unit Kerja Sudah Hadir</h4>
+                    <span id="present-opd-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
+                      0 unit
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500">
+                    Unit kerja utama dan sub unit yang sudah memiliki peserta hadir pada kegiatan ini.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onclick="copyPresentUnitToClipboard()"
+                  class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-sm flex items-center justify-center gap-1 shrink-0 min-touch-target cursor-pointer active:scale-95"
+                >
+                  <span>📋 Salin Sudah Hadir</span>
+                </button>
+              </div>
+
+              <!-- List Grid of Present Units -->
+              <div id="present-opd-container" class="flex flex-wrap gap-2 pt-1 max-h-72 overflow-y-auto pr-1">
+                <div class="text-xs text-slate-400 py-3 italic">Pilih kegiatan untuk menampilkan daftar unit kerja yang sudah hadir.</div>
+              </div>
             </div>
+
           </div>
 
           <!-- SECTION: TABEL PESERTA YANG SUDAH HADIR -->
@@ -1338,18 +1412,22 @@
                   type="text" 
                   id="search-kehadiran" 
                   oninput="applyAttendanceFilter()" 
-                  placeholder="Cari NIP, nama, OPD..." 
+                  placeholder="Cari NIP, nama, unit kerja..."
                   class="px-3.5 py-2 rounded-xl border border-slate-200 outline-none text-xs w-full sm:w-56 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7]"
                 >
-                <button 
-                  type="button" 
+                <label class="flex items-center gap-2 text-[11px] font-bold text-slate-600 cursor-pointer whitespace-nowrap">
+                  <input type="checkbox" id="show-cancelled-attendance" onchange="applyAttendanceFilter()" class="w-4 h-4 rounded text-[#0057B7] focus:ring-[#0057B7]">
+                  <span>Tampilkan yang dibatalkan</span>
+                </label>
+                <button
+                  type="button"
                   onclick="printAttendanceSheet()" 
                   class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 min-touch-target cursor-pointer"
                 >
                   <span>🖨️ Cetak Lembar Hadir</span>
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onclick="exportAttendanceCsv()" 
                   class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 min-touch-target cursor-pointer"
                 >
@@ -1679,6 +1757,7 @@
                 nama: "SPT Rekon TPP dan SIMONA", 
                 integrasi: "SITPP", 
                 status: "Aktif", 
+                wajibSpt: true,
                 deadline: "6 Februari 2026", 
                 dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA",
                 autoNomor: true,
@@ -1699,6 +1778,7 @@
               nama: d.nama,
               integrasi: d.integrasi || "None",
               status: d.status || "Aktif",
+              wajibSpt: d.wajibSpt !== false,
               deadline: d.deadline || "Tanpa Batas",
               dasar: d.dasar || "",
               autoNomor: d.autoNomor !== false,
@@ -1729,6 +1809,7 @@
           nama: item.nama,
           integrasi: item.integrasi || "None",
           status: item.status || "Aktif",
+          wajibSpt: item.wajibSpt !== false,
           deadline: item.deadline || "Tanpa Batas",
           dasar: item.dasar || "",
           autoNomor: item.autoNomor !== false,
@@ -2801,6 +2882,47 @@
         }
       },
 
+      // Perbaikan unit kerja yang salah input pada submisi.
+      // Hanya dua field unit yang diubah; data presensi yang tertaut ikut disinkronkan.
+      async updateSubmissionUnit(docId, unitKerja, unitKerjaId) {
+        const targetDocId = String(docId || '').trim();
+        const newUnit = String(unitKerja || '').trim();
+        const newUnitId = String(unitKerjaId || '').trim();
+
+        if (!targetDocId) {
+          throw new Error('ID dokumen submisi tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+        }
+        if (!newUnit) {
+          throw new Error('Unit kerja baru wajib dipilih.');
+        }
+
+        await db.collection('submissions').doc(targetDocId).update({
+          unitKerja: newUnit,
+          unitKerjaId: newUnitId
+        });
+
+        let presensiUpdated = 0;
+        let presensiWarning = '';
+        try {
+          const presensiSnap = await db.collection('presensi_kegiatan')
+            .where('submissionId', '==', targetDocId)
+            .get();
+          if (!presensiSnap.empty) {
+            const batch = db.batch();
+            presensiSnap.forEach(doc => {
+              batch.update(doc.ref, { opd: newUnit, opdId: newUnitId });
+            });
+            await batch.commit();
+            presensiUpdated = presensiSnap.size;
+          }
+        } catch (presensiErr) {
+          console.warn('[Firebase] Unit submisi tersimpan, tetapi presensi tertaut gagal diperbarui:', presensiErr);
+          presensiWarning = 'Data presensi tertaut belum ikut diperbarui. Periksa izin Firestore lalu coba lagi.';
+        }
+
+        return { success: true, presensiUpdated: presensiUpdated, presensiWarning: presensiWarning };
+      },
+
       async deleteSubmission(rowIndexOrId, docId) {
         let targetDocId = null;
 
@@ -3191,6 +3313,7 @@
             statusPegawai: matchedSub.statusPegawai || "",
             submissionId: matchedSub.id,
             nomorSpt: matchedSub.nomorSpt || matchedSub.nomor_spt || "-",
+            statusKehadiran: "sah",
             waktuCheckIn: formatIndoDateTime(new Date()),
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
@@ -3207,6 +3330,74 @@
           };
         } catch(err) {
           console.error("Firebase checkAttendance error:", err);
+          return { success: false, reason: "ERROR", message: err.message || err.toString() };
+        }
+      },
+
+      // Presensi mandiri untuk kegiatan non SPT (tanpa prasyarat SPT).
+      // Data diisi sendiri oleh peserta, sehingga tidak ada pembacaan ke koleksi submissions.
+      async checkAttendanceMandiri(data) {
+        try {
+          const payload = data || {};
+          const cleanKegiatan = String(payload.kegiatan || '').trim();
+          const cleanNip = String(payload.nip || '').replace(/[^0-9]/g, '');
+          const nama = String(payload.nama || '').trim();
+          const opd = String(payload.opd || '').trim();
+          const jabatan = String(payload.jabatan || '').trim();
+
+          if (!cleanKegiatan || !nama || !opd || !jabatan || cleanNip.length !== 18) {
+            return {
+              success: false,
+              reason: "INVALID_INPUT",
+              message: "Data kehadiran belum lengkap atau NIP bukan 18 digit."
+            };
+          }
+
+          const presensiId = encodeURIComponent(cleanKegiatan).replace(/%/g, '_') + "_" + cleanNip;
+          const presensiRef = db.collection('presensi_kegiatan').doc(presensiId);
+          const presensiSnap = await presensiRef.get();
+
+          if (presensiSnap.exists) {
+            return {
+              success: true,
+              alreadyCheckedIn: true,
+              data: presensiSnap.data(),
+              message: "Peserta sudah tercatat hadir sebelumnya."
+            };
+          }
+
+          const newPresensi = {
+            id: presensiId,
+            kegiatan: cleanKegiatan,
+            jenisKehadiran: "mandiri",
+            nip: cleanNip,
+            nama: nama,
+            opd: opd,
+            opdId: String(payload.opdId || "").trim(),
+            jabatan: jabatan,
+            pangkat: String(payload.pangkat || "").trim(),
+            statusPegawai: String(payload.statusPegawai || "").trim(),
+            noHp: String(payload.noHp || "").trim(),
+            email: String(payload.email || "").trim(),
+            submissionId: null,
+            nomorSpt: "-",
+            statusKehadiran: "sah",
+            waktuCheckIn: formatIndoDateTime(new Date()),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+            source: "web_presensi_mandiri"
+          };
+
+          await presensiRef.set(newPresensi);
+
+          return {
+            success: true,
+            alreadyCheckedIn: false,
+            data: newPresensi,
+            message: "Kehadiran berhasil dicatat."
+          };
+        } catch(err) {
+          console.error("Firebase checkAttendanceMandiri error:", err);
           return { success: false, reason: "ERROR", message: err.message || err.toString() };
         }
       },
@@ -3238,6 +3429,30 @@
         } catch(err) {
           console.error("Firebase deleteAttendance error:", err);
           return { success: false, error: err.toString() };
+        }
+      },
+
+      // Koreksi/pembatalan catatan kehadiran. Dokumen tidak dihapus agar jejak tetap ada.
+      async updateAttendance(id, changes) {
+        try {
+          if (!id) return { success: false, message: "ID kehadiran tidak valid." };
+          const data = changes || {};
+          const patch = {
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          ["nama", "pangkat", "jabatan", "opd", "opdId", "noHp", "email"].forEach(function(field) {
+            if (data[field] !== undefined && data[field] !== null) {
+              patch[field] = String(data[field]).trim();
+            }
+          });
+          if (data.statusKehadiran === "sah" || data.statusKehadiran === "dibatalkan") {
+            patch.statusKehadiran = data.statusKehadiran;
+          }
+          await db.collection('presensi_kegiatan').doc(id).update(patch);
+          return { success: true };
+        } catch(err) {
+          console.error("Firebase updateAttendance error:", err);
+          return { success: false, message: err.message || err.toString() };
         }
       }
     };
@@ -3892,6 +4107,19 @@
     // ==========================================
     let attendanceDb = [];
     let filteredAttendance = [];
+    let cancelledAttendance = [];
+    let attendanceLoadedOnce = false;
+
+    // Catatan yang dibatalkan tetap disimpan (tidak dihapus), tetapi dikeluarkan
+    // dari rekap, cetak, dan ekspor.
+    function isAttendanceCancelled(item) {
+      return !!(item && item.statusKehadiran === 'dibatalkan');
+    }
+
+    function getShowCancelledAttendance() {
+      const el = document.getElementById('show-cancelled-attendance');
+      return !!(el && el.checked);
+    }
 
     async function loadAttendancePanelData(forceRefresh) {
       const selectKeg = document.getElementById('filter-kehadiran-kegiatan');
@@ -3913,6 +4141,7 @@
           });
         }
         attendanceDb = Array.isArray(list) ? list : [];
+        attendanceLoadedOnce = true;
         applyAttendanceFilter();
       } catch (err) {
         console.error("Gagal memuat data presensi:", err);
@@ -3925,11 +4154,14 @@
       const searchInput = document.getElementById('search-kehadiran');
       const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-      filteredAttendance = attendanceDb.filter(item => {
+      const cocok = function(item) {
         if (!q) return true;
         const text = `${item.nama || ''} ${item.nip || ''} ${item.opd || ''} ${item.nomorSpt || ''} ${item.jabatan || ''}`.toLowerCase();
         return text.includes(q);
-      });
+      };
+
+      filteredAttendance = attendanceDb.filter(item => !isAttendanceCancelled(item) && cocok(item));
+      cancelledAttendance = attendanceDb.filter(item => isAttendanceCancelled(item) && cocok(item));
 
       renderAttendanceStatsAndAbsentOpd();
       renderAttendanceTable();
@@ -3939,24 +4171,34 @@
       const selectKeg = document.getElementById('filter-kehadiran-kegiatan');
       const selectedKegiatan = selectKeg ? selectKeg.value : "Semua Kegiatan";
 
-      // 1. Dapatkan daftar master OPD utama dari SI-PRABU
-      let allMainOpd = [];
-      const units = (window.sianjabUnits && window.sianjabUnits.length > 0) ? window.sianjabUnits : (typeof sianjabUnits !== 'undefined' ? sianjabUnits : []);
-      if (units && Array.isArray(units) && units.length > 0) {
-        allMainOpd = units.filter(u => !u.parentId).map(u => (u.nama || '').trim()).filter(Boolean);
-      }
-      allMainOpd.sort((a, b) => a.localeCompare(b));
+      // 1. Daftar unit kerja yang dipantau: unit utama + sub unit, mengikuti
+      //    konsep panel Submisi. Unit wadah struktural (mis. Sekretariat Daerah)
+      //    tidak dihitung karena presensi/SPT-nya melekat pada Bagian di bawahnya.
+      //    Pengaturan pengecualian (Atur Pantauan) dipakai bersama dengan Monitoring SPT.
+      const masterUnits = getAllSianjabUnits();
+      const allUnits = masterUnits.filter(unit => !sptExcludedKeys.has(unit.key));
+      const excludedCount = masterUnits.length - allUnits.length;
+      const utamaCount = allUnits.filter(unit => !unit.sub).length;
+      const subCount = allUnits.length - utamaCount;
 
-      // 2. Kumpulkan OPD yang hadir pada kegiatan ini
-      const attendedOpdSet = new Set();
-      attendanceDb.forEach(item => {
-        if (item.opd) attendedOpdSet.add(item.opd.trim());
+      // 2. Hitung peserta per unit (nama unit dicocokkan secara toleran)
+      const attendanceCountByKey = new Map();
+      attendanceDb.filter(item => !isAttendanceCancelled(item)).forEach(item => {
+        const key = normalizeUnitName(String((item && item.opd) || '').trim());
+        if (!key) return;
+        attendanceCountByKey.set(key, (attendanceCountByKey.get(key) || 0) + 1);
       });
 
-      // 3. Hitung OPD yang belum hadir
-      const absentOpdList = allMainOpd.filter(opdName => !attendedOpdSet.has(opdName));
-      const attendedMainOpdCount = allMainOpd.length - absentOpdList.length;
-      const percent = allMainOpd.length > 0 ? Math.round((attendedMainOpdCount / allMainOpd.length) * 100) : 0;
+      // 3. Pisahkan unit yang sudah hadir dan yang belum hadir
+      const attendedUnits = [];
+      const absentUnits = [];
+      allUnits.forEach(unit => {
+        const jumlah = attendanceCountByKey.get(unit.key) || 0;
+        if (jumlah > 0) attendedUnits.push({ opd: unit.nama, sub: unit.sub, jumlah: jumlah });
+        else absentUnits.push({ opd: unit.nama, sub: unit.sub, jumlah: 0 });
+      });
+
+      const percent = allUnits.length > 0 ? Math.round((attendedUnits.length / allUnits.length) * 100) : 0;
 
       // Update stat cards
       const elTotal = document.getElementById('att-stat-total-opd');
@@ -3964,54 +4206,101 @@
       const elAbsen = document.getElementById('att-stat-opd-absen');
       const elPersen = document.getElementById('att-stat-persen');
       const elPeserta = document.getElementById('att-stat-total-peserta');
+      const elScope = document.getElementById('att-scope-info');
 
-      if (elTotal) elTotal.innerText = allMainOpd.length;
-      if (elHadir) elHadir.innerText = attendedMainOpdCount;
-      if (elAbsen) elAbsen.innerText = absentOpdList.length;
+      if (elTotal) elTotal.innerText = allUnits.length;
+      if (elHadir) elHadir.innerText = attendedUnits.length;
+      if (elAbsen) elAbsen.innerText = absentUnits.length;
       if (elPersen) elPersen.innerText = `${percent}%`;
-      if (elPeserta) elPeserta.innerText = attendanceDb.length;
+      if (elPeserta) elPeserta.innerText = attendanceDb.filter(item => !isAttendanceCancelled(item)).length;
+      if (elScope) {
+        elScope.innerText = `${utamaCount} utama • ${subCount} sub unit` +
+          (excludedCount > 0 ? ` • ${excludedCount} dikecualikan` : '');
+      }
 
-      // Render Absent OPD Container
-      const absentContainer = document.getElementById('absent-opd-container');
+      // Badge jumlah unit
       const absentCountBadge = document.getElementById('absent-opd-count-badge');
-      if (absentCountBadge) absentCountBadge.innerText = `${absentOpdList.length} OPD Belum Hadir`;
+      const presentCountBadge = document.getElementById('present-opd-count-badge');
+      if (absentCountBadge) absentCountBadge.innerText = `${absentUnits.length} unit`;
+      if (presentCountBadge) presentCountBadge.innerText = `${attendedUnits.length} unit`;
+
+      const emptyUnitsHtml = masterUnits.length === 0
+        ? `
+          <div class="p-3 text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+            Data master unit kerja SI-PRABU sedang disinkronkan. Silakan tunggu...
+          </div>
+        `
+        : `
+          <div class="p-3 text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+            Semua unit kerja sedang dikecualikan dari pantauan.
+            <button type="button" onclick="openSptExcludeFromAttendance()" class="font-bold underline hover:text-amber-900">Buka Atur Pantauan</button>
+          </div>
+        `;
+
+      // Chip unit dengan penanda SUB dan jumlah peserta (konsep sama dengan tab Submisi)
+      const renderUnitChips = (list, variant, withCount) => list.map((unit, idx) => {
+        const isEmerald = variant === 'emerald';
+        const subBadge = unit.sub
+          ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-white/70 border ${isEmerald ? 'border-emerald-200 text-emerald-700' : 'border-amber-200 text-amber-700'}">SUB</span>`
+          : '';
+        const countBadge = (withCount && unit.jumlah > 0)
+          ? `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-white/70 border border-emerald-200 text-emerald-700 shrink-0 whitespace-nowrap">${unit.jumlah} peserta</span>`
+          : '';
+        const bullet = isEmerald ? '<span>✅</span>' : '<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>';
+        return `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${isEmerald ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-300 bg-amber-50 text-amber-900'} font-bold text-xs shadow-2xs">
+            ${bullet}
+            <span>${idx + 1}. ${escapeHtml(unit.opd)}</span>
+            ${subBadge}
+            ${countBadge}
+          </span>
+        `;
+      }).join('');
+
+      const absentContainer = document.getElementById('absent-opd-container');
+      const presentContainer = document.getElementById('present-opd-container');
 
       if (absentContainer) {
-        if (allMainOpd.length === 0) {
+        if (allUnits.length === 0) {
+          absentContainer.innerHTML = emptyUnitsHtml;
+        } else if (absentUnits.length === 0) {
           absentContainer.innerHTML = `
-            <div class="p-3 text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
-              Data master OPD SI-PRABU sedang disinkronkan. Silakan tunggu...
-            </div>
-          `;
-        } else if (absentOpdList.length === 0) {
-          absentContainer.innerHTML = `
-            <div class="col-span-full p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 text-center font-bold text-xs sm:text-sm">
-              🎉 Luar biasa! Seluruh (${allMainOpd.length}) Unit Kerja / OPD telah hadir pada kegiatan ini!
+            <div class="w-full p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 text-center font-bold text-xs sm:text-sm">
+              🎉 Luar biasa! Seluruh (${allUnits.length}) unit kerja telah hadir pada kegiatan ini!
             </div>
           `;
         } else {
-          let html = '';
-          absentOpdList.forEach((opd, idx) => {
-            html += `
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 font-bold text-xs shadow-2xs">
-                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                <span>${idx + 1}. ${escapeHtml(opd)}</span>
-              </span>
-            `;
-          });
-          absentContainer.innerHTML = html;
+          absentContainer.innerHTML = renderUnitChips(absentUnits, 'amber', false);
         }
       }
 
-      // Simpan konteks untuk generator WhatsApp & ekspor
-      window.__currentAbsentOpdList = absentOpdList;
+      if (presentContainer) {
+        if (allUnits.length === 0) {
+          presentContainer.innerHTML = emptyUnitsHtml;
+        } else if (attendedUnits.length === 0) {
+          presentContainer.innerHTML = `
+            <div class="w-full p-4 text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200 italic">
+              Belum ada unit kerja yang memiliki peserta hadir pada kegiatan ini.
+            </div>
+          `;
+        } else {
+          presentContainer.innerHTML = renderUnitChips(attendedUnits, 'emerald', true);
+        }
+      }
+
+      // Simpan konteks untuk generator WhatsApp & laporan lengkap
+      window.__currentAbsentOpdList = absentUnits;
+      window.__currentPresentUnitList = attendedUnits;
       window.__currentSelectedKegiatan = selectedKegiatan;
       window.__currentAttendedStats = {
-        total: allMainOpd.length,
-        hadir: attendedMainOpdCount,
-        absen: absentOpdList.length,
+        total: allUnits.length,
+        hadir: attendedUnits.length,
+        absen: absentUnits.length,
         percent: percent,
-        totalPeserta: attendanceDb.length
+        totalPeserta: attendanceDb.length,
+        utama: utamaCount,
+        sub: subCount,
+        excluded: excludedCount
       };
     }
 
@@ -4020,7 +4309,13 @@
       const cardList = document.getElementById('attendance-card-list');
       if (!tbody) return;
 
-      if (filteredAttendance.length === 0) {
+      // Penanda SUB untuk peserta yang berasal dari sub unit kerja
+      const subUnitKeys = new Set(
+        getAllSianjabUnits().filter(unit => unit.sub).map(unit => unit.key)
+      );
+
+      const rows = getShowCancelledAttendance() ? filteredAttendance.concat(cancelledAttendance) : filteredAttendance;
+      if (rows.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">Belum ada data kehadiran pada kegiatan ini.</td></tr>';
         if (cardList) {
           cardList.innerHTML = '<div class="p-8 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-100">Belum ada data kehadiran pada kegiatan ini.</div>';
@@ -4031,37 +4326,51 @@
       let tbodyHtml = '';
       let cardsHtml = '';
 
-      filteredAttendance.forEach((item, index) => {
+      rows.forEach((item, index) => {
         const no = index + 1;
+        const dibatalkan = isAttendanceCancelled(item);
+        const aksiAktif = dibatalkan ? '0' : '1';
         const waktu = escapeHtml(item.waktuCheckIn || '-');
         const nama = escapeHtml(item.nama || '-');
         const statusPegawai = escapeHtml(item.statusPegawai || '');
         const nip = escapeHtml(item.nip || '-');
         const opd = escapeHtml(item.opd || '-');
+        const isSubUnit = subUnitKeys.has(normalizeUnitName(item.opd || ''));
+        const subBadge = isSubUnit
+          ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">SUB</span>'
+          : '';
         const jabatan = escapeHtml(item.jabatan || '-');
         const nomorSpt = escapeHtml(item.nomorSpt || '-');
         const id = escapeHtml(item.id || '');
 
         tbodyHtml += `
-          <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition-all text-xs">
+          <tr class="border-b border-slate-50 transition-all text-xs ${dibatalkan ? 'bg-slate-50/70 opacity-70' : 'hover:bg-slate-50/80'}">
             <td class="px-4 py-3.5 text-center font-bold text-slate-400">${no}</td>
             <td class="px-4 py-3.5 font-semibold text-slate-700 whitespace-nowrap">${waktu}</td>
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-1.5">
                 <span class="font-extrabold text-slate-800">${nama}</span>
                 ${statusPegawai ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${statusPegawai === 'PNS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${statusPegawai}</span>` : ''}
+                ${item.jenisKehadiran === 'mandiri' ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">MANDIRI</span>' : ''}
+                ${dibatalkan ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 border border-slate-300">DIBATALKAN</span>' : ''}
               </div>
             </td>
             <td class="px-4 py-3.5 font-mono font-semibold text-slate-600">${nip}</td>
-            <td class="px-4 py-3.5 font-medium text-slate-700">${opd}</td>
+            <td class="px-4 py-3.5 font-medium text-slate-700">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span>${opd}</span>
+                ${subBadge}
+              </div>
+            </td>
             <td class="px-4 py-3.5 text-slate-600">${jabatan}</td>
             <td class="px-4 py-3.5 font-mono font-bold text-[#0057B7] text-[11px]">${nomorSpt}</td>
             <td class="px-4 py-3.5 text-center">
-              <button onclick="handleDeleteAttendance(this.dataset.id, this.dataset.nama)" data-id="${id}" data-nama="${escapeHtml(item.nama || '')}" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Hapus Presensi">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <div class="flex items-center justify-center gap-1">
+                <button onclick="handleCancelAttendance(this.dataset.id, this.dataset.nama, this.dataset.aktif)" data-id="${id}" data-nama="${escapeHtml(item.nama || '')}" data-aktif="${aksiAktif}" class="px-2 py-1 text-[11px] font-bold rounded-lg transition-all ${dibatalkan ? 'text-emerald-700 hover:bg-emerald-50' : 'text-amber-700 hover:bg-amber-50'}" title="${dibatalkan ? 'Pulihkan ke rekap' : 'Batalkan dari rekap'}">
+                  ${dibatalkan ? 'Pulihkan' : 'Batalkan'}
+                </button>
+                <button onclick="handleCorrectAttendance(this.dataset.id)" data-id="${id}" class="px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-all" title="Koreksi data kehadiran">Koreksi</button>
+              </div>
             </td>
           </tr>
         `;
@@ -4072,16 +4381,22 @@
               <div class="flex justify-between items-start gap-2">
                 <div>
                   <span class="font-extrabold text-slate-800 text-sm block">${nama}</span>
-                  <span class="font-mono text-slate-500 text-[11px]">${nip} ${statusPegawai ? `• ${statusPegawai}` : ''}</span>
+                  <span class="font-mono text-slate-500 text-[11px]">${nip} ${statusPegawai ? `• ${statusPegawai}` : ''}${dibatalkan ? ' • DIBATALKAN' : ''}</span>
                 </div>
                 <span class="text-slate-400 text-[11px] font-semibold">${waktu}</span>
               </div>
-              <div class="text-slate-600 font-medium">${opd}</div>
-              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+              <div class="text-slate-600 font-medium flex items-center gap-1.5 flex-wrap">
+                <span>${opd}</span>
+                ${subBadge}
+              </div>
+              <div class="flex justify-between items-center gap-2 pt-2 border-t border-slate-100">
                 <span class="font-mono text-xs font-bold text-[#0057B7]">${nomorSpt}</span>
-                <button onclick="handleDeleteAttendance(this.dataset.id, this.dataset.nama)" data-id="${id}" data-nama="${escapeHtml(item.nama || '')}" class="text-xs text-red-600 font-bold hover:underline">
-                  Hapus
-                </button>
+                <div class="flex items-center gap-2">
+                  <button onclick="handleCorrectAttendance(this.dataset.id)" data-id="${id}" class="text-xs text-slate-600 font-bold hover:underline">Koreksi</button>
+                  <button onclick="handleCancelAttendance(this.dataset.id, this.dataset.nama, this.dataset.aktif)" data-id="${id}" data-nama="${escapeHtml(item.nama || '')}" data-aktif="${aksiAktif}" class="text-xs font-bold hover:underline ${dibatalkan ? 'text-emerald-700' : 'text-amber-700'}">
+                    ${dibatalkan ? 'Pulihkan' : 'Batalkan'}
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -4092,52 +4407,238 @@
       if (cardList) cardList.innerHTML = cardsHtml;
     }
 
-    async function handleDeleteAttendance(id, nama) {
-      if (!confirm(`Apakah Anda yakin ingin menghapus catatan kehadiran untuk "${nama}"?`)) return;
+    async function updateAttendanceRecord(id, changes) {
+      let hasil = null;
+      if (window.FirebaseService && typeof window.FirebaseService.updateAttendance === 'function') {
+        hasil = await window.FirebaseService.updateAttendance(id, changes);
+      } else if (window.google && window.google.script && window.google.script.run) {
+        hasil = await new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateAttendance(id, changes);
+        });
+      } else {
+        throw new Error("Layanan database tidak tersedia.");
+      }
+      if (hasil && hasil.success === false) {
+        throw new Error(hasil.message || "Gagal memperbarui catatan kehadiran.");
+      }
+      return hasil;
+    }
+
+    async function handleCancelAttendance(id, nama, aktif) {
+      const membatalkan = String(aktif) === '1';
+      const pesan = membatalkan
+        ? `Batalkan catatan kehadiran "${nama}"? Data tidak dihapus, hanya dikeluarkan dari rekap.`
+        : `Pulihkan catatan kehadiran "${nama}" ke dalam rekap?`;
+      if (!confirm(pesan)) return;
       try {
-        if (window.FirebaseService && typeof window.FirebaseService.deleteAttendance === 'function') {
-          await window.FirebaseService.deleteAttendance(id);
-        } else if (window.google && window.google.script && window.google.script.run) {
-          await new Promise((resolve, reject) => {
-            google.script.run
-              .withSuccessHandler(resolve)
-              .withFailureHandler(reject)
-              .deleteAttendance(id);
-          });
-        }
+        await updateAttendanceRecord(id, { statusKehadiran: membatalkan ? 'dibatalkan' : 'sah' });
         await loadAttendancePanelData(true);
-        alert("Catatan kehadiran berhasil dihapus.");
+        alert(membatalkan
+          ? "Catatan kehadiran dibatalkan dan dikeluarkan dari rekap."
+          : "Catatan kehadiran dipulihkan ke rekap.");
       } catch (err) {
-        alert("Gagal menghapus presensi: " + err.message);
+        alert("Gagal memperbarui catatan kehadiran: " + (err && err.message ? err.message : err));
       }
     }
 
-    function copyAbsentOpdToClipboard() {
-      const absentList = window.__currentAbsentOpdList || [];
-      const keg = window.__currentSelectedKegiatan || "Kegiatan Resmi";
-      const stats = window.__currentAttendedStats || {};
+    async function handleCorrectAttendance(id) {
+      const item = attendanceDb.find(x => String(x.id || '') === String(id));
+      if (!item) {
+        alert("Data kehadiran tidak ditemukan. Segarkan panel terlebih dahulu.");
+        return;
+      }
 
-      let msg = `*REKAPITULASI PRESENSI KEGIATAN*\n`;
-      msg += `📌 Kegiatan: *${keg}*\n`;
-      msg += `📊 Tingkat Kehadiran: *${stats.hadir || 0} dari ${stats.total || 0} OPD* (${stats.percent || 0}%)\n`;
-      msg += `👥 Total Peserta Hadir: *${stats.totalPeserta || 0} orang*\n\n`;
+      const attr = function(v) {
+        return escapeHtml(String(v == null ? '' : v)).replace(/"/g, '&quot;');
+      };
+      const inputClass = 'w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-sm text-slate-800 focus:ring-2 focus:ring-[#0057B7]';
+      const unitList = getAllSianjabUnits();
+      const unitOptions = unitList.map(function(u) {
+        const terpilih = normalizeUnitName(u.nama) === normalizeUnitName(item.opd || '') ? ' selected' : '';
+        return '<option value="' + attr(String(u.id || u.nama)) + '"' + terpilih + '>' + escapeHtml(u.nama) + '</option>';
+      }).join('');
 
-      if (absentList.length === 0) {
-        msg += `✅ *Alhamdulillah, 100% seluruh OPD telah hadir!*\n`;
-      } else {
-        msg += `⚠️ *DAFTAR OPD YANG BELUM HADIR (${absentList.length} OPD):*\n`;
-        absentList.forEach((opd, i) => {
-          msg += `${i + 1}. ${opd}\n`;
+      const html = [
+        '<div class="text-left space-y-2.5">',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Nama</label>',
+        '<input id="kor-nama" class="' + inputClass + '" value="' + attr(item.nama || '') + '"></div>',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Unit Kerja / OPD</label>',
+        unitOptions
+          ? '<select id="kor-opd" class="' + inputClass + '">' + unitOptions + '</select>'
+          : '<input id="kor-opd-teks" class="' + inputClass + '" value="' + attr(item.opd || '') + '">',
+        '</div>',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Jabatan</label>',
+        '<input id="kor-jabatan" class="' + inputClass + '" value="' + attr(item.jabatan || '') + '"></div>',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Pangkat / Golongan</label>',
+        '<input id="kor-pangkat" class="' + inputClass + '" value="' + attr(item.pangkat || '') + '"></div>',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">No HP / WhatsApp</label>',
+        '<input id="kor-hp" class="' + inputClass + '" value="' + attr(item.noHp || '') + '"></div>',
+        '<div><label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Email</label>',
+        '<input id="kor-email" class="' + inputClass + '" value="' + attr(item.email || '') + '"></div>',
+        '</div>'
+      ].join('');
+
+      const hasil = await Swal.fire({
+        title: 'Koreksi Data Kehadiran',
+        html: html,
+        width: 520,
+        showCancelButton: true,
+        confirmButtonText: 'Simpan Koreksi',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#0057B7',
+        focusConfirm: false,
+        preConfirm: function() {
+          const nama = document.getElementById('kor-nama').value.trim();
+          const jabatan = document.getElementById('kor-jabatan').value.trim();
+          const opdSelect = document.getElementById('kor-opd');
+          const opdTeks = document.getElementById('kor-opd-teks');
+          let opd = '';
+          let opdId = '';
+          if (opdSelect) {
+            const unit = unitList.find(function(u) { return String(u.id || u.nama) === opdSelect.value; });
+            opd = unit ? String(unit.nama) : '';
+            opdId = unit ? String(unit.id || '') : '';
+          } else if (opdTeks) {
+            opd = opdTeks.value.trim();
+          }
+          if (nama.length < 3 || !opd || jabatan.length < 3) {
+            Swal.showValidationMessage('Nama, unit kerja, dan jabatan wajib diisi.');
+            return false;
+          }
+          return {
+            nama: nama,
+            opd: opd,
+            opdId: opdId,
+            jabatan: jabatan,
+            pangkat: document.getElementById('kor-pangkat').value.trim(),
+            noHp: document.getElementById('kor-hp').value.trim(),
+            email: document.getElementById('kor-email').value.trim()
+          };
+        }
+      });
+
+      if (!hasil.isConfirmed || !hasil.value) return;
+      try {
+        await updateAttendanceRecord(id, hasil.value);
+        await loadAttendancePanelData(true);
+        alert("Data kehadiran berhasil dikoreksi.");
+      } catch (err) {
+        alert("Gagal menyimpan koreksi: " + (err && err.message ? err.message : err));
+      }
+    }
+
+    // Kelompokkan daftar unit menjadi Unit Kerja Utama dan Sub Unit Kerja,
+    // mengikuti konsep laporan pada tab Submisi.
+    function formatAttendanceUnitSection(list, withCount) {
+      const utama = list.filter(item => !item.sub);
+      const sub = list.filter(item => item.sub);
+      let section = '';
+      let n = 0;
+      if (utama.length > 0) {
+        if (sub.length > 0) section += `*Unit Kerja Utama (${utama.length}):*\n`;
+        utama.forEach(item => {
+          n++;
+          section += withCount ? `${n}. ${item.opd} — ${item.jumlah} peserta\n` : `${n}. ${item.opd}\n`;
         });
       }
-      msg += `\n${getReportFooterText()}`;
+      if (sub.length > 0) {
+        if (utama.length > 0) section += `\n*Sub Unit Kerja (${sub.length}):*\n`;
+        sub.forEach(item => {
+          n++;
+          section += withCount ? `${n}. ${item.opd} — ${item.jumlah} peserta\n` : `${n}. ${item.opd}\n`;
+        });
+      }
+      return section;
+    }
 
+    function copyAttendanceReportToClipboard(msg, successMessage) {
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+        prompt("Salin teks di bawah ini secara manual:", msg);
+        return;
+      }
       navigator.clipboard.writeText(msg).then(() => {
-        alert("✅ Daftar OPD yang belum hadir berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp.");
+        alert(successMessage);
       }).catch(err => {
         console.error("Clipboard copy failed:", err);
         prompt("Salin teks di bawah ini secara manual:", msg);
       });
+    }
+
+    function buildAttendanceReportHeader(title) {
+      const stats = window.__currentAttendedStats || {};
+      const keg = window.__currentSelectedKegiatan || "Kegiatan Resmi";
+      let msg = `*${title}*\n`;
+      msg += `📌 Kegiatan: *${keg}*\n`;
+      msg += `📊 Tingkat Kehadiran: *${stats.hadir || 0} dari ${stats.total || 0} unit* (${stats.percent || 0}%)\n`;
+      msg += `👥 Total Peserta Hadir: *${stats.totalPeserta || 0} orang*\n\n`;
+      return msg;
+    }
+
+    function copyAbsentOpdToClipboard() {
+      const absentList = Array.isArray(window.__currentAbsentOpdList) ? window.__currentAbsentOpdList : [];
+
+      let msg = buildAttendanceReportHeader('REKAPITULASI PRESENSI KEGIATAN');
+      if (absentList.length === 0) {
+        msg += `✅ *Alhamdulillah, 100% seluruh unit kerja telah hadir!*\n`;
+      } else {
+        msg += `⚠️ *DAFTAR OPD / UNIT KERJA YANG BELUM HADIR (${absentList.length} unit):*\n`;
+        msg += formatAttendanceUnitSection(absentList, false);
+        msg += `\nMohon unit kerja tersebut segera menindaklanjuti kehadirannya.\n`;
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      copyAttendanceReportToClipboard(
+        msg,
+        "✅ Daftar unit kerja yang belum hadir berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp."
+      );
+    }
+
+    function copyPresentUnitToClipboard() {
+      const presentList = Array.isArray(window.__currentPresentUnitList) ? window.__currentPresentUnitList : [];
+
+      let msg = buildAttendanceReportHeader('LAPORAN OPD / UNIT KERJA YANG SUDAH HADIR');
+      if (presentList.length === 0) {
+        msg += `ℹ️ *Belum ada unit kerja yang memiliki peserta hadir pada kegiatan ini.*\n`;
+      } else {
+        msg += `✅ *DAFTAR OPD / UNIT KERJA YANG SUDAH HADIR (${presentList.length} unit):*\n`;
+        msg += formatAttendanceUnitSection(presentList, true);
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      copyAttendanceReportToClipboard(
+        msg,
+        "✅ Daftar unit kerja yang sudah hadir berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp."
+      );
+    }
+
+    function copyLaporanLengkapKehadiranToClipboard() {
+      const presentList = Array.isArray(window.__currentPresentUnitList) ? window.__currentPresentUnitList : [];
+      const absentList = Array.isArray(window.__currentAbsentOpdList) ? window.__currentAbsentOpdList : [];
+
+      let msg = buildAttendanceReportHeader('LAPORAN LENGKAP KEHADIRAN PER OPD / UNIT KERJA');
+      msg += `✅ *OPD / UNIT KERJA YANG SUDAH HADIR (${presentList.length} unit):*\n`;
+      if (presentList.length === 0) {
+        msg += `_Belum ada unit kerja yang memiliki peserta hadir._\n`;
+      } else {
+        msg += formatAttendanceUnitSection(presentList, true);
+      }
+
+      msg += `\n⚠️ *OPD / UNIT KERJA YANG BELUM HADIR (${absentList.length} unit):*\n`;
+      if (absentList.length === 0) {
+        msg += `✅ _Seluruh unit kerja telah hadir pada kegiatan ini._\n`;
+      } else {
+        msg += formatAttendanceUnitSection(absentList, false);
+        msg += `\nMohon unit kerja tersebut segera menindaklanjuti kehadirannya.\n`;
+      }
+      msg += `\n${getReportFooterText()}`;
+
+      copyAttendanceReportToClipboard(
+        msg,
+        "✅ Laporan lengkap kehadiran per OPD/unit kerja berhasil disalin ke Clipboard! Siap dipaste ke WhatsApp."
+      );
     }
 
     // ==========================================
@@ -4165,7 +4666,7 @@
         // jadi tidak dihitung sebagai unit yang dipantau. Bagian di bawahnya tetap dipantau.
         if (getUnitWadah({ id: u.id, nama: nama })) return;
         seen.add(key);
-        list.push({ nama: nama, key: key, sub: !!u.parentId });
+        list.push({ nama: nama, key: key, sub: !!u.parentId, id: String(u.id || '').trim() });
       });
       return list.sort((a, b) => a.nama.localeCompare(b.nama));
     }
@@ -4173,6 +4674,24 @@
     function updateSptExcludeBadge() {
       const badge = document.getElementById('spt-exclude-count-badge');
       if (badge) badge.innerText = `${sptExcludedKeys.size} dikecualikan`;
+    }
+
+    // Pengaturan pantauan dipakai bersama oleh Monitoring Pengiriman SPT dan Rekap Kehadiran.
+    function refreshMonitoringPanels() {
+      if (typeof renderSptComplianceReport === 'function') renderSptComplianceReport();
+      if (attendanceLoadedOnce && typeof renderAttendanceStatsAndAbsentOpd === 'function') {
+        renderAttendanceStatsAndAbsentOpd();
+      }
+    }
+
+    function openSptExcludeFromAttendance() {
+      if (typeof switchAdminTab === 'function') switchAdminTab('submisi-panel');
+      const panel = document.getElementById('spt-exclude-panel');
+      if (panel && panel.classList.contains('hidden') && typeof toggleSptExcludePanel === 'function') {
+        toggleSptExcludePanel();
+      }
+      const toggle = document.getElementById('spt-exclude-toggle');
+      if (toggle) toggle.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function initSptExclusions() {
@@ -4192,7 +4711,7 @@
             localStorage.setItem('spt_monitoring_excluded_units', JSON.stringify(Array.from(sptExcludedKeys)));
           } catch (e) {}
           updateSptExcludeBadge();
-          if (typeof renderSptComplianceReport === 'function') renderSptComplianceReport();
+          refreshMonitoringPanels();
         })
         .withFailureHandler(function(err) {
           console.warn('Gagal memuat pengaturan pantauan dari server, memakai cache lokal:', err);
@@ -4299,7 +4818,7 @@
         localStorage.setItem('spt_monitoring_excluded_units', JSON.stringify(Array.from(sptExcludedKeys)));
       } catch (e) {}
       updateSptExcludeBadge();
-      renderSptComplianceReport();
+      refreshMonitoringPanels();
       closeSptExcludePanel();
 
       if (!window.google || !window.google.script || !window.google.script.run) {
@@ -4308,7 +4827,7 @@
       }
       google.script.run
         .withSuccessHandler(function() {
-          alert(`✅ Pengaturan pantauan tersimpan (${sptExcludedKeys.size} unit dikecualikan dari laporan).`);
+          alert(`✅ Pengaturan pantauan tersimpan (${sptExcludedKeys.size} unit dikecualikan dari laporan SPT & kehadiran).`);
         })
         .withFailureHandler(function(err) {
           console.warn('Gagal menyimpan pengaturan pantauan ke server:', err);
@@ -4755,7 +5274,7 @@
           <h3>SEKRETARIAT DAERAH - BAGIAN ORGANISASI</h3>
           <p style="font-size: 14px; font-weight: bold; margin-top: 10px;">DAFTAR HADIR PESERTA KEGIATAN</p>
           <p><strong>Perihal:</strong> ${escapeHtml(keg)}</p>
-          <p>Total Peserta Hadir: ${attendanceDb.length} Orang | Kehadiran OPD: ${stats.hadir || 0} / ${stats.total || 0} OPD (${stats.percent || 0}%)</p>
+          <p>Total Peserta Hadir: ${attendanceDb.length} Orang | Kehadiran Unit Kerja: ${stats.hadir || 0} / ${stats.total || 0} unit (${stats.percent || 0}%)</p>
           <table>
             <thead>
               <tr>
@@ -5576,9 +6095,14 @@
             </td>
             <td class="px-6 py-4 text-center">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="viewSubmissionSignature(${actualIdx})" class="p-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Lihat TTD Asli (tanpa barcode/QR verifikasi)">
+                <button onclick="editSubmissionUnit(${actualIdx})" class="p-2 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Edit Unit Kerja">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button onclick="viewSubmissionSignature(${actualIdx})" class="p-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Lihat TTD Asli (tanpa barcode/QR verifikasi)">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                   </svg>
                 </button>
                 <button onclick="reprintSubmissionSpt(${actualIdx})" class="p-2 text-[#0057B7] hover:bg-blue-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Cetak / Unduh Ulang Surat Tugas (PDF)">
@@ -5631,7 +6155,13 @@
                   <span class="font-medium text-slate-700">${namaAtasan}</span>
                   ${nipAtasan ? `<span class="text-slate-400 font-mono text-[11px] block">NIP: ${nipAtasan}</span>` : ''}
                 </div>
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center justify-end flex-wrap gap-1.5">
+                  <button onclick="editSubmissionUnit(${actualIdx})" class="px-2.5 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-all flex items-center gap-1 border border-emerald-200 min-touch-target" title="Edit Unit Kerja">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
                   <button onclick="reprintSubmissionSpt(${actualIdx})" class="px-2.5 py-1.5 text-xs font-bold text-[#0057B7] bg-blue-50 hover:bg-blue-100 rounded-xl transition-all flex items-center gap-1 border border-blue-200 min-touch-target" title="Cetak Ulang Surat Tugas (PDF)">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -5640,7 +6170,7 @@
                   </button>
                   <button onclick="viewSubmissionSignature(${actualIdx})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-all flex items-center gap-1 border border-amber-200 min-touch-target" title="Lihat TTD Asli (tanpa barcode/QR)">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
                     <span>TTD</span>
                   </button>
@@ -5684,6 +6214,238 @@
           card.classList.add('hidden');
         }
       });
+    }
+
+    // --- Edit Unit Kerja pada Submisi (koreksi salah input) ---
+    let pendingSubmissionUnitEdit = null;
+
+    function editUnitOptionClasses(isSelected) {
+      return 'unit-option w-full text-left px-3 py-2 rounded-lg border text-[12px] transition-all flex items-center gap-2 min-h-[36px] ' +
+        (isSelected
+          ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold'
+          : 'border-transparent text-slate-700 hover:bg-slate-50');
+    }
+
+    function selectEditUnitOption(buttonEl) {
+      if (!buttonEl || !buttonEl.dataset) return;
+      pendingSubmissionUnitEdit = {
+        key: buttonEl.dataset.key || '',
+        name: buttonEl.dataset.name || '',
+        id: buttonEl.dataset.id || ''
+      };
+
+      document.querySelectorAll('#swal-unit-list .unit-option').forEach(btn => {
+        const isSelected = btn === buttonEl;
+        btn.className = editUnitOptionClasses(isSelected);
+        btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      });
+
+      const hint = document.getElementById('swal-unit-selected-hint');
+      if (hint) hint.innerText = pendingSubmissionUnitEdit.name;
+    }
+
+    function filterEditUnitOptions(rawQuery) {
+      const list = document.getElementById('swal-unit-list');
+      if (!list) return;
+      const query = normalizeUnitName(rawQuery);
+      let visibleCount = 0;
+
+      list.querySelectorAll('.unit-option').forEach(btn => {
+        const matches = !query || String(btn.dataset.key || '').includes(query);
+        btn.classList.toggle('hidden', !matches);
+        if (matches) visibleCount++;
+      });
+
+      list.querySelectorAll('[data-unit-group]').forEach(group => {
+        const hasVisibleOption = !!group.querySelector('.unit-option:not(.hidden)');
+        group.classList.toggle('hidden', !hasVisibleOption);
+      });
+
+      const empty = document.getElementById('swal-unit-empty');
+      if (empty) empty.classList.toggle('hidden', visibleCount !== 0);
+    }
+
+    function editSubmissionUnit(actualIdx) {
+      const row = (typeof submissionsDb !== 'undefined' && Array.isArray(submissionsDb)) ? submissionsDb[actualIdx] : null;
+      if (!row) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Data Tidak Ditemukan',
+          text: 'Gagal membaca rincian data submisi. Silakan muat ulang halaman.'
+        });
+        return;
+      }
+
+      const docId = row[13] || '';
+      if (!docId) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ID Dokumen Kosong',
+          text: 'Submisi ini tidak memiliki ID dokumen sehingga unit kerja tidak dapat diperbarui.'
+        });
+        return;
+      }
+
+      const currentUnit = String(row[2] || '').trim();
+      const currentUnitId = String(row[18] || '').trim();
+      const units = getAllSianjabUnits();
+
+      if (units.length === 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Data Unit Belum Siap',
+          text: 'Daftar unit kerja SI-PRABU belum tersedia. Muat ulang halaman lalu coba lagi.'
+        });
+        return;
+      }
+
+      const currentKey = normalizeUnitName(currentUnit);
+      const hasCurrent = units.some(unit => unit.key === currentKey);
+      const utama = units.filter(unit => !unit.sub);
+      const sub = units.filter(unit => unit.sub);
+
+      // Pilihan disimpan di state, bukan native <select>, agar daftar tidak menutup
+      // sendiri saat diklik dan tetap bisa dicari dari 81 unit master.
+      pendingSubmissionUnitEdit = hasCurrent
+        ? { key: currentKey, name: currentUnit, id: currentUnitId }
+        : null;
+
+      const optionFor = (unit) => `
+        <button type="button"
+          class="${editUnitOptionClasses(unit.key === currentKey)}"
+          data-key="${escapeHtml(unit.key)}"
+          data-id="${escapeHtml(unit.id)}"
+          data-name="${escapeHtml(unit.nama)}"
+          aria-pressed="${unit.key === currentKey ? 'true' : 'false'}"
+          onclick="selectEditUnitOption(this)">
+          <span class="flex-1 leading-snug">${escapeHtml(unit.nama)}</span>
+          ${unit.sub ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200">SUB</span>' : ''}
+        </button>
+      `;
+      const groupFor = (label, items) => items.length === 0 ? '' : `
+        <div data-unit-group class="space-y-1">
+          <div class="px-1 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-400">${label}</div>
+          ${items.map(optionFor).join('')}
+        </div>
+      `;
+      const unknownCurrentNote = (!hasCurrent && currentUnit)
+        ? `<div style="font-size:11px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:8px 10px;margin-bottom:10px;">Unit saat ini <b>${escapeHtml(currentUnit)}</b> tidak ditemukan di master SI-PRABU. Pilih unit pengganti di bawah.</div>`
+        : '';
+
+      Swal.fire({
+        title: 'Edit Unit Kerja',
+        width: 600,
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        html: `
+          <div style="text-align:left;">
+            <div style="font-size:13px;color:#334155;line-height:1.55;margin-bottom:12px;">
+              Perbaiki unit kerja untuk <b>${escapeHtml(row[3] || '')}</b>
+              ${row[4] ? `<div style="font-family:monospace;font-size:11px;color:#64748b;">NIP: ${escapeHtml(row[4])}</div>` : ''}
+              <div style="font-size:12px;color:#64748b;margin-top:6px;">Unit saat ini: <b>${escapeHtml(currentUnit || '-')}</b></div>
+            </div>
+            ${unknownCurrentNote}
+            <label for="swal-unit-search" style="display:block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Cari & Pilih Unit Kerja Baru</label>
+            <input id="swal-unit-search" type="text" autocomplete="off" placeholder="Ketik nama unit kerja..." oninput="filterEditUnitOptions(this.value)"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none text-[13px] text-slate-700 focus:ring-2 focus:ring-[#0057B7] focus:border-[#0057B7]" style="margin-bottom:8px;">
+            <div id="swal-unit-list" style="max-height:250px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:12px;padding:6px;background:#fff;">
+              ${groupFor('Unit Kerja Utama', utama)}
+              ${groupFor('Sub Unit Kerja', sub)}
+              <div id="swal-unit-empty" class="hidden px-2 py-4 text-center text-xs text-slate-400 italic">Tidak ada unit kerja yang cocok.</div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;">
+              Dipilih: <b id="swal-unit-selected-hint">${escapeHtml(hasCurrent ? currentUnit : 'Belum dipilih')}</b>
+            </div>
+            <p style="font-size:11px;color:#94a3b8;line-height:1.5;margin:10px 0 0;">
+              Perubahan juga menyinkronkan unit pada data presensi yang tertaut ke submisi ini.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '💾 Simpan Perubahan',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#0057B7',
+        cancelButtonColor: '#64748b',
+        focusConfirm: false,
+        didOpen: () => {
+          const searchEl = document.getElementById('swal-unit-search');
+          if (searchEl) {
+            searchEl.focus();
+            searchEl.select();
+          }
+        },
+        preConfirm: () => {
+          if (!pendingSubmissionUnitEdit || !pendingSubmissionUnitEdit.name) {
+            Swal.showValidationMessage('Pilih unit kerja baru terlebih dahulu.');
+            return false;
+          }
+          if (pendingSubmissionUnitEdit.key === currentKey) {
+            Swal.showValidationMessage('Pilih unit kerja yang berbeda dari unit saat ini.');
+            return false;
+          }
+          return {
+            unitKerja: pendingSubmissionUnitEdit.name,
+            unitKerjaId: pendingSubmissionUnitEdit.id
+          };
+        }
+      }).then(result => {
+        if (!result.isConfirmed || !result.value) return;
+        saveSubmissionUnitChange(actualIdx, docId, result.value.unitKerja, result.value.unitKerjaId, currentUnit);
+      });
+    }
+
+    async function saveSubmissionUnitChange(actualIdx, docId, newUnit, newUnitId, oldUnit) {
+      Swal.fire({
+        title: 'Menyimpan Perubahan...',
+        text: 'Memperbarui unit kerja dan data presensi tertaut.',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      try {
+        if (!window.FirebaseService || typeof window.FirebaseService.updateSubmissionUnit !== 'function') {
+          throw new Error('Layanan pembaruan unit kerja belum siap. Muat ulang halaman lalu coba lagi.');
+        }
+
+        const res = await window.FirebaseService.updateSubmissionUnit(docId, newUnit, newUnitId);
+
+        // Perbarui cache lokal agar tabel & laporan langsung konsisten.
+        const row = (typeof submissionsDb !== 'undefined' && Array.isArray(submissionsDb)) ? submissionsDb[actualIdx] : null;
+        if (row) {
+          row[2] = newUnit;
+          row[18] = newUnitId;
+        }
+
+        applyFilters();
+        if (attendanceLoadedOnce) {
+          await loadAttendancePanelData(true);
+        }
+
+        const presensiInfo = (res && res.presensiWarning)
+          ? `<div style="margin-top:8px;font-size:11px;color:#b45309;">${escapeHtml(res.presensiWarning)}</div>`
+          : (res && res.presensiUpdated
+            ? `<div style="margin-top:8px;font-size:11px;color:#047857;">${res.presensiUpdated} data presensi tertaut ikut diperbarui.</div>`
+            : '');
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Unit Kerja Diperbarui',
+          html: `<div style="font-size:13px;color:#334155;line-height:1.6;">
+            <div style="color:#94a3b8;text-decoration:line-through;">${escapeHtml(oldUnit || '-')}</div>
+            <div style="font-weight:700;color:#0057B7;margin-top:2px;">${escapeHtml(newUnit)}</div>
+            ${presensiInfo}
+          </div>`,
+          confirmButtonColor: '#0057B7'
+        });
+      } catch (err) {
+        console.error('Gagal memperbarui unit kerja:', err);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Menyimpan',
+          text: err && err.message ? err.message : String(err)
+        });
+      }
     }
 
     // --- Cetak / Unduh Ulang Surat Tugas PDF (Admin) ---
@@ -5962,6 +6724,7 @@
                 <td class="px-6 py-4">
                   <div class="font-bold text-slate-800">${escapeHtml(keg.nama)}</div>
                   <div class="text-xs text-slate-400">Integrasi: ${escapeHtml(keg.integrasi === 'SITPP' ? 'Gentala TPP EM-JE' : keg.integrasi)}</div>
+                  ${keg.wajibSpt === false ? '<div class="mt-1"><span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">Non SPT</span></div>' : ''}
                   ${keg.autoNomor !== false ? `<div class="text-[11px] text-blue-600 font-mono mt-0.5 font-medium">⚡ Auto-Nomor: ${escapeHtml(keg.formatNomor || '090/{nomor}/SPT/{kode_opd}/{tahun}')}${keg.izinkanNomorManual !== false ? ' <span class="text-emerald-600">• manual opsional</span>' : ' <span class="text-slate-400">• otomatis wajib</span>'}</div>` : `<div class="text-[11px] text-slate-400 mt-0.5">Manual (Tanpa Auto-Nomor)</div>`}
                 </td>
                 <td class="px-6 py-4 font-medium text-slate-600">${escapeHtml(keg.deadline || 'Tanpa Batas')}</td>
@@ -5969,11 +6732,18 @@
                   <span class="px-2.5 py-1 rounded-full border text-xs font-bold inline-block ${statusClass}">${escapeHtml(keg.status)}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <button data-keg-nama="${escapeHtml(keg.nama)}" onclick="deleteKegiatanData(this.getAttribute('data-keg-nama'))" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Kegiatan">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <div class="flex items-center justify-center gap-1">
+                    <button type="button" data-keg-id="${escapeHtml(keg.id || keg.nama)}" onclick="openEditKegiatan(this.dataset.kegId)" class="p-2 text-[#0057B7] hover:bg-blue-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Edit Kegiatan">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button data-keg-nama="${escapeHtml(keg.nama)}" onclick="deleteKegiatanData(this.getAttribute('data-keg-nama'))" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all min-touch-target inline-flex items-center justify-center" title="Hapus Kegiatan">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             `;
@@ -6047,23 +6817,144 @@
       hiddenInput.value = formatIndoDate(dateInput.value);
     }
 
+    // Mengisi form kegiatan dengan data yang dipilih agar bisa diubah tanpa membuat ulang.
+    function openEditKegiatan(id) {
+      const keg = (Array.isArray(kegiatanDb) ? kegiatanDb : []).find(function(k) {
+        return String(k.id || k.nama || '') === String(id) || String(k.nama || '') === String(id);
+      });
+      if (!keg) {
+        alert('Data kegiatan tidak ditemukan. Muat ulang panel kegiatan.');
+        return;
+      }
+
+      document.getElementById('keg-edit-id').value = String(keg.id || keg.nama);
+      document.getElementById('keg-form-title').innerText = '✏️ Edit Kegiatan';
+      document.getElementById('keg-submit-label').innerText = '💾 Simpan Perubahan';
+      document.getElementById('keg-cancel-edit').classList.remove('hidden');
+      const note = document.getElementById('keg-edit-note');
+      if (note) note.classList.remove('hidden');
+
+      const namaInput = document.getElementById('keg-nama');
+      namaInput.value = keg.nama || '';
+      namaInput.readOnly = true;
+      namaInput.classList.add('bg-slate-100', 'text-slate-500');
+
+      document.getElementById('keg-integrasi').value = keg.integrasi || 'None';
+      document.getElementById('keg-status').value = keg.status || 'Aktif';
+      document.getElementById('keg-dasar').value = keg.dasar || '';
+
+      const jenisVal = keg.wajibSpt === false ? 'non-spt' : 'spt';
+      const jenisRadio = document.querySelector('input[name="keg-jenis"][value="' + jenisVal + '"]');
+      if (jenisRadio) jenisRadio.checked = true;
+      applyKegiatanJenis();
+
+      if (document.getElementById('keg-auto-nomor')) document.getElementById('keg-auto-nomor').checked = keg.autoNomor !== false;
+      if (document.getElementById('keg-izinkan-manual')) document.getElementById('keg-izinkan-manual').checked = keg.izinkanNomorManual !== false;
+      if (document.getElementById('keg-format-nomor')) {
+        document.getElementById('keg-format-nomor').value = keg.formatNomor || 'NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}';
+      }
+
+      const dateInput = document.getElementById('keg-deadline-date');
+      const hiddenDeadline = document.getElementById('keg-deadline');
+      const parsedDeadline = parseDeadlineIndo(keg.deadline);
+      if (parsedDeadline) {
+        const radioTanggal = document.querySelector('input[name="tipe_deadline"][value="Pilih Tanggal"]');
+        if (radioTanggal) radioTanggal.checked = true;
+        dateInput.value = formatWibIsoDate(parsedDeadline);
+        dateInput.classList.remove('hidden');
+        dateInput.required = true;
+        hiddenDeadline.value = keg.deadline;
+      } else {
+        const radioBebas = document.querySelector('input[name="tipe_deadline"][value="Tanpa Batas"]');
+        if (radioBebas) radioBebas.checked = true;
+        dateInput.value = '';
+        dateInput.classList.add('hidden');
+        dateInput.required = false;
+        hiddenDeadline.value = 'Tanpa Batas';
+      }
+
+      const title = document.getElementById('keg-form-title');
+      if (title && typeof title.scrollIntoView === 'function') {
+        title.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function resetKegiatanFormMode() {
+      const editId = document.getElementById('keg-edit-id');
+      if (editId) editId.value = '';
+      const title = document.getElementById('keg-form-title');
+      if (title) title.innerText = '➕ Tambah Perihal Baru';
+      const submitLabel = document.getElementById('keg-submit-label');
+      if (submitLabel) submitLabel.innerText = '💾 Simpan Kegiatan';
+      const cancelBtn = document.getElementById('keg-cancel-edit');
+      if (cancelBtn) cancelBtn.classList.add('hidden');
+      const note = document.getElementById('keg-edit-note');
+      if (note) note.classList.add('hidden');
+
+      const namaInput = document.getElementById('keg-nama');
+      namaInput.value = '';
+      namaInput.readOnly = false;
+      namaInput.classList.remove('bg-slate-100', 'text-slate-500');
+
+      document.getElementById('keg-integrasi').value = 'None';
+      document.getElementById('keg-status').value = 'Aktif';
+      document.getElementById('keg-dasar').value = '';
+
+      const jenisSpt = document.querySelector('input[name="keg-jenis"][value="spt"]');
+      if (jenisSpt) jenisSpt.checked = true;
+      applyKegiatanJenis();
+
+      if (document.getElementById('keg-auto-nomor')) document.getElementById('keg-auto-nomor').checked = true;
+      if (document.getElementById('keg-izinkan-manual')) document.getElementById('keg-izinkan-manual').checked = true;
+      if (document.getElementById('keg-format-nomor')) {
+        document.getElementById('keg-format-nomor').value = 'NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}';
+      }
+
+      const radioBebas = document.querySelector('input[name="tipe_deadline"][value="Tanpa Batas"]');
+      if (radioBebas) radioBebas.checked = true;
+      const dateInput = document.getElementById('keg-deadline-date');
+      if (dateInput) {
+        dateInput.value = '';
+        dateInput.classList.add('hidden');
+        dateInput.required = false;
+      }
+      const hiddenDeadline = document.getElementById('keg-deadline');
+      if (hiddenDeadline) hiddenDeadline.value = 'Tanpa Batas';
+    }
+
+    // Kegiatan non SPT tidak memakai dasar hukum maupun penomoran SPT.
+    function applyKegiatanJenis() {
+      const dipilih = document.querySelector('input[name="keg-jenis"]:checked');
+      const nonSpt = !!dipilih && dipilih.value === 'non-spt';
+      const dasarBlock = document.getElementById('keg-dasar-block');
+      const nomorBlock = document.getElementById('keg-nomor-block');
+      if (dasarBlock) dasarBlock.classList.toggle('hidden', nonSpt);
+      if (nomorBlock) nomorBlock.classList.toggle('hidden', nonSpt);
+    }
+
     function handleNewKegiatan(e) {
       e.preventDefault();
       
       const autoNomorChecked = document.getElementById('keg-auto-nomor') ? document.getElementById('keg-auto-nomor').checked : true;
       const formatNomorVal = document.getElementById('keg-format-nomor') ? document.getElementById('keg-format-nomor').value : "NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}";
       const izinkanManualChecked = document.getElementById('keg-izinkan-manual') ? document.getElementById('keg-izinkan-manual').checked : true;
+      const jenisTerpilih = document.querySelector('input[name="keg-jenis"]:checked');
+      const wajibSpt = !jenisTerpilih || jenisTerpilih.value !== 'non-spt';
+      const editId = document.getElementById('keg-edit-id') ? document.getElementById('keg-edit-id').value.trim() : '';
+      const sedangEdit = !!editId;
 
       const newKeg = {
         nama: document.getElementById('keg-nama').value,
         integrasi: document.getElementById('keg-integrasi').value,
         status: document.getElementById('keg-status').value,
+        wajibSpt: wajibSpt,
         deadline: document.getElementById('keg-deadline').value,
         dasar: document.getElementById('keg-dasar').value,
         autoNomor: autoNomorChecked,
         izinkanNomorManual: izinkanManualChecked,
         formatNomor: formatNomorVal
       };
+      if (editId) newKeg.id = editId;
       
       Swal.fire({
         title: 'Menyimpan...',
@@ -6073,9 +6964,13 @@
       
       google.script.run
         .withSuccessHandler(function() {
-          Swal.fire('Berhasil!', 'Kegiatan baru berhasil disimpan.', 'success');
+          Swal.fire('Berhasil!', sedangEdit ? 'Kegiatan berhasil diperbarui.' : 'Kegiatan baru berhasil disimpan.', 'success');
+          resetKegiatanFormMode();
           document.getElementById('keg-nama').value = '';
           document.getElementById('keg-dasar').value = '';
+          const jenisSpt = document.querySelector('input[name="keg-jenis"][value="spt"]');
+          if (jenisSpt) jenisSpt.checked = true;
+          applyKegiatanJenis();
           if (document.getElementById('keg-auto-nomor')) document.getElementById('keg-auto-nomor').checked = true;
           if (document.getElementById('keg-izinkan-manual')) document.getElementById('keg-izinkan-manual').checked = true;
           if (document.getElementById('keg-format-nomor')) document.getElementById('keg-format-nomor').value = 'NOMOR : 090/{nomor}/SPT/{kode_opd}/{tahun}';

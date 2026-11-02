@@ -101,6 +101,7 @@ const firebaseSnippet = `
                 nama: "SPT Rekon TPP dan SIMONA", 
                 integrasi: "SITPP", 
                 status: "Aktif", 
+                wajibSpt: true,
                 deadline: "6 Februari 2026", 
                 dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA",
                 autoNomor: true,
@@ -121,6 +122,7 @@ const firebaseSnippet = `
               nama: d.nama,
               integrasi: d.integrasi || "None",
               status: d.status || "Aktif",
+              wajibSpt: d.wajibSpt !== false,
               deadline: d.deadline || "Tanpa Batas",
               dasar: d.dasar || "",
               autoNomor: d.autoNomor !== false,
@@ -151,6 +153,7 @@ const firebaseSnippet = `
           nama: item.nama,
           integrasi: item.integrasi || "None",
           status: item.status || "Aktif",
+          wajibSpt: item.wajibSpt !== false,
           deadline: item.deadline || "Tanpa Batas",
           dasar: item.dasar || "",
           autoNomor: item.autoNomor !== false,
@@ -439,6 +442,47 @@ const firebaseSnippet = `
           console.error("Firestore getSubmissionsData error:", err);
           throw err;
         }
+      },
+
+      // Perbaikan unit kerja yang salah input pada submisi.
+      // Hanya dua field unit yang diubah; data presensi yang tertaut ikut disinkronkan.
+      async updateSubmissionUnit(docId, unitKerja, unitKerjaId) {
+        const targetDocId = String(docId || '').trim();
+        const newUnit = String(unitKerja || '').trim();
+        const newUnitId = String(unitKerjaId || '').trim();
+
+        if (!targetDocId) {
+          throw new Error('ID dokumen submisi tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+        }
+        if (!newUnit) {
+          throw new Error('Unit kerja baru wajib dipilih.');
+        }
+
+        await db.collection('submissions').doc(targetDocId).update({
+          unitKerja: newUnit,
+          unitKerjaId: newUnitId
+        });
+
+        let presensiUpdated = 0;
+        let presensiWarning = '';
+        try {
+          const presensiSnap = await db.collection('presensi_kegiatan')
+            .where('submissionId', '==', targetDocId)
+            .get();
+          if (!presensiSnap.empty) {
+            const batch = db.batch();
+            presensiSnap.forEach(doc => {
+              batch.update(doc.ref, { opd: newUnit, opdId: newUnitId });
+            });
+            await batch.commit();
+            presensiUpdated = presensiSnap.size;
+          }
+        } catch (presensiErr) {
+          console.warn('[Firebase] Unit submisi tersimpan, tetapi presensi tertaut gagal diperbarui:', presensiErr);
+          presensiWarning = 'Data presensi tertaut belum ikut diperbarui. Periksa izin Firestore lalu coba lagi.';
+        }
+
+        return { success: true, presensiUpdated: presensiUpdated, presensiWarning: presensiWarning };
       },
 
       async deleteSubmission(rowIndexOrId, docId) {
@@ -831,6 +875,7 @@ const firebaseSnippet = `
             statusPegawai: matchedSub.statusPegawai || "",
             submissionId: matchedSub.id,
             nomorSpt: matchedSub.nomorSpt || matchedSub.nomor_spt || "-",
+            statusKehadiran: "sah",
             waktuCheckIn: formatIndoDateTime(new Date()),
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
@@ -847,6 +892,74 @@ const firebaseSnippet = `
           };
         } catch(err) {
           console.error("Firebase checkAttendance error:", err);
+          return { success: false, reason: "ERROR", message: err.message || err.toString() };
+        }
+      },
+
+      // Presensi mandiri untuk kegiatan non SPT (tanpa prasyarat SPT).
+      // Data diisi sendiri oleh peserta, sehingga tidak ada pembacaan ke koleksi submissions.
+      async checkAttendanceMandiri(data) {
+        try {
+          const payload = data || {};
+          const cleanKegiatan = String(payload.kegiatan || '').trim();
+          const cleanNip = String(payload.nip || '').replace(/[^0-9]/g, '');
+          const nama = String(payload.nama || '').trim();
+          const opd = String(payload.opd || '').trim();
+          const jabatan = String(payload.jabatan || '').trim();
+
+          if (!cleanKegiatan || !nama || !opd || !jabatan || cleanNip.length !== 18) {
+            return {
+              success: false,
+              reason: "INVALID_INPUT",
+              message: "Data kehadiran belum lengkap atau NIP bukan 18 digit."
+            };
+          }
+
+          const presensiId = encodeURIComponent(cleanKegiatan).replace(/%/g, '_') + "_" + cleanNip;
+          const presensiRef = db.collection('presensi_kegiatan').doc(presensiId);
+          const presensiSnap = await presensiRef.get();
+
+          if (presensiSnap.exists) {
+            return {
+              success: true,
+              alreadyCheckedIn: true,
+              data: presensiSnap.data(),
+              message: "Peserta sudah tercatat hadir sebelumnya."
+            };
+          }
+
+          const newPresensi = {
+            id: presensiId,
+            kegiatan: cleanKegiatan,
+            jenisKehadiran: "mandiri",
+            nip: cleanNip,
+            nama: nama,
+            opd: opd,
+            opdId: String(payload.opdId || "").trim(),
+            jabatan: jabatan,
+            pangkat: String(payload.pangkat || "").trim(),
+            statusPegawai: String(payload.statusPegawai || "").trim(),
+            noHp: String(payload.noHp || "").trim(),
+            email: String(payload.email || "").trim(),
+            submissionId: null,
+            nomorSpt: "-",
+            statusKehadiran: "sah",
+            waktuCheckIn: formatIndoDateTime(new Date()),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+            source: "web_presensi_mandiri"
+          };
+
+          await presensiRef.set(newPresensi);
+
+          return {
+            success: true,
+            alreadyCheckedIn: false,
+            data: newPresensi,
+            message: "Kehadiran berhasil dicatat."
+          };
+        } catch(err) {
+          console.error("Firebase checkAttendanceMandiri error:", err);
           return { success: false, reason: "ERROR", message: err.message || err.toString() };
         }
       },
@@ -878,6 +991,30 @@ const firebaseSnippet = `
         } catch(err) {
           console.error("Firebase deleteAttendance error:", err);
           return { success: false, error: err.toString() };
+        }
+      },
+
+      // Koreksi/pembatalan catatan kehadiran. Dokumen tidak dihapus agar jejak tetap ada.
+      async updateAttendance(id, changes) {
+        try {
+          if (!id) return { success: false, message: "ID kehadiran tidak valid." };
+          const data = changes || {};
+          const patch = {
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          ["nama", "pangkat", "jabatan", "opd", "opdId", "noHp", "email"].forEach(function(field) {
+            if (data[field] !== undefined && data[field] !== null) {
+              patch[field] = String(data[field]).trim();
+            }
+          });
+          if (data.statusKehadiran === "sah" || data.statusKehadiran === "dibatalkan") {
+            patch.statusKehadiran = data.statusKehadiran;
+          }
+          await db.collection('presensi_kegiatan').doc(id).update(patch);
+          return { success: true };
+        } catch(err) {
+          console.error("Firebase updateAttendance error:", err);
+          return { success: false, message: err.message || err.toString() };
         }
       }
     };

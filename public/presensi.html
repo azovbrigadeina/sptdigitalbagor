@@ -93,8 +93,8 @@
         <div>
           <span id="presensi-brand-hero" class="text-ukr-yellow text-xs font-extrabold tracking-wider uppercase block">Tugasku • Bagian Organisasi Setda Kab. Muaro Jambi</span>
           <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">Daftar Hadir Kegiatan Resmi</h1>
-          <p class="text-white/80 text-xs sm:text-sm mt-1 leading-relaxed">
-            Konfirmasi kehadiran acara kedinasan. Kehadiran diakui jika Anda telah terdaftar pada Surat Perintah Tugas (SPT).
+          <p id="presensi-hero-desc" class="text-white/80 text-xs sm:text-sm mt-1 leading-relaxed">
+            Konfirmasi kehadiran acara kedinasan. Pilih kegiatan, lalu lengkapi data yang diminta.
           </p>
         </div>
       </div>
@@ -103,17 +103,17 @@
     <!-- PRESENSI CARD FORM -->
     <div id="presensi-form-card" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-6 transition-all">
       <div class="border-b border-slate-100 pb-4">
-        <h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+        <h2 id="presensi-form-title" class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
           <span class="text-xl">📍</span> Konfirmasi Kehadiran Peserta
         </h2>
-        <p class="text-xs text-slate-500 mt-0.5">Pilih kegiatan resmi yang diikuti lalu masukkan NIP Anda.</p>
+        <p id="presensi-form-desc" class="text-xs text-slate-500 mt-0.5">Pilih kegiatan resmi yang diikuti lalu masukkan NIP Anda.</p>
       </div>
 
       <form id="presensi-form" onsubmit="handleConfirmAttendance(event)" class="space-y-5">
         <!-- 1. Pilihan Kegiatan -->
         <div>
           <label for="presensi-kegiatan-select" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-            1. Nama Kegiatan / Acara <span class="text-red-500">*</span>
+            Nama Kegiatan / Acara <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <select id="presensi-kegiatan-select" required onchange="handleKegiatanSelectionChange()" class="w-full min-touch-target py-3.5 px-4 text-sm font-semibold text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all bg-white appearance-none pr-10">
@@ -134,10 +134,23 @@
           </div>
         </div>
 
-        <!-- 2. Input NIP -->
+        <!-- NAMA PESERTA (hanya untuk kegiatan tanpa SPT) -->
+        <div id="field-nama-mandiri" class="hidden">
+          <label for="presensi-nama" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+            Nama Lengkap <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="presensi-nama"
+            placeholder="Contoh: Budi Santoso, S.Kom"
+            class="w-full min-touch-target py-3.5 px-4 text-base text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-300 placeholder:text-sm"
+          >
+        </div>
+
+        <!-- NIP PESERTA -->
         <div>
           <label for="presensi-nip" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-            2. NIP Peserta (18 Digit) <span class="text-red-500">*</span>
+            NIP Peserta (18 Digit) <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <input 
@@ -159,6 +172,112 @@
           <p class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
             <span>💡</span> Masukkan 18 digit NIP tanpa spasi atau tanda hubung.
           </p>
+        </div>
+
+        <!-- DATA KEHADIRAN MANDIRI (hanya untuk kegiatan tanpa SPT) -->
+        <div id="identitas-mandiri" class="hidden space-y-5">
+          <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
+            <span class="text-base">🧾</span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">Data Kehadiran</h3>
+          </div>
+          <p class="text-[11px] text-slate-500 -mt-3 leading-relaxed">
+            Kegiatan ini non SPT. Cukup lengkapi data berikut sesuai dokumen kepegawaian Anda.
+          </p>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Status Kepegawaian <span class="text-red-500">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="flex items-center gap-3 px-4 py-3 min-touch-target rounded-2xl border border-slate-200 bg-white hover:bg-ukr-blueLight/50 cursor-pointer transition-all">
+                <input type="radio" name="status_pegawai_presensi" value="PNS" checked onchange="renderPangkatOptions()" class="w-5 h-5 text-ukr-blue accent-ukr-blue focus:ring-ukr-blue">
+                <span class="text-sm font-semibold text-slate-800">PNS</span>
+              </label>
+              <label class="flex items-center gap-3 px-4 py-3 min-touch-target rounded-2xl border border-slate-200 bg-white hover:bg-ukr-blueLight/50 cursor-pointer transition-all">
+                <input type="radio" name="status_pegawai_presensi" value="PPPK" onchange="renderPangkatOptions()" class="w-5 h-5 text-ukr-blue accent-ukr-blue focus:ring-ukr-blue">
+                <span class="text-sm font-semibold text-slate-800">PPPK</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label for="presensi-pangkat" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Pangkat / Golongan <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select id="presensi-pangkat" class="w-full min-touch-target py-3.5 px-4 text-sm font-semibold text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all bg-white appearance-none pr-10">
+                <option value="">-- Pilih Pangkat / Golongan --</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label for="presensi-opd" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Unit Kerja / OPD <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select id="presensi-opd" class="w-full min-touch-target py-3.5 px-4 text-sm font-semibold text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all bg-white appearance-none pr-10">
+                <option value="">-- Memuat unit kerja... --</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <input
+              type="text"
+              id="presensi-opd-manual"
+              placeholder="Tulis nama unit kerja / OPD Anda"
+              class="hidden mt-2 w-full min-touch-target py-3.5 px-4 text-base text-slate-800 rounded-2xl border border-amber-300 bg-amber-50/40 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-400 placeholder:text-sm"
+            >
+            <p id="presensi-opd-note" class="hidden text-[11px] text-amber-700 mt-1.5 leading-relaxed">
+              Data master unit kerja belum tersedia di perangkat ini. Tulis nama unit kerja secara lengkap agar rekap kehadiran tetap terbaca.
+            </p>
+          </div>
+
+          <div>
+            <label for="presensi-jabatan" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              Jabatan <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="presensi-jabatan"
+              placeholder="Contoh: Analis Organisasi"
+              class="w-full min-touch-target py-3.5 px-4 text-base text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-300 placeholder:text-sm"
+            >
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="presensi-no-hp" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                No HP / WhatsApp <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                id="presensi-no-hp"
+                inputmode="tel"
+                placeholder="081234567890"
+                class="w-full min-touch-target py-3.5 px-4 text-base text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-300 placeholder:text-sm"
+              >
+            </div>
+            <div>
+              <label for="presensi-email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="presensi-email"
+                placeholder="nama@gmail.com"
+                class="w-full min-touch-target py-3.5 px-4 text-base text-slate-800 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-ukr-blue focus:border-ukr-blue outline-none transition-all placeholder:text-slate-300 placeholder:text-sm"
+              >
+            </div>
+          </div>
         </div>
 
         <!-- TOMBOL KONFIRMASI -->
@@ -190,11 +309,11 @@
             ✓
           </div>
           <div>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-200 text-emerald-900 inline-block mb-1">
+            <span id="res-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-200 text-emerald-900 inline-block mb-1">
               Presensi Sah
             </span>
-            <h3 class="text-lg sm:text-xl font-extrabold text-emerald-950">Kehadiran Berhasil Dikonfirmasi!</h3>
-            <p class="text-xs text-emerald-800">Data Anda telah dicatat ke dalam daftar hadir resmi.</p>
+            <h3 id="res-title" class="text-lg sm:text-xl font-extrabold text-emerald-950">Kehadiran Berhasil Dikonfirmasi!</h3>
+            <p id="res-subtitle" class="text-xs text-emerald-800">Data Anda telah dicatat ke dalam daftar hadir resmi.</p>
           </div>
         </div>
 
@@ -215,7 +334,7 @@
             <span class="text-slate-500 font-medium">Jabatan:</span>
             <span class="font-medium text-slate-700 text-right" id="res-jabatan">-</span>
           </div>
-          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+          <div id="res-nomor-spt-row" class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
             <span class="text-slate-500 font-medium">Nomor SPT:</span>
             <span class="font-mono text-xs font-bold text-ukr-blue text-right" id="res-nomor-spt">-</span>
           </div>
@@ -258,7 +377,7 @@
             <span class="text-slate-500 font-medium">Unit Kerja / OPD:</span>
             <span class="font-bold text-slate-900 text-right" id="already-opd">-</span>
           </div>
-          <div class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
+          <div id="already-nomor-spt-row" class="flex justify-between items-start gap-2 border-b border-slate-100 pb-2">
             <span class="text-slate-500 font-medium">Nomor SPT:</span>
             <span class="font-mono text-xs font-bold text-ukr-blue text-right" id="already-nomor-spt">-</span>
           </div>
@@ -323,8 +442,8 @@
         <span>📋</span> Informasi & Ketentuan Presensi
       </h4>
       <ul class="list-disc list-inside space-y-1 pl-1 text-[11px] sm:text-xs leading-relaxed text-slate-600">
-        <li>Peserta wajib memilih nama kegiatan resmi yang sesuai dengan agenda acara.</li>
-        <li>Sistem akan memverifikasi NIP Anda secara otomatis dengan database SPT resmi.</li>
+        <li id="ketentuan-utama">Peserta wajib memilih nama kegiatan resmi yang sesuai dengan agenda acara.</li>
+        <li id="ketentuan-verifikasi">Sistem akan memverifikasi NIP Anda secara otomatis dengan database SPT resmi.</li>
         <li>Waktu presensi dicatat secara *real-time* dan digunakan sebagai data rekapitulasi kehadiran instansi/OPD.</li>
         <li>Jika menemui kendala teknis, silakan hubungi tim panitia atau admin Bagian Organisasi di meja registrasi.</li>
       </ul>
@@ -343,10 +462,192 @@
   <!-- ==================== CLIENT LOGIC SCRIPT ==================== -->
   <script>
     let activeKegiatanList = [];
+    let masterUnits = [];
+
+    const PANGKAT_PNS = [
+      "Juru Muda / I.a", "Juru Muda Tingkat I / I.b", "Juru / I.c", "Juru Tingkat I / I.d",
+      "Pengatur Muda / II.a", "Pengatur Muda Tingkat I / II.b", "Pengatur / II.c", "Pengatur Tingkat I / II.d",
+      "Penata Muda / III.a", "Penata Muda Tingkat I / III.b", "Penata / III.c", "Penata Tingkat I / III.d",
+      "Pembina / IV.a", "Pembina Tingkat I / IV.b", "Pembina Utama Muda / IV.c",
+      "Pembina Utama Madya / IV.d", "Pembina Utama / IV.e"
+    ];
+    const PANGKAT_PPPK = [
+      "Golongan I", "Golongan II", "Golongan III", "Golongan IV", "Golongan V", "Golongan VI",
+      "Golongan VII", "Golongan VIII", "Golongan IX", "Golongan X", "Golongan XI", "Golongan XII",
+      "Golongan XIII", "Golongan XIV", "Golongan XV", "Golongan XVI", "Golongan XVII"
+    ];
+
+    const COPY_SPT = {
+      hero: "Konfirmasi kehadiran acara kedinasan. Kehadiran diakui jika Anda telah terdaftar pada Surat Perintah Tugas (SPT).",
+      formTitle: "Konfirmasi Kehadiran Peserta",
+      formDesc: "Pilih kegiatan resmi yang diikuti lalu masukkan NIP Anda.",
+      ketentuan: "Peserta wajib memilih nama kegiatan resmi yang sesuai dengan agenda acara.",
+      verifikasi: "Sistem akan memverifikasi NIP Anda secara otomatis dengan database SPT resmi.",
+      submit: "📍 Konfirmasi Hadir Sekarang",
+      loading: "Memverifikasi SPT & Kehadiran..."
+    };
+    const COPY_MANDIRI = {
+      hero: "Konfirmasi kehadiran acara kedinasan. Untuk kegiatan non SPT, cukup lengkapi data yang diminta.",
+      formTitle: "Daftar Hadir Kegiatan Non SPT",
+      formDesc: "Kegiatan ini non SPT, cukup isi data kehadiran Anda di bawah.",
+      ketentuan: "Pilih kegiatan non SPT yang Anda ikuti, lalu lengkapi data kehadiran.",
+      verifikasi: "Tidak ada verifikasi SPT. Kehadiran dicatat berdasarkan data yang Anda isi.",
+      submit: "📍 Catat Kehadiran Saya",
+      loading: "Menyimpan data kehadiran..."
+    };
+
+    function val(id) {
+      const el = document.getElementById(id);
+      return el ? String(el.value || '').trim() : '';
+    }
+
+    function isMandiriKegiatan(keg) {
+      return !!(keg && keg.wajibSpt === false);
+    }
+
+    function getSelectedKegiatan() {
+      const dipilih = val('presensi-kegiatan-select');
+      return activeKegiatanList.find(k => String(k.nama || '').trim() === dipilih) || null;
+    }
+
+    function getPangkatStatus() {
+      const el = document.querySelector('input[name="status_pegawai_presensi"]:checked');
+      return el ? el.value : 'PNS';
+    }
+
+    function renderPangkatOptions() {
+      const select = document.getElementById('presensi-pangkat');
+      if (!select) return;
+      const status = getPangkatStatus();
+      const list = status === 'PPPK' ? PANGKAT_PPPK : PANGKAT_PNS;
+      const sebelumnya = select.value;
+      select.innerHTML = '<option value="">-- Pilih Pangkat / Golongan --</option>';
+      list.forEach(function(angka) {
+        const opt = document.createElement('option');
+        opt.value = angka;
+        opt.textContent = angka.replace(' / ', ' - ');
+        select.appendChild(opt);
+      });
+      if (sebelumnya && list.indexOf(sebelumnya) !== -1) select.value = sebelumnya;
+    }
+
+    // Menyesuaikan teks & field form dengan jenis kegiatan yang dipilih.
+    function applyPresensiMode(keg) {
+      const mandiri = isMandiriKegiatan(keg);
+      const copy = mandiri ? COPY_MANDIRI : COPY_SPT;
+
+      const hero = document.getElementById('presensi-hero-desc');
+      const formTitle = document.getElementById('presensi-form-title');
+      const formDesc = document.getElementById('presensi-form-desc');
+      const ketentuan = document.getElementById('ketentuan-utama');
+      const verifikasi = document.getElementById('ketentuan-verifikasi');
+
+      if (hero) hero.innerText = copy.hero;
+      if (formTitle) formTitle.innerHTML = '<span class="text-xl">📍</span> ' + copy.formTitle;
+      if (formDesc) formDesc.innerText = copy.formDesc;
+      if (ketentuan) ketentuan.innerText = copy.ketentuan;
+      if (verifikasi) verifikasi.innerText = copy.verifikasi;
+
+      const namaField = document.getElementById('field-nama-mandiri');
+      const identitas = document.getElementById('identitas-mandiri');
+      if (namaField) namaField.classList.toggle('hidden', !mandiri);
+      if (identitas) identitas.classList.toggle('hidden', !mandiri);
+
+      ['presensi-nama', 'presensi-pangkat', 'presensi-jabatan', 'presensi-no-hp', 'presensi-email'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.required = mandiri;
+      });
+      const opdSelect = document.getElementById('presensi-opd');
+      const opdManual = document.getElementById('presensi-opd-manual');
+      if (opdSelect) opdSelect.required = mandiri && !opdSelect.classList.contains('hidden');
+      if (opdManual) opdManual.required = mandiri && !opdManual.classList.contains('hidden');
+
+      const btnText = document.getElementById('btn-text');
+      const btn = document.getElementById('btn-confirm-attendance');
+      if (btnText && btn && !btn.disabled) btnText.innerText = copy.submit;
+    }
+
+    async function loadMasterUnits() {
+      try {
+        let res = null;
+        if (window.FirebaseService && typeof window.FirebaseService.getSianjabUnitKerja === 'function') {
+          res = await window.FirebaseService.getSianjabUnitKerja();
+        }
+        const units = Array.isArray(res) ? res : (res && Array.isArray(res.data) ? res.data : []);
+        masterUnits = units.filter(function(u) { return u && u.nama; });
+      } catch (err) {
+        console.error('Gagal memuat master unit kerja:', err);
+        masterUnits = [];
+      }
+      renderOpdOptions();
+    }
+
+    function renderOpdOptions() {
+      const select = document.getElementById('presensi-opd');
+      const manual = document.getElementById('presensi-opd-manual');
+      const note = document.getElementById('presensi-opd-note');
+      if (!select) return;
+
+      select.innerHTML = '';
+      if (masterUnits.length === 0) {
+        select.classList.add('hidden');
+        select.required = false;
+        if (manual) {
+          manual.classList.remove('hidden');
+          manual.required = !document.getElementById('identitas-mandiri').classList.contains('hidden');
+        }
+        if (note) note.classList.remove('hidden');
+        return;
+      }
+
+      select.classList.remove('hidden');
+      if (manual) {
+        manual.classList.add('hidden');
+        manual.required = false;
+      }
+      if (note) note.classList.add('hidden');
+
+      // Unit yang masih punya sub unit (wadah struktural) tidak boleh dipilih langsung.
+      const parentIds = new Set(masterUnits.map(function(u) { return String(u.parentId || '').trim(); }).filter(Boolean));
+      const pilihan = masterUnits.filter(function(u) { return !parentIds.has(String(u.id || '').trim()); });
+      const utama = [];
+      const sub = [];
+      pilihan.forEach(function(u) {
+        if (String(u.parentId || '').trim()) sub.push(u);
+        else utama.push(u);
+      });
+      const sortNama = function(a, b) { return String(a.nama).localeCompare(String(b.nama), 'id'); };
+      utama.sort(sortNama);
+      sub.sort(sortNama);
+
+      const def = document.createElement('option');
+      def.value = '';
+      def.textContent = '-- Pilih Unit Kerja / OPD --';
+      select.appendChild(def);
+
+      const tambahGrup = function(label, list) {
+        if (!list.length) return;
+        const group = document.createElement('optgroup');
+        group.label = label;
+        list.forEach(function(u) {
+          const opt = document.createElement('option');
+          opt.value = String(u.id || u.nama);
+          opt.textContent = u.nama;
+          group.appendChild(opt);
+        });
+        select.appendChild(group);
+      };
+      tambahGrup('Unit Kerja Utama (Dinas / Badan / Kecamatan)', utama);
+      tambahGrup('Sub Unit / Bagian', sub);
+
+      select.required = !document.getElementById('identitas-mandiri').classList.contains('hidden');
+    }
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
       loadKegiatanDropdown();
+      loadMasterUnits();
+      renderPangkatOptions();
       setupUrlParams();
       applyPresensiBranding();
     });
@@ -446,20 +747,24 @@
     }
 
     function handleKegiatanSelectionChange() {
-      const select = document.getElementById('presensi-kegiatan-select');
-      const val = select.value;
       const infoBox = document.getElementById('kegiatan-info-box');
       const infoNama = document.getElementById('kegiatan-info-nama');
       const infoDasar = document.getElementById('kegiatan-info-dasar');
 
-      const found = activeKegiatanList.find(k => k.nama === val);
+      const found = getSelectedKegiatan();
       if (found) {
         infoNama.innerText = found.nama;
-        infoDasar.innerText = found.dasar ? ("Dasar: " + found.dasar) : ("Batas: " + (found.deadline || "Tanpa Batas"));
+        if (isMandiriKegiatan(found)) {
+          infoDasar.innerText = "Kegiatan non SPT — tidak memerlukan Surat Perintah Tugas";
+        } else {
+          infoDasar.innerText = found.dasar ? ("Dasar: " + found.dasar) : ("Batas: " + (found.deadline || "Tanpa Batas"));
+        }
         infoBox.classList.remove('hidden');
       } else {
         infoBox.classList.add('hidden');
       }
+
+      applyPresensiMode(found);
     }
 
     function handleNipInput(input) {
@@ -482,6 +787,8 @@
       const nipInput = document.getElementById('presensi-nip');
       const kegiatan = kegiatanSelect.value.trim();
       const nip = nipInput.value.trim();
+      const keg = getSelectedKegiatan();
+      const isMandiri = isMandiriKegiatan(keg);
 
       if (!kegiatan) {
         alert("Silakan pilih kegiatan terlebih dahulu!");
@@ -495,30 +802,92 @@
         return;
       }
 
-      setLoading(true);
+      let payloadMandiri = null;
+      if (isMandiri) {
+        payloadMandiri = collectMandiriData();
+        const tidakValid = validateMandiriData(payloadMandiri);
+        if (tidakValid) {
+          alert(tidakValid.message);
+          if (tidakValid.element && typeof tidakValid.element.focus === 'function') tidakValid.element.focus();
+          return;
+        }
+        payloadMandiri.kegiatan = kegiatan;
+        payloadMandiri.nip = nip;
+      }
+
+      setLoading(true, isMandiri);
 
       try {
-        let result = null;
-        if (window.FirebaseService && typeof window.FirebaseService.checkAttendance === 'function') {
-          result = await window.FirebaseService.checkAttendance(kegiatan, nip);
-        } else if (window.google && window.google.script && window.google.script.run) {
-          result = await new Promise((resolve, reject) => {
-            google.script.run
-              .withSuccessHandler(resolve)
-              .withFailureHandler(reject)
-              .checkAttendance(kegiatan, nip);
-          });
-        } else {
-          throw new Error("Layanan database tidak tersedia.");
-        }
-
+        const result = isMandiri
+          ? await callFirebaseService('checkAttendanceMandiri', [payloadMandiri])
+          : await callFirebaseService('checkAttendance', [kegiatan, nip]);
         renderResult(result, kegiatan, nip);
       } catch (err) {
         console.error("Presensi error:", err);
         alert("Terjadi kesalahan saat memeriksa kehadiran: " + (err.message || err));
       } finally {
-        setLoading(false);
+        setLoading(false, isMandiri);
       }
+    }
+
+    // Pemanggil seragam untuk FirebaseService maupun proxy google.script.run.
+    async function callFirebaseService(method, args) {
+      if (window.FirebaseService && typeof window.FirebaseService[method] === 'function') {
+        return window.FirebaseService[method].apply(window.FirebaseService, args);
+      }
+      if (window.google && window.google.script && window.google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)[method].apply(null, args);
+        });
+      }
+      throw new Error("Layanan database tidak tersedia.");
+    }
+
+    function collectMandiriData() {
+      const opdSelect = document.getElementById('presensi-opd');
+      const opdManual = document.getElementById('presensi-opd-manual');
+      const pakaiManual = !!(opdManual && !opdManual.classList.contains('hidden'));
+      const nilaiUnit = (!pakaiManual && opdSelect) ? String(opdSelect.value || '').trim() : '';
+      const unit = pakaiManual ? null : masterUnits.find(function(u) {
+        return String(u.id || u.nama) === nilaiUnit;
+      });
+      return {
+        nama: val('presensi-nama'),
+        statusPegawai: getPangkatStatus(),
+        pangkat: val('presensi-pangkat'),
+        opd: pakaiManual ? val('presensi-opd-manual') : (unit ? String(unit.nama) : ''),
+        opdId: unit ? String(unit.id || '') : '',
+        jabatan: val('presensi-jabatan'),
+        noHp: val('presensi-no-hp'),
+        email: val('presensi-email')
+      };
+    }
+
+    function validateMandiriData(data) {
+      const byId = function(id) { return document.getElementById(id); };
+      if (String(data.nama || '').trim().length < 3) {
+        return { message: "Nama lengkap wajib diisi.", element: byId('presensi-nama') };
+      }
+      if (!data.pangkat) {
+        return { message: "Pangkat / golongan wajib dipilih.", element: byId('presensi-pangkat') };
+      }
+      if (!data.opd) {
+        return { message: "Unit kerja / OPD wajib dipilih.", element: data.opdId || !byId('presensi-opd-manual') || byId('presensi-opd-manual').classList.contains('hidden') ? byId('presensi-opd') : byId('presensi-opd-manual') };
+      }
+      if (String(data.jabatan || '').trim().length < 3) {
+        return { message: "Jabatan wajib diisi.", element: byId('presensi-jabatan') };
+      }
+      const hp = String(data.noHp || '').replace(/[^0-9]/g, '');
+      if (hp.length < 10 || hp.length > 15) {
+        return { message: "Nomor HP / WhatsApp tidak valid.", element: byId('presensi-no-hp') };
+      }
+      const email = String(data.email || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { message: "Alamat email tidak valid.", element: byId('presensi-email') };
+      }
+      return null;
     }
 
     function renderResult(res, kegiatan, nip) {
@@ -526,7 +895,6 @@
       const cardSuccess = document.getElementById('card-success');
       const cardAlready = document.getElementById('card-already');
       const cardRejected = document.getElementById('card-rejected');
-      const formCard = document.getElementById('presensi-form-card');
 
       container.classList.remove('hidden');
       cardSuccess.classList.add('hidden');
@@ -535,6 +903,24 @@
 
       if (res && res.success) {
         const d = res.data || {};
+        const mandiri = String(d.jenisKehadiran || '') === 'mandiri';
+
+        // Kegiatan tanpa SPT memakai label daftar hadir, bukan "Presensi Sah".
+        const resBadge = document.getElementById('res-badge');
+        const resTitle = document.getElementById('res-title');
+        const resSubtitle = document.getElementById('res-subtitle');
+        if (resBadge) resBadge.innerText = mandiri ? 'Daftar Hadir Mandiri' : 'Presensi Sah';
+        if (resTitle) resTitle.innerText = mandiri ? 'Kehadiran Anda Tercatat' : 'Kehadiran Berhasil Dikonfirmasi!';
+        if (resSubtitle) {
+          resSubtitle.innerText = mandiri
+            ? 'Data kehadiran Anda tersimpan pada daftar hadir kegiatan ini.'
+            : 'Data Anda telah dicatat ke dalam daftar hadir resmi.';
+        }
+        const resSptRow = document.getElementById('res-nomor-spt-row');
+        const alreadySptRow = document.getElementById('already-nomor-spt-row');
+        if (resSptRow) resSptRow.style.display = mandiri ? 'none' : '';
+        if (alreadySptRow) alreadySptRow.style.display = mandiri ? 'none' : '';
+
         if (res.alreadyCheckedIn) {
           // Kasus 2: Sudah hadir sebelumnya
           document.getElementById('already-nama').innerText = d.nama || '-';
@@ -571,27 +957,43 @@
     function resetPresensiForm() {
       const container = document.getElementById('result-container');
       container.classList.add('hidden');
+
+      ['presensi-nama', 'presensi-jabatan', 'presensi-no-hp', 'presensi-email', 'presensi-opd-manual'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const opdSelect = document.getElementById('presensi-opd');
+      if (opdSelect) opdSelect.value = '';
+      const statusPns = document.querySelector('input[name="status_pegawai_presensi"][value="PNS"]');
+      if (statusPns) statusPns.checked = true;
+      renderPangkatOptions();
+
+      const kegSelect = document.getElementById('presensi-kegiatan-select');
+      if (kegSelect) kegSelect.value = '';
+      handleKegiatanSelectionChange();
+
       const nipInput = document.getElementById('presensi-nip');
       nipInput.value = '';
       handleNipInput(nipInput);
       nipInput.focus();
     }
 
-    function setLoading(isLoading) {
+    function setLoading(isLoading, isMandiri) {
       const btn = document.getElementById('btn-confirm-attendance');
       const spinner = document.getElementById('btn-spinner');
       const text = document.getElementById('btn-text');
+      const copy = isMandiri ? COPY_MANDIRI : COPY_SPT;
 
       if (isLoading) {
         btn.disabled = true;
         btn.classList.add('opacity-75', 'cursor-wait');
         spinner.classList.remove('hidden');
-        text.innerText = "Memverifikasi SPT & Kehadiran...";
+        text.innerText = copy.loading;
       } else {
         btn.disabled = false;
         btn.classList.remove('opacity-75', 'cursor-wait');
         spinner.classList.add('hidden');
-        text.innerText = "📍 Konfirmasi Hadir Sekarang";
+        text.innerText = copy.submit;
       }
     }
   </script>
@@ -659,6 +1061,7 @@
                 nama: "SPT Rekon TPP dan SIMONA", 
                 integrasi: "SITPP", 
                 status: "Aktif", 
+                wajibSpt: true,
                 deadline: "6 Februari 2026", 
                 dasar: "Surat Sekretariat Daerah Nomor : 060/   /Org tanggal   2026 perihal SPT Rekon TPP dan SIMONA",
                 autoNomor: true,
@@ -679,6 +1082,7 @@
               nama: d.nama,
               integrasi: d.integrasi || "None",
               status: d.status || "Aktif",
+              wajibSpt: d.wajibSpt !== false,
               deadline: d.deadline || "Tanpa Batas",
               dasar: d.dasar || "",
               autoNomor: d.autoNomor !== false,
@@ -709,6 +1113,7 @@
           nama: item.nama,
           integrasi: item.integrasi || "None",
           status: item.status || "Aktif",
+          wajibSpt: item.wajibSpt !== false,
           deadline: item.deadline || "Tanpa Batas",
           dasar: item.dasar || "",
           autoNomor: item.autoNomor !== false,
@@ -1781,6 +2186,47 @@
         }
       },
 
+      // Perbaikan unit kerja yang salah input pada submisi.
+      // Hanya dua field unit yang diubah; data presensi yang tertaut ikut disinkronkan.
+      async updateSubmissionUnit(docId, unitKerja, unitKerjaId) {
+        const targetDocId = String(docId || '').trim();
+        const newUnit = String(unitKerja || '').trim();
+        const newUnitId = String(unitKerjaId || '').trim();
+
+        if (!targetDocId) {
+          throw new Error('ID dokumen submisi tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+        }
+        if (!newUnit) {
+          throw new Error('Unit kerja baru wajib dipilih.');
+        }
+
+        await db.collection('submissions').doc(targetDocId).update({
+          unitKerja: newUnit,
+          unitKerjaId: newUnitId
+        });
+
+        let presensiUpdated = 0;
+        let presensiWarning = '';
+        try {
+          const presensiSnap = await db.collection('presensi_kegiatan')
+            .where('submissionId', '==', targetDocId)
+            .get();
+          if (!presensiSnap.empty) {
+            const batch = db.batch();
+            presensiSnap.forEach(doc => {
+              batch.update(doc.ref, { opd: newUnit, opdId: newUnitId });
+            });
+            await batch.commit();
+            presensiUpdated = presensiSnap.size;
+          }
+        } catch (presensiErr) {
+          console.warn('[Firebase] Unit submisi tersimpan, tetapi presensi tertaut gagal diperbarui:', presensiErr);
+          presensiWarning = 'Data presensi tertaut belum ikut diperbarui. Periksa izin Firestore lalu coba lagi.';
+        }
+
+        return { success: true, presensiUpdated: presensiUpdated, presensiWarning: presensiWarning };
+      },
+
       async deleteSubmission(rowIndexOrId, docId) {
         let targetDocId = null;
 
@@ -2171,6 +2617,7 @@
             statusPegawai: matchedSub.statusPegawai || "",
             submissionId: matchedSub.id,
             nomorSpt: matchedSub.nomorSpt || matchedSub.nomor_spt || "-",
+            statusKehadiran: "sah",
             waktuCheckIn: formatIndoDateTime(new Date()),
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
@@ -2187,6 +2634,74 @@
           };
         } catch(err) {
           console.error("Firebase checkAttendance error:", err);
+          return { success: false, reason: "ERROR", message: err.message || err.toString() };
+        }
+      },
+
+      // Presensi mandiri untuk kegiatan non SPT (tanpa prasyarat SPT).
+      // Data diisi sendiri oleh peserta, sehingga tidak ada pembacaan ke koleksi submissions.
+      async checkAttendanceMandiri(data) {
+        try {
+          const payload = data || {};
+          const cleanKegiatan = String(payload.kegiatan || '').trim();
+          const cleanNip = String(payload.nip || '').replace(/[^0-9]/g, '');
+          const nama = String(payload.nama || '').trim();
+          const opd = String(payload.opd || '').trim();
+          const jabatan = String(payload.jabatan || '').trim();
+
+          if (!cleanKegiatan || !nama || !opd || !jabatan || cleanNip.length !== 18) {
+            return {
+              success: false,
+              reason: "INVALID_INPUT",
+              message: "Data kehadiran belum lengkap atau NIP bukan 18 digit."
+            };
+          }
+
+          const presensiId = encodeURIComponent(cleanKegiatan).replace(/%/g, '_') + "_" + cleanNip;
+          const presensiRef = db.collection('presensi_kegiatan').doc(presensiId);
+          const presensiSnap = await presensiRef.get();
+
+          if (presensiSnap.exists) {
+            return {
+              success: true,
+              alreadyCheckedIn: true,
+              data: presensiSnap.data(),
+              message: "Peserta sudah tercatat hadir sebelumnya."
+            };
+          }
+
+          const newPresensi = {
+            id: presensiId,
+            kegiatan: cleanKegiatan,
+            jenisKehadiran: "mandiri",
+            nip: cleanNip,
+            nama: nama,
+            opd: opd,
+            opdId: String(payload.opdId || "").trim(),
+            jabatan: jabatan,
+            pangkat: String(payload.pangkat || "").trim(),
+            statusPegawai: String(payload.statusPegawai || "").trim(),
+            noHp: String(payload.noHp || "").trim(),
+            email: String(payload.email || "").trim(),
+            submissionId: null,
+            nomorSpt: "-",
+            statusKehadiran: "sah",
+            waktuCheckIn: formatIndoDateTime(new Date()),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+            source: "web_presensi_mandiri"
+          };
+
+          await presensiRef.set(newPresensi);
+
+          return {
+            success: true,
+            alreadyCheckedIn: false,
+            data: newPresensi,
+            message: "Kehadiran berhasil dicatat."
+          };
+        } catch(err) {
+          console.error("Firebase checkAttendanceMandiri error:", err);
           return { success: false, reason: "ERROR", message: err.message || err.toString() };
         }
       },
@@ -2218,6 +2733,30 @@
         } catch(err) {
           console.error("Firebase deleteAttendance error:", err);
           return { success: false, error: err.toString() };
+        }
+      },
+
+      // Koreksi/pembatalan catatan kehadiran. Dokumen tidak dihapus agar jejak tetap ada.
+      async updateAttendance(id, changes) {
+        try {
+          if (!id) return { success: false, message: "ID kehadiran tidak valid." };
+          const data = changes || {};
+          const patch = {
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          ["nama", "pangkat", "jabatan", "opd", "opdId", "noHp", "email"].forEach(function(field) {
+            if (data[field] !== undefined && data[field] !== null) {
+              patch[field] = String(data[field]).trim();
+            }
+          });
+          if (data.statusKehadiran === "sah" || data.statusKehadiran === "dibatalkan") {
+            patch.statusKehadiran = data.statusKehadiran;
+          }
+          await db.collection('presensi_kegiatan').doc(id).update(patch);
+          return { success: true };
+        } catch(err) {
+          console.error("Firebase updateAttendance error:", err);
+          return { success: false, message: err.message || err.toString() };
         }
       }
     };

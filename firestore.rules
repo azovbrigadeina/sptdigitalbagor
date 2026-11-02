@@ -1,15 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Koleksi presensi: Publik boleh membaca dan check-in baru, dilarang update & delete (Spec 3.2)
+    // Koleksi presensi: Publik boleh membaca dan check-in baru.
+    // Update hanya diizinkan untuk koreksi unit kerja oleh admin, tanpa mengubah data lain.
+    // Pembatalan/koreksi oleh admin memakai update pada field terbatas, bukan delete,
+    // supaya jejak kehadiran tetap tersimpan untuk audit.
     match /presensi_kegiatan/{presensiId} {
       allow read, create: if true;
-      allow update, delete: if false;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['opd', 'opdId', 'nama', 'pangkat', 'jabatan', 'noHp', 'email', 'statusKehadiran', 'updatedAt'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['statusKehadiran'])
+            || request.resource.data.statusKehadiran in ['sah', 'dibatalkan'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['opd', 'opdId'])
+            || (request.resource.data.opd is string && request.resource.data.opdId is string));
+      allow delete: if false;
     }
 
-    // Koleksi submissions SPT
+    // Koleksi submissions SPT.
+    // Update hanya diizinkan untuk koreksi unit kerja, tanpa mengubah data lain.
     match /submissions/{subId} {
       allow read, create, delete: if true;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unitKerja', 'unitKerjaId'])
+        && request.resource.data.unitKerja is string
+        && request.resource.data.unitKerjaId is string;
     }
 
     // Koleksi konfigurasi kegiatan, OPD, dan template aktif
